@@ -361,4 +361,23 @@ ul.dir {
 }
     </style>
   </xsl:template>
+  <!-- sample input for this transformation -->
+  <xsl:template name="xsl:input">
+    <?xml-stylesheet  type="text/xsl" href="explorer.xsl"?>
+    <!-- used by the transformation upper to link html generated to the script -->
+    <?js explorer.js?>
+    <!-- 
+used by the transformation upper to link html generated css
+links to icons are in the css and should be correct from there.
+    -->
+    <?css explorer.css?>
+    <collection 
+       generated="2004-11-22T13:31:04" 
+       directory="/explorer" 
+       name="explorer" 
+       href="" 
+       modified="2004-11-22T12:53:20">
+       
+       </collection>   
+  </xsl:template>
 </xsl:transform>

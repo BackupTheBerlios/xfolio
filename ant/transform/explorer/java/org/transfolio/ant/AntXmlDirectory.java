@@ -33,7 +33,7 @@ import org.apache.tools.ant.taskdefs.MatchingTask;
 
 /**
  @author frederic.glorieux@xfolio.org
- @version CVS $Id: AntXmlDirectory.java,v 1.1 2004/11/22 13:09:01 glorieux Exp $
+ @version CVS $Id: AntXmlDirectory.java,v 1.1 2004/11/22 13:27:39 glorieux Exp $
 
  = What =
 
