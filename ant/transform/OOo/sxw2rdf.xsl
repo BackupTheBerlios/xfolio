@@ -51,13 +51,14 @@ http://www.w3.org/TR/xhtml2/abstraction.html#dt_MediaDesc
   <xsl:import href="../xfolio/naming.xsl"/>
   <xsl:import href="oo2html.xsl"/>
 -->
+  <!-- naming util on filenames -->
   <xsl:import href="naming.xsl"/>
   <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
+  <!-- maydo, get an RDF template for absent properties -->
+  <xsl:param name="template.rdf"/>
   <xsl:variable name="office:meta" select=".//office:meta"/>
   <xsl:variable name="office:automatic-styles" select=".//office:automatic-styles"/>
   <xsl:variable name="office:body" select=".//office:body"/>
-  <!-- maydo, get an RDF template for absent properties -->
-  <xsl:param name="template.rdf"/>
   <xsl:variable name="template"/>
   <!-- used to resolve links for images (?) -->
   <!-- identifier for doc in all formats -->
@@ -109,7 +110,11 @@ These variables are used to normalize style names of styles
 
 -->
   <xsl:template match="/">
+    <xsl:call-template name="rdf"/>
+  </xsl:template>
+  <xsl:template name="rdf">
     <rdf:RDF>
+      <!-- TODO @about -->
       <rdf:Description>
         <xsl:call-template name="dc:properties"/>
       </rdf:Description>
@@ -125,11 +130,12 @@ Properties are ordered in this template
   <xsl:template name="dc:properties">
     <!-- process properties from meta form (office:meta) more significant than in doc -->
     <!-- first title, get the one one from meta (to be a short title) -->
-    <xsl:apply-templates select="$office:meta/dc:title"/>
-    <xsl:apply-templates select="$office:meta/dc:subject"/>
-    <xsl:apply-templates select="$office:meta/meta:keywords"/>
+    <xsl:apply-templates select="$office:meta/dc:title"  mode="dc"/>
+    <xsl:apply-templates select="$office:meta/dc:subject" mode="dc"/>
+    <xsl:apply-templates select="$office:meta/meta:keywords" mode="dc"/>
+    <xsl:apply-templates select="$office:meta/meta:user-defined" mode="dc"/>
     <!-- dc:description, more than one is not a problem -->
-    <xsl:apply-templates select="$office:meta/dc:description"/>
+    <xsl:apply-templates select="$office:meta/dc:description" mode="dc"/>
     <!-- process body blocks before the first title -->
     <xsl:variable name="next" select="$office:body/text:h[1]"/>
     <xsl:choose>
@@ -144,12 +150,15 @@ $office:body/*[generate-id(following-sibling::text:h[1]) = generate-id($next)]
 "/>
       </xsl:otherwise>
     </xsl:choose>
+    <dc:description xsi:type="text:table-of-content">
+      <xsl:apply-templates select="$office:body//text:h" mode="text"/>
+    </dc:description>
     <!-- relations -->
     <xsl:apply-templates select="$office:body//text:bibliography-mark" mode="dc"/>
     <xsl:apply-templates select="$office:body//draw:image" mode="dc"/>
     <!-- dates -->
-    <xsl:apply-templates select="$office:meta/dc:date"/>
-    <xsl:apply-templates select="$office:meta/meta:creation-date"/>
+    <xsl:apply-templates select="$office:meta/dc:date" mode="dc"/>
+    <xsl:apply-templates select="$office:meta/meta:creation-date" mode="dc"/>
     <!-- server give an identifier for the doc, common to each lang and format -->
     <xsl:if test="$identifier">
       <dc:identifier>
@@ -160,10 +169,7 @@ $office:body/*[generate-id(following-sibling::text:h[1]) = generate-id($next)]
     <!-- mime/type  -->
     <dc:format xsi:type="dcterms:IMT">application/vnd.sun.xml.writer</dc:format>
     <!-- format as size -->
-    <xsl:apply-templates select="meta:document-statistic"/>
-    <!-- links for images -->
-    <xsl:for-each select="//draw:image">
-    </xsl:for-each>
+    <xsl:apply-templates select="meta:document-statistic" mode="dc"/>
     <!-- copyright -->
     <!--
       <dc:rights>
@@ -178,54 +184,65 @@ Properties from meta.xml
 
 -->
   <!-- title from meta form, to use as short title -->
-  <xsl:template match="dc:title">
+  <xsl:template match="dc:title" mode="dc">
     <dc:title xsi:type="meta:title">
       <xsl:call-template name="lang"/>
       <xsl:apply-templates/>
     </dc:title>
   </xsl:template>
   <!-- main subject to index -->
-  <xsl:template match="dc:subject">
+  <xsl:template match="dc:subject" mode="dc">
     <dc:subject xsi:type="meta:subject">
       <xsl:call-template name="lang"/>
       <xsl:apply-templates/>
     </dc:subject>
   </xsl:template>
   <!-- treat comma separated subjects as different topics -->
-  <xsl:template match="meta:keywords">
-    <xsl:apply-templates/>
+  <xsl:template match="meta:keywords" mode="dc">
+    <xsl:apply-templates mode="dc"/>
   </xsl:template>
-  <xsl:template match="meta:keyword">
+  <xsl:template match="meta:keyword" mode="dc">
     <dc:subject xsi:type="meta:keyword">
       <xsl:call-template name="lang"/>
       <xsl:apply-templates/>
     </dc:subject>
   </xsl:template>
   <!-- description from meta form -->
-  <xsl:template match="dc:description">
+  <xsl:template match="dc:description" mode="dc">
     <dc:description xsi:type="meta:description">
       <xsl:call-template name="lang"/>
       <xsl:apply-templates/>
     </dc:description>
   </xsl:template>
   <!-- dates -->
-  <xsl:template match="meta:creation-date | dc:date">
+  <xsl:template match="meta:creation-date | dc:date"  mode="dc">
     <dc:date xsi:type="meta:{local-name()}">
       <xsl:call-template name="lang"/>
       <xsl:value-of select="substring-before(.,'T')"/>
     </dc:date>
   </xsl:template>
   <!-- meta user defined when not empty -->
-  <xsl:template match="meta:user-defined">
-    <xsl:if test="normalize-space(.)!=''">
-      <meta name="{@meta:name}" content="{.}"/>
-    </xsl:if>
+  <xsl:template match="meta:user-defined[normalize-space(.)='']"  mode="dc"/>
+  <xsl:template match="meta:user-defined[not(contains(@meta:name, 'Info'))]"  mode="dc">
+  
+    <xsl:element name="{translate(@meta:name, $majs, $mins)}">
+      <xsl:value-of select="."/>
+    </xsl:element>
+  </xsl:template>
+  <xsl:template match="meta:user-defined"  mode="dc">
+    <xsl:choose>
+      <xsl:when test="starts-with(., 'location:')">
+        <dc:coverage xsi:type="gns:ufi">
+          <xsl:value-of select="substring-after(., 'location:')"/>
+        </dc:coverage>
+      </xsl:when>
+    </xsl:choose>
   </xsl:template>
   <!-- do something with that ? -->
-  <xsl:template match="meta:editing-cycles"/>
-  <xsl:template match="meta:editing-duration"/>
+  <xsl:template match="meta:editing-cycles" mode="dc"/>
+  <xsl:template match="meta:editing-duration" mode="dc"/>
   <!-- Creators from automatic metas may not express author will -->
-  <xsl:template match="meta:initial-creator">
+  <xsl:template match="meta:initial-creator" mode="dc">
     <xsl:comment> This value maybe not desired from the author </xsl:comment>
     <dc:creator xsi:type="meta:creator">
       <xsl:call-template name="lang"/>
@@ -332,12 +349,27 @@ Process document to extract DC properties
       <xsl:value-of select="$link"/>
     </dc:relation>
   </xsl:template>
-  <!-- links -->
-  <!-- 
-bibliography 
-
-TODO some processing of biblio may be useful elsewhere
--->
+  <!-- index marks ??? -->
+  <!--
+  <xsl:template match="text:user-index-mark">
+    <dc:subject xsi:type="index:{@text:index-name}">
+      <xsl:value-of select="@text:string-value"/>
+    </dc:subject>
+  </xsl:template>
+  <xsl:template match="text:alphabetical-index-mark">
+    <dc:subject xsi:type="text:index">
+      <xsl:value-of select="@text:string-value"/>
+    </dc:subject>
+  </xsl:template>
+  <xsl:template match="text:alphabetical-index-mark-start">
+    <dc:subject xsi:type="text:index">
+      <xsl:value-of select="@text:string-value"/>
+    </dc:subject>
+  </xsl:template>
+  -->
+  <!-- links TODO ! -->
+  
+  <!--  bibliography  -->
   <xsl:template match="text:bibliography-mark" mode="dc">
     <dc:source xsi:type="text:bibliography-mark">
       <xsl:apply-templates select="@*" mode="att"/>
@@ -516,6 +548,66 @@ From a param provide by server of other supported export formats,
 Formatting of values
 
        ============================== -->
+  <xsl:template match="text:h" mode="text">
+    <xsl:text>
+</xsl:text>
+    <xsl:value-of select="substring('                         ', 1, number(@text:level) * 2)"/>
+    <xsl:variable name="number">
+      <xsl:apply-templates select="." mode="number"/>
+    </xsl:variable>
+    <xsl:value-of select="$number"/>
+    <xsl:text>. </xsl:text>
+    <xsl:value-of select="."/>
+  </xsl:template>
+    <!-- get title number for anchor and links 
+recursive numbering
+-->
+  <xsl:template match="text:h" name="count-h" mode="number">
+    <xsl:param name="level" select="1"/>
+    <xsl:param name="number"/>
+    <!--
+Really tricky to find the good counter with no hierarchy.
+count all brothers 
+
+  $start    ) try to get the parent title (if not you are at level 1)
+  $position ) find a property easy to compare from outside, count of brothers before (position)
+  $count    ) count brother title before to same level, but after start
+-->
+    <xsl:variable name="start" select="
+    
+preceding-sibling::text:h[@text:level=($level - 1)][normalize-space(.)!=''][1]
+"/>
+    <xsl:variable name="position" select="count($start/preceding-sibling::*)+1"/>
+    <xsl:variable name="count">
+      <xsl:choose>
+        <xsl:when test="$start">
+          <xsl:value-of select="count(preceding-sibling::text:h[normalize-space(.)!=''][@text:level=$level and count(preceding-sibling::*) +1 &gt;$position])
+    "/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="count(preceding-sibling::text:h[@text:level=$level][normalize-space(.)!=''])
+    "/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:choose>
+      <xsl:when test="@text:level = $level">
+        <xsl:value-of select="$count + 1"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:variable name="parent" select="preceding-sibling::text:h[@text:level = $level][normalize-space(.)!=''][1]"/>
+        <a tabindex="-1" href="#{$number}{$count}" title="{$parent}">
+          <xsl:value-of select="$count"/>
+        </a>
+        <xsl:text>.</xsl:text>
+        <xsl:call-template name="count-h">
+          <xsl:with-param name="level" select="$level+1"/>
+          <xsl:with-param name="number" select="concat($number, $count, '.')"/>
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <!-- call this from an element you presume to contain a persname value -->
   <xsl:template name="persname">
     <!-- copy the first link in creator -->
@@ -552,10 +644,12 @@ Formatting of values
   <!-- link to text -->
   <xsl:template match="text:a" mode="text">
     <xsl:text>"</xsl:text>
+    <xsl:apply-templates mode="text"/>
     <xsl:text>" &lt;</xsl:text>
-    <xsl:apply-templates select="xlink:href" mode="text"/>
+    <xsl:apply-templates select="@xlink:href" mode="text"/>
     <xsl:text>&gt;</xsl:text>
   </xsl:template>
+  <!-- some link rewriting, should do better -->
   <xsl:template match="@xlink:href" mode="text">
     <xsl:choose>
       <xsl:when test="starts-with(., 'mailto:') and contains(., '?')">
@@ -567,8 +661,6 @@ Formatting of values
     </xsl:choose>
   </xsl:template>
   <!--
-FG: 2004-06-10
-
 A centralized template to add @xml:lang attribute
 -->
   <xsl:template name="lang">
