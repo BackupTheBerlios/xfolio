@@ -33,7 +33,8 @@ the $props of inline template have strange behavior
 
 =	TODO =
 
-tables, links
+tables, links, preformating, title bar
+center ?
 
 = references =
 
@@ -58,6 +59,12 @@ These variables are used to normalize names of styles
 -->
   <xsl:variable name="majs" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöùúûüýÿþ .()/\?'"/>
   <xsl:variable name="mins" select="'abcdefghijklmnopqrstuvwxyzaaaaaaaeeeeiiiidnooooouuuuybbaaaaaaaceeeeiiiionooooouuuuyyb------'"/>
+  <!-- MAYDO -->
+  <xsl:variable name="hr1">=======</xsl:variable>
+  <xsl:variable name="hr2">-=-=-=-=-=</xsl:variable>
+  <xsl:variable name="hr3">-------</xsl:variable>
+  <xsl:variable name="hr4">~~~~~~</xsl:variable>
+  <xsl:variable name="hr5">++++++</xsl:variable>
   <!--
 
   root template for an oo the document
@@ -799,7 +806,7 @@ a text word wrap
     <xsl:param name="i" select="$size"/>
     <xsl:choose>
       <!-- last line -->
-      <xsl:when test="string-length(normalize-space($text)) &lt;= $size">
+      <xsl:when test="string-length($text) &lt;= $size">
         <xsl:choose>
           <xsl:when test="number($first-line)">
             <xsl:value-of select="substring('                         ', 1, $first-line)"/>
@@ -808,7 +815,7 @@ a text word wrap
             <xsl:value-of select="substring('                         ', 1, $indent)"/>
           </xsl:when>
         </xsl:choose>
-        <xsl:value-of select="normalize-space($text)"/>
+        <xsl:value-of select="$text"/>
         <xsl:value-of select="$CR"/>
       </xsl:when>
       <!-- keep break lines ? -->
@@ -822,19 +829,19 @@ a text word wrap
       </xsl:when>
 -->
       <!-- a long non breaking line, cut after -->
-      <xsl:when test="not(contains(substring(normalize-space($text), 1, $i), ' '))">
+      <xsl:when test="not(contains(substring($text, 1, $i), ' '))">
         <xsl:call-template name="wrap">
           <xsl:with-param name="i" select="$i+1"/>
-          <xsl:with-param name="text" select="normalize-space($text)"/>
+          <xsl:with-param name="text" select="$text"/>
           <xsl:with-param name="indent" select="$indent"/>
           <xsl:with-param name="first-line" select="$first-line"/>
         </xsl:call-template>
       </xsl:when>
       <!-- not on the break space, cut before -->
-      <xsl:when test="substring(normalize-space($text), $i, 1) != ' '">
+      <xsl:when test="substring($text, $i, 1) != ' '">
         <xsl:call-template name="wrap">
           <xsl:with-param name="i" select="$i - 1"/>
-          <xsl:with-param name="text" select="normalize-space($text)"/>
+          <xsl:with-param name="text" select="$text"/>
           <xsl:with-param name="indent" select="$indent"/>
           <xsl:with-param name="first-line" select="$first-line"/>
         </xsl:call-template>
@@ -849,10 +856,10 @@ a text word wrap
             <xsl:value-of select="substring('                         ', 1, $indent)"/>
           </xsl:when>
         </xsl:choose>
-        <xsl:value-of select="substring(normalize-space($text), 1, $i)"/>
+        <xsl:value-of select="substring($text, 1, $i)"/>
         <xsl:value-of select="$CR"/>
         <xsl:call-template name="wrap">
-          <xsl:with-param name="text" select="substring(normalize-space($text), $i+1)"/>
+          <xsl:with-param name="text" select="substring($text, $i+1)"/>
           <xsl:with-param name="indent" select="$indent"/>
         </xsl:call-template>
       </xsl:when>
