@@ -51,6 +51,9 @@ li.gif {
 li.png {
   list-style:none inside  url('icons/image.gif') ;
 }
+li.ico {
+  list-style:none inside  url('icons/image.gif') ;
+}
 li.xsl {
   list-style:none inside  url('icons/script.gif') ;
 }

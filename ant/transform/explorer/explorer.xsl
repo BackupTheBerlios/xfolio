@@ -37,12 +37,6 @@ perhaps no more useful, because of a good initial generation (take first !)
   <xsl:param name="welcome" select="'index'"/>
   <!-- extension on which build links -->
   <xsl:param name="extension" select="'xhtml'"/>
-  <!-- 
-the theme directory where to find some rendering resources
-especially a css for icons, and js script.
- -->
-  <xsl:param name="js" select="'explorer.js'"/>
-  <xsl:param name="css" select="'explorer.css'"/>
   <!-- target frame for links -->
   <xsl:param name="target" select="'file'"/>
   <!-- TODO mode param -->
@@ -67,6 +61,7 @@ Root template
 -->
   <xsl:template match="/">
     <html>
+      <!-- resolve links for css and js -->
       <xsl:call-template name="head"/>
       <body 
  onload="if (window.explorerInit) explorerInit()">
@@ -154,6 +149,12 @@ maybe problems with directories called index ?
   <xsl:template name="toc-link">
     <!-- given by caller if this item should be active -->
     <xsl:param name="id"/>
+    <!-- home is first files of root collection with same radical -->
+    <xsl:variable name="home" select="
+generate-id(ancestor::collection[1])=      
+generate-id (ancestor::collection[position()=last()])
+and @radical = ancestor::collection[position()=last()]/resource[1]/@radical
+"/>
     <li>
       <xsl:choose>
         <xsl:when test="$id">
@@ -163,8 +164,8 @@ maybe problems with directories called index ?
           </xsl:attribute>
           <xsl:attribute name="onclick">if (window.expand) expand(this);</xsl:attribute>
         </xsl:when>
-        <!-- TODO better matching of home -->
-        <xsl:when test="not(preceding::resource)">
+        <!-- TODO ? xsl:when test="name() = 'collection'" -->
+        <xsl:when test="$home">
           <xsl:attribute name="class">home</xsl:attribute>
         </xsl:when>
         <xsl:otherwise>
@@ -179,11 +180,16 @@ maybe problems with directories called index ?
       <xsl:attribute name="onkeydown">if (window.tocKeyDown) return tocKeyDown(event, this);</xsl:attribute>
       <xsl:attribute name="onmouseover">this.focus()</xsl:attribute>
     -->
-      <xsl:if test="$target">
-        <xsl:attribute name="target">
-          <xsl:value-of select="$target"/>
-        </xsl:attribute>
-      </xsl:if>
+      <xsl:choose>
+        <xsl:when test="$home">
+          <xsl:attribute name="target">_top</xsl:attribute>
+        </xsl:when>
+        <xsl:when test="$target">
+          <xsl:attribute name="target">
+            <xsl:value-of select="$target"/>
+          </xsl:attribute>
+        </xsl:when>
+      </xsl:choose>
       <xsl:attribute name="href">
         <xsl:call-template name="href-explorer"/>
       </xsl:attribute>
@@ -206,26 +212,27 @@ with a target file, in the best lang according to the one requested
     </xsl:variable>
     <xsl:variable name="first-radical" select="resource[1]/@radical"/>
     <xsl:choose>
-      <!-- no welcome file, write a link on directory name, and pray for an auto  -->
-      <xsl:when test="not(resource[@radical = $welcome])">
-        <xsl:apply-templates select="*[@radical = $first-radical]">
-          <xsl:with-param name="id" select="$id"/>
-        </xsl:apply-templates>
-        <ul class="explorer" id="{$id}-">
-          <!-- in case of error to not let an empty tag (considered open by brother) -->
-          <xsl:comment> - </xsl:comment>
-          <xsl:apply-templates select="*[not(@radical) or @radical != $first-radical]"/>
-        </ul>
-      </xsl:when>
-      <!-- different things and a welcome file to get a title -->
-      <xsl:otherwise>
+      <!-- there's a welcome file, use it as name and link for collection -->
+      <xsl:when test="resource[@radical = $welcome]">
         <xsl:apply-templates select="*[@radical = $welcome]">
           <xsl:with-param name="id" select="$id"/>
         </xsl:apply-templates>
+        <xsl:if test="*[not(@radical) or @radical != $welcome]">
+          <ul class="explorer" id="{$id}-">
+            <xsl:apply-templates select="*[not(@radical) or @radical != $welcome]"/>
+          </ul>
+        </xsl:if>
+      </xsl:when>
+      <!-- different things and a welcome file to get a title -->
+      <xsl:otherwise>
+        <!-- write a link item with an id to open/close -->
+        <xsl:call-template name="toc-link">
+          <xsl:with-param name="id" select="$id"/>
+        </xsl:call-template>
         <ul class="explorer" id="{$id}-">
           <!-- in case of error to not let an empty tag (considered open by brother) -->
           <xsl:comment> - </xsl:comment>
-          <xsl:apply-templates select="*[not(@radical) or @radical != $welcome]"/>
+          <xsl:apply-templates select="*"/>
         </ul>
       </xsl:otherwise>
     </xsl:choose>
@@ -245,7 +252,8 @@ Input should be not too badly ordered, especially for extensions
     <xsl:choose>
       <!-- NO : lang requested, a brother have it, but not this one -->
       <xsl:when test="
-normalize-space($lang) != '' and not(contains(@xml:lang, $lang))
+normalize-space($lang) != '' 
+and not(contains(@xml:lang, $lang))
 and ../resource[@radical= current()/@radical]
                [generate-id() != generate-id(current())]
                [contains(@xml:lang, $lang)]
@@ -265,10 +273,15 @@ not (contains($transformable, concat(' ', current()/@extension, ' '))) and
            [generate-id() != generate-id(current())]
            [contains($transformable, concat(' ', @extension, ' ') )]
 "/>
-      <!-- NO : no lang is requested, a brother with another language have already been outputed -->
+      <!--  
+* no lang is requested 
+* text format
+* preceding-sibling probably already outputed
+ -->
       <xsl:when test="
-normalize-space($lang)='' and      
-preceding-sibling::resource[@radical=current()/@radical]
+normalize-space($lang)='' 
+and preceding-sibling::resource[@radical=current()/@radical]
+and contains($transformable, concat(' ', @extension, ' ') )
       "/>
       <xsl:otherwise>
         <xsl:call-template name="toc-link">

@@ -15,7 +15,7 @@ TODO, find a way to put this in frame
 function explorerInit() {
   
   if (!document.getElementById) return false; 
-  var dir=document.getElementById("dir");
+  var dir=document.getElementById("explorer");
   if (!dir) return false;
   
   dir.links=dir.getElementsByTagName('A');
@@ -23,11 +23,20 @@ function explorerInit() {
   var i=0;
   // set index of 
   while(dir.links[i]) {
+    // focus on the second link (first supposed to be the root)
+    if (i == 1) dir.links[i].focus();
     dir.links[i].index=i;
     dir.links[i].onkeydown=explorerKeyDown;
     dir.links[i].onmouseover=explorerMouseOver;
     dir.links[i].onclick=explorerLinkClick;
     i++;
+  }
+  if (!dir.childNodes) return false;
+  // close first level folders
+  for (var i=0; i<dir.childNodes.length ; i++) {
+    li=dir.childNodes[i];
+    // probably open, expand will close it
+    if (li.onclick) expand(li);
   }
 }
 
@@ -48,6 +57,11 @@ function expand(button, action) {
   else if (action == "close") o.style.display="none";
   else o.style.display=(o.style.display == 'none')?'':'none';
   if(button.className) button.className=action;
+  // give focus to link
+  var links=button.getElementsByTagName('A');
+  if(links.length == 0) links=button.getElementsByTagName('a');
+  if(links[0] && links[0].focus) links[0].focus();
+  
   // in case of IE 
   if (document.all ) event.cancelBubble = true;
   return false;
@@ -91,7 +105,7 @@ function explorerKeyDown(e, o) {
   if(!o) o=this;
   key=getKey(e);
   if (!document.getElementById) return false; 
-  var dir=document.getElementById("dir");
+  var dir=document.getElementById("explorer");
   if (!dir || !dir.links) return false;
   // previous
   if (key==38) {
