@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://apache.org/cocoon/sitemap/1.0" xmlns:map="http://apache.org/cocoon/sitemap/1.0">
+  <xs:import schemaLocation="sitemap.xsd"/>
+  <xs:element name="sitemap">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="map:components"/>
+        <xs:element ref="map:views"/>
+        <xs:element ref="map:resources"/>
+        <xs:element ref="map:action-sets"/>
+        <xs:element ref="map:flow"/>
+        <xs:element ref="map:pipelines"/>
+      </xs:choice>
+      <xs:attributeGroup ref="map.sitemap.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="components">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="map:generators"/>
+        <xs:element ref="map:transformers"/>
+        <xs:element ref="map:readers"/>
+        <xs:element ref="map:serializers"/>
+        <xs:element ref="map:matchers"/>
+        <xs:element ref="map:selectors"/>
+        <xs:element ref="map:actions"/>
+        <xs:element ref="map:flow-interpreters"/>
+        <xs:element ref="map:pipes"/>
+      </xs:choice>
+      <xs:attributeGroup ref="map.components.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="generators">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:generator"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.generators.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="generator">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:group ref="htmlGenerator.contents"/>
+        <xs:group minOccurs="0" maxOccurs="unbounded" ref="parameter"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.generator.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="transformers">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:transformer"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.transformers.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="transformer">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:choice>
+          <xs:element ref="use-request-parameters"/>
+          <xs:element ref="use-cookies"/>
+          <xs:element ref="use-browser-capabilities-db"/>
+          <xs:element ref="use-session-info"/>
+          <xs:element ref="use-deli"/>
+          <xs:element ref="xslt-processor-role"/>
+          <xs:element ref="transformer-factory"/>
+        </xs:choice>
+        <xs:choice>
+          <xs:element ref="use-store"/>
+          <xs:element ref="incremental-processing"/>
+        </xs:choice>
+        <xs:choice>
+          <xs:element ref="catalogues"/>
+          <xs:element ref="catalogue-name"/>
+          <xs:element ref="catalogue-location"/>
+          <xs:element ref="untranslated-text"/>
+          <xs:element ref="cache-at-startup"/>
+        </xs:choice>
+        <xs:choice>
+          <xs:element ref="include-name"/>
+          <xs:element ref="exclude-name"/>
+        </xs:choice>
+        <xs:group ref="linkRewriterTransformer.contents"/>
+        <xs:group ref="web3RfcTransformer.contents"/>
+        <xs:group ref="simpleFormExtractTransformer.contents"/>
+        <xs:group ref="tagTransformer.contents"/>
+        <xs:choice>
+          <xs:element ref="element"/>
+          <xs:element ref="id"/>
+          <xs:element ref="id-attr"/>
+        </xs:choice>
+        <xs:element ref="mapping"/>
+        <xs:group ref="parameter"/>
+      </xs:choice>
+      <xs:attributeGroup ref="map.transformer.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="readers">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:reader"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.readers.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="reader">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:group minOccurs="0" ref="database.reader.content"/>
+        <xs:group minOccurs="0" maxOccurs="unbounded" ref="parameter"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.reader.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="serializers">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:serializer"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.serializers.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="serializer">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:group minOccurs="0" ref="textSerializer.contents"/>
+        <xs:group minOccurs="0" ref="svg2jpegSerializer.contents"/>
+        <xs:element minOccurs="0" ref="set-content-length"/>
+        <xs:element minOccurs="0" ref="buffer-size"/>
+        <xs:element minOccurs="0" ref="user-config"/>
+        <xs:group minOccurs="0" maxOccurs="unbounded" ref="parameter"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.serializer.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="parameter">
+    <xs:complexType>
+      <xs:attributeGroup ref="map.parameter.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="selectors">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:selector"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.selectors.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="selector">
+    <xs:complexType>
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="anyElement"/>
+      <xs:attributeGroup ref="map.selector.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="matchers">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:matcher"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.matchers.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="matcher">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="attribute-name"/>
+        <xs:element ref="parameter-name"/>
+        <xs:element ref="header-name"/>
+        <xs:group ref="input-module"/>
+      </xs:choice>
+      <xs:attributeGroup ref="map.matcher.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="actions">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:action"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.actions.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="action">
+    <xs:complexType>
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="anyElement"/>
+      <xs:attributeGroup ref="map.action.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="pipes">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:pipe"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.pipes.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="pipe">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="map.pipe.attlist">
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:parameter"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="views">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:view"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.views.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="view">
+    <xs:complexType>
+      <xs:group ref="pipe.contents"/>
+      <xs:attributeGroup ref="map.view.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="serialize">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:parameter"/>
+        <xs:element minOccurs="0" ref="encoding"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.serialize.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resources">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:resource"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.resources.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource">
+    <xs:complexType>
+      <xs:group ref="pipe.contents"/>
+      <xs:attributeGroup ref="map.resource.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="action-sets">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:action-set"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.action-sets.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="action-set">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="map:act"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.action-set.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="act">
+    <xs:complexType>
+      <xs:group ref="pipe.contents"/>
+      <xs:attributeGroup ref="map.act.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="pipelines">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="map:component-configurations"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:pipeline"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.pipelines.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="pipeline">
+    <xs:complexType>
+      <xs:sequence minOccurs="0">
+        <xs:group ref="pipe.contents"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:handle-errors"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.pipeline.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="match">
+    <xs:complexType>
+      <xs:group ref="pipe.contents"/>
+      <xs:attributeGroup ref="map.match.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="select">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:parameter"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:when"/>
+        <xs:element minOccurs="0" ref="map:otherwise"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.select.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="when">
+    <xs:complexType>
+      <xs:group ref="pipe.contents"/>
+      <xs:attributeGroup ref="map.when.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="otherwise">
+    <xs:complexType>
+      <xs:group ref="pipe.contents"/>
+      <xs:attributeGroup ref="map.otherwise.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="mount">
+    <xs:complexType>
+      <xs:attributeGroup ref="map.mount.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="redirect-to">
+    <xs:complexType>
+      <xs:attributeGroup ref="map.redirect-to.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="call">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:parameter"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.call.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="generate">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:parameter"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.generate.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="transform">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:parameter"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.transform.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="read">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:parameter"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.read.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="aggregate">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="map:part"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.aggregate.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="part">
+    <xs:complexType>
+      <xs:attributeGroup ref="map.part.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="handle-errors">
+    <xs:complexType>
+      <xs:group ref="pipe.contents"/>
+      <xs:attributeGroup ref="map.handle-errors.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="component-configurations">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="global-variables"/>
+        <xs:element minOccurs="0" ref="authentication-manager"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="map.component-configurations.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="flow-interpreters">
+    <xs:complexType>
+      <xs:attributeGroup ref="map.flow-interpreters.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="flow">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="map.script">
+          <xs:attributeGroup ref="map.flow.attlist"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="script">
+    <xs:complexType>
+      <xs:attributeGroup ref="map.script.attlist"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

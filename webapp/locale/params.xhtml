@@ -1,0 +1,207 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>XFolio start admin</title>
+    <script type="text/javascript">
+function show(id) {
+  if (!document.getElementById) return false; 
+  var o=document.getElementById(id);
+  if (!o || !o.style) return false;
+  o.style.display=(o.style.display == 'none')?'':'none';
+}    
+    </script>
+    <style type="text/css">
+p {text-align:justify;}    
+    </style>
+  </head>
+  <body>
+    <p>&#160;</p>
+    <p>&#160;</p>
+    <form name="params" action="" onsubmit="
+if (this.efolderFile.value) this.efolder.value=this.efolderFile.value;
+if (this.siteFile.value) this.site.value=this.siteFile.value;
+">
+      <table align="center">
+      <caption>
+      <h1>Xfolio, parameters on start</h1>
+    <p>
+The application is not yet informed of the parameters it needs. Because it is an 
+electronic folder server, it needs essentially the path of the folder to serve.
+Some other optional properties may be changed, discover them below. For exploitation,
+it's also possible to set these upper, by Java System.properties or context parameters. 
+See admin doc for more info.
+      </p>
+      
+      </caption>
+        <tr>
+          <th>
+            <big>efolder</big>
+          </th>
+          <td  width="500">
+            <input name="efolder" type="hidden" />
+            <!--
+A default value, a doc efolder in classical distrib
+            -->
+            <input name="efolderFile" size="50" type="file" />
+          </td>
+          <td>
+            <input type="button" value="?" onclick="show('efolderHelp')"/>
+          </td>
+        </tr>
+        <tr id="efolderHelp" style="display:none">
+          <td />
+          <td width="500">
+            <p>
+
+	Provide here a path for your efolder of documents
+	(absolute, or relative to the xfolio webapp folder).
+	If you want to search something on your File System,
+	click the "browse" button, and catch the welcome page
+	of your folder
+	(the application will serve the complete directory of this file).
+	You can also write or copy/paste a path by hand.
+        </p>
+          </td>
+        </tr>
+        <!--
+
+domain
+
+-->
+        <tr>
+          <th>
+            <big>domain</big>
+          </th>
+          <td>
+            <input name="domain" />
+          </td>
+          <td>
+            <input type="button" value="?" onclick="show('domainHelp');"/>
+          </td>
+        </tr>
+        <tr id="domainHelp" style="display:none">
+          <td />
+          <td width="500">
+            <p>
+
+	Provide the name of the domain for which you want to work for,
+	like "http://xfolio.org", or "http://country.strabon.org/subproject". 
+	There's no applicative issue, it's only to identify properly your
+	documents by a persistent URI, on a server who will answer.
+	It could be nicer than
+	"http://localhost:8080" (if you are working standalone on your machine for
+	a site to export). By the way, with nothing, it works also.
+
+        </p>
+          </td>
+        </tr>
+        <!--
+
+skin
+
+-->
+        <tr>
+          <th>
+            <big>skin</big>
+          </th>
+          <td>
+            <!-- TODO, generate from skin directory -->
+            <select name="skin">
+              <option> </option>
+              <!--
+handle from params.xsl
+              <xsl:for-each select="//skins/*">
+                <option>
+                  <xsl:value-of select="." />
+                </option>
+              </xsl:for-each>
+-->
+            </select>
+          </td>
+          <td>
+            <input type="button" value="?" onclick="show('skinHelp');"/>
+          </td>
+        </tr>
+        <tr id="skinHelp" style="display:none">
+          <td />
+          <td width="500">
+            <p>
+
+	Provide the name of a skin you want to use.
+	It's the name of a folder under xfolio/skin
+	directory. A select should provide the available skin of your
+	xfolio installation.
+
+              </p>
+          </td>
+        </tr>
+        <!--
+
+site
+
+-->
+        <tr>
+          <th>
+            <big>site</big>
+          </th>
+          <td>
+            <input name="site" type="hidden" />
+            <!--
+A default value, a doc efolder in classical distrib
+            -->
+            <input name="siteFile" size="50" type="file" />
+          </td>
+          <td>
+            <input type="button" value="?" onclick="show('siteHelp');"/>
+          </td>
+        </tr>
+        <tr id="siteHelp" style="display:none">
+          <td />
+          <td width="500">
+            <p>
+
+  You want a static copy of what is served here ?
+  Provide a folder where to write it.
+  If one is already begun somewhere, you can use the same way as
+  the efolder logic to catch its welcome page to begin on.
+  By the way, if you want to use the source folder as destination, 
+  it's possible, but don't complain if there's conflicts with your 
+  client apps when this server wants to write in a file you are editing.
+  For example, OpenOffice keep an handle on the file you are working in,
+  so that Xfolio can't update it.
+  
+              </p>
+          </td>
+        </tr>
+        <!--
+
+go
+
+-->
+        <tr>
+          <th>
+            <big>go</big>
+          </th>
+          <td>
+            <button type="submit">Submit</button>
+            <button onclick="
+this.form.efolder.value='../doc';
+this.form.site.value='../xfolio.org';
+this.form.submit();
+" type="button">Demo</button>
+          </td>
+          <td>
+            <input type="button" value="?" onclick="show('goHelp');"/>
+          </td>
+        </tr>
+        <tr id="goHelp" style="display:none">
+          <td />
+          <td width="500">
+            <p>
+Send your parameters, or try the demo to test this app.
+</p>
+          </td>
+        </tr>
+      </table>
+    </form>
+  </body>
+</html>

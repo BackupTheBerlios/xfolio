@@ -1,0 +1,1489 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright 2002-2004 The Apache Software Foundation
+  
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  
+      http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" xmlns:map="http://apache.org/cocoon/sitemap/1.0">
+  <xs:import namespace="http://apache.org/cocoon/sitemap/1.0" schemaLocation="map.xsd"/>
+  <!--
+    ===================================================================
+    
+    Apache Cocoon Sitemap RELAX NG grammar, with embedded Schematron rules
+    Version 0.6
+    
+    PURPOSE:
+      DRAFT RELAX NG grammar for the Cocoon2 sitemap.xmap files.
+    
+    
+    NOTES:
+    * ATTENTION: The initial (v0.4) grammar was generated from sitemap-v04.dtd, 
+      which in turn was reverse-engineered by hand from the various
+      sitemap.xmap instances included in the current distribution. This is
+      just an attempt to document the existing rules for sitemap structure.
+      V0.5 has been enhanced to use stricter than were possible with the DTD.
+      A proper design process is still, still required.
+    * Needed by XML editing tools for creation of reliable documents.
+    * Can generate WXS from this grammar for the use of XML editors which
+      do not support RELAX NG.
+    * The big questions (still) are: 
+      - What possibilities were missed because they were not included in the
+        default sitemaps?
+      - What in the default sitemap.xmap files is mandatory versus optional?
+      - What elements/attributes need their rules tightened?
+    
+    FIXME:
+    - map:act is used in various contexts, so it has a loose definition
+    - Completely rewrite this grammar looking from the application
+      point-of-view (do not rely on this temporary initial grammar)
+    - align elements and attributes with sitemap*.xsl
+    - review all xdocs/userdocs/generators/*.xml etc. and sync with this grammar
+    - Add similar changes to those of 2002-11-29 for other component declarations
+      See Bruno email
+      http://marc.theaimsgroup.com/?l=xml-cocoon-dev&m=103847911212458
+    
+    ====================================================================
+  -->
+  <!-- =============================================================== -->
+  <!-- Common Attributes -->
+  <!-- =============================================================== -->
+  <!-- CPA: univeral attributes possessed by all elements -->
+  <!-- CPA: id is for use by sitebuilder and others, but really it ought to be -->
+  <!-- of type ID (I'm guessing) -->
+  <xs:attributeGroup name="universal.attr">
+    <xs:attribute name="id" type="xs:string"/>
+  </xs:attributeGroup>
+  <!-- CPA: the default attribute is common, and where it occurs is nearly always the same -->
+  <xs:attributeGroup name="default.attr">
+    <xs:attribute name="default" type="xs:string"/>
+  </xs:attributeGroup>
+  <!--
+    CPA: the name and src attributes are common, and where they occur
+    are always CDATA, but sometimes optional
+  -->
+  <xs:attributeGroup name="src.attr">
+    <xs:attribute name="src" use="required" type="xs:string"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="optsrc.attr">
+    <xs:attribute name="src" type="xs:string"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="name.attr">
+    <xs:attribute name="name" use="required" type="xs:string"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="optname.attr">
+    <xs:attribute name="name" type="xs:string"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="uri.attr">
+    <xs:attribute name="uri" use="required" type="xs:string"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="opturi.attr">
+    <xs:attribute name="uri" type="xs:string"/>
+  </xs:attributeGroup>
+  <!-- CPA: pool attributes from Excalibur's PoolableComponentHandler -->
+  <!-- Defaults are set in cocoon.xconf -->
+  <xs:attributeGroup name="pool.attr">
+    <xs:attribute name="pool-max" type="xs:positiveInteger"/>
+    <xs:attribute name="pool-min" type="xs:nonNegativeInteger"/>
+    <xs:attribute name="pool-grow" type="xs:positiveInteger"/>
+  </xs:attributeGroup>
+  <!-- CPA: logger attribute - default is set in cocoon.xconf -->
+  <xs:attributeGroup name="logger.attr">
+    <xs:attribute name="logger" type="xs:string"/>
+  </xs:attributeGroup>
+  <!-- CPA: these three only occur together -->
+  <!-- they are used in AggregateNodeBuilder -->
+  <xs:attributeGroup name="aggregate.attr">
+    <xs:attribute name="element" type="xs:string"/>
+    <xs:attribute name="ns" type="xs:string"/>
+    <xs:attribute name="prefix" type="xs:string"/>
+  </xs:attributeGroup>
+  <!-- CPA: attributes that occur more than once, and are always defined -->
+  <!-- in the same way -->
+  <xs:attributeGroup name="value.attr">
+    <xs:attribute name="value" use="required"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="mime.attr">
+    <xs:attribute name="mime-type" type="xs:string"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="label.attr">
+    <xs:attribute name="label" type="xs:string"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="type.attr">
+    <xs:attribute name="type" type="xs:string"/>
+  </xs:attributeGroup>
+  <!-- CPA: resource is used both in CallNodeBuilder and -->
+  <!-- RedirectToNodeBuilder. It has no default -->
+  <xs:attributeGroup name="resource.attr">
+    <xs:attribute name="resource" type="xs:string"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="component.attr">
+    <xs:attributeGroup ref="label.attr"/>
+    <xs:attributeGroup ref="logger.attr"/>
+    <xs:attributeGroup ref="pool.attr"/>
+  </xs:attributeGroup>
+  <!-- CPA: now for element contents -->
+  <xs:group name="pipe.contents">
+    <xs:sequence>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="map:parameter"/>
+        <xs:element ref="map:act"/>
+        <xs:element ref="map:match"/>
+        <xs:element ref="map:select"/>
+        <xs:element ref="map:call"/>
+        <xs:element ref="map:redirect-to"/>
+        <xs:element ref="map:read"/>
+        <xs:element ref="map:aggregate"/>
+        <xs:element ref="map:generate"/>
+        <xs:element ref="map:transform"/>
+        <xs:element ref="map:serialize"/>
+        <xs:element ref="map:mount"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!-- CPA: contents confirmed by inspection of HtmlGenerator.java -->
+  <xs:group name="htmlGenerator.contents">
+    <xs:sequence>
+      <xs:element minOccurs="0" ref="jtidy-config"/>
+    </xs:sequence>
+  </xs:group>
+  <!-- CPA: contents confirmed by inspection of TraxTransformer.java -->
+  <xs:group name="traxTransformer.contents">
+    <xs:sequence>
+      <xs:element minOccurs="0" ref="use-request-parameters"/>
+      <xs:element minOccurs="0" ref="use-cookies"/>
+      <xs:element minOccurs="0" ref="use-browser-capabilities-db"/>
+      <xs:element minOccurs="0" ref="use-session-info"/>
+      <xs:element minOccurs="0" ref="use-deli"/>
+      <xs:element minOccurs="0" ref="xslt-processor-role"/>
+      <xs:element minOccurs="0" ref="transformer-factory"/>
+    </xs:sequence>
+  </xs:group>
+  <!-- CPA: contents confirmed by inspection of I18nTransformer.java -->
+  <xs:group name="i18nTransformer.contents">
+    <xs:sequence>
+      <xs:element minOccurs="0" ref="catalogues"/>
+      <xs:element minOccurs="0" ref="catalogue-name"/>
+      <xs:element minOccurs="0" ref="catalogue-location"/>
+      <xs:element minOccurs="0" ref="untranslated-text"/>
+      <xs:element minOccurs="0" ref="cache-at-startup"/>
+    </xs:sequence>
+  </xs:group>
+  <!-- CPA: contents confirmed by inspection of XSLTProcessorImpl.java -->
+  <!-- N.B. these appear in the source as if they were parameter -->
+  <!-- tags, so I'm not sure if this is perfectly correct. -->
+  <xs:group name="xsltTransformer.contents">
+    <xs:sequence>
+      <xs:element minOccurs="0" ref="use-store"/>
+      <xs:element minOccurs="0" ref="incremental-processing"/>
+    </xs:sequence>
+  </xs:group>
+  <!-- CPA: contents confirmed by inspection of EncodeURLTransformer.java -->
+  <xs:group name="encodeURLTransformer.contents">
+    <xs:sequence>
+      <xs:element minOccurs="0" ref="include-name"/>
+      <xs:element minOccurs="0" ref="exclude-name"/>
+    </xs:sequence>
+  </xs:group>
+  <xs:group name="linkRewriterTransformer.contents">
+    <xs:sequence>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="link-attrs"/>
+        <xs:element ref="schemes"/>
+        <xs:element ref="exclude-schemes"/>
+        <xs:element ref="bad-link-str"/>
+        <xs:element name="input-module">
+          <xs:complexType>
+            <xs:group minOccurs="0" maxOccurs="unbounded" ref="anyElement"/>
+            <xs:attributeGroup ref="anyAttribute"/>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <xs:element name="link-attrs" type="xs:string"/>
+  <xs:element name="schemes" type="xs:string"/>
+  <xs:element name="exclude-schemes" type="xs:string"/>
+  <xs:element name="bad-link-str" type="xs:string"/>
+  <xs:group name="IdGeneratorTransformer.contents">
+    <xs:sequence>
+      <xs:sequence minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="element"/>
+        <xs:element ref="id"/>
+        <xs:element minOccurs="0" ref="id-attr"/>
+      </xs:sequence>
+    </xs:sequence>
+  </xs:group>
+  <xs:element name="element" type="xs:string"/>
+  <xs:element name="id" type="xs:string"/>
+  <xs:element name="id-attr" type="xs:string"/>
+  <!-- CH: contents confirmed by inspection of Web3RfcTransformer.java -->
+  <xs:group name="web3RfcTransformer.contents">
+    <xs:sequence>
+      <xs:element minOccurs="0" ref="system"/>
+    </xs:sequence>
+  </xs:group>
+  <xs:element name="system" type="xs:string"/>
+  <xs:group name="simpleFormExtractTransformer.contents">
+    <xs:sequence>
+      <xs:element minOccurs="0" ref="output"/>
+    </xs:sequence>
+  </xs:group>
+  <xs:element name="output">
+    <xs:complexType mixed="true">
+      <xs:attributeGroup ref="name.attr"/>
+    </xs:complexType>
+  </xs:element>
+  <!-- VG: contents of TagTransformer from the scratchpad -->
+  <xs:group name="tagTransformer.contents">
+    <xs:sequence>
+      <xs:element minOccurs="0" ref="transformer-hint"/>
+    </xs:sequence>
+  </xs:group>
+  <xs:element name="transformer-hint" type="xs:string"/>
+  <!-- CPA: contents confirmed by inspection of AbstractTextSerializer.java -->
+  <xs:group name="textSerializer.contents">
+    <xs:sequence>
+      <xs:element minOccurs="0" ref="cdata-section-elements"/>
+      <xs:element minOccurs="0" ref="doctype-public"/>
+      <xs:element minOccurs="0" ref="doctype-system"/>
+      <xs:element minOccurs="0" ref="encoding"/>
+      <xs:element minOccurs="0" ref="indent"/>
+      <xs:element minOccurs="0" ref="media-type"/>
+      <xs:element minOccurs="0" ref="method"/>
+      <xs:element minOccurs="0" ref="omit-xml-declaration"/>
+      <xs:element minOccurs="0" ref="standalone"/>
+      <xs:element minOccurs="0" ref="version"/>
+    </xs:sequence>
+  </xs:group>
+  <xs:group name="svg2jpegSerializer.contents">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="parameter">
+        <xs:complexType>
+          <xs:attribute name="name" use="required"/>
+          <xs:attribute name="type" use="required">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="float"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="value" use="required"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:group>
+  <!-- =============================================================== -->
+  <!-- Sitemap -->
+  <!-- =============================================================== -->
+  <!-- CPA: contents are all optional, as they can be inherited from the parent sitemap -->
+  <xs:attributeGroup name="map.sitemap.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <!-- =============================================================== -->
+  <!-- Components -->
+  <!-- =============================================================== -->
+  <!-- CPA: map:components are optional, as they can be inherited from the parent sitemap -->
+  <!-- CPA: Notes on ComponentSelector.java: Flow-Interpreters are not mentioned -->
+  <!-- CPA: now 0 or 1 of each, in any order -->
+  <xs:attributeGroup name="map.components.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <!-- Generators ======================================== -->
+  <xs:attributeGroup name="map.generators.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="default.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.generator.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+    <xs:attributeGroup ref="src.attr"/>
+    <xs:attributeGroup ref="component.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="jtidy-config" type="xs:string"/>
+  <!-- Transformers ====================================== -->
+  <xs:attributeGroup name="map.transformers.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="default.attr"/>
+  </xs:attributeGroup>
+  <!-- CPA: Some transformers have children, others take parameter -->
+  <!-- children on the map:transform element -->
+  <!-- SourceWritingTransformer.java appears to look for a -->
+  <!-- serializer child, but there are no examples so I have TODO (V0.6) -->
+  <!-- omitted it for now. mapping comes from castor -->
+  <xs:attributeGroup name="map.transformer.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+    <xs:attributeGroup ref="src.attr"/>
+    <xs:attributeGroup ref="mime.attr"/>
+    <xs:attributeGroup ref="component.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="use-store">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:restriction base="xs:anyType">
+          <xs:simpleType>
+            <xs:restriction base="xs:token">
+              <xs:enumeration value="true"/>
+              <xs:enumeration value="false"/>
+            </xs:restriction>
+          </xs:simpleType>
+          <xs:attributeGroup ref="use-store.attlist"/>
+        </xs:restriction>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="use-store.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="use-request-parameters">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:restriction base="xs:anyType">
+          <xs:simpleType>
+            <xs:restriction base="xs:token">
+              <xs:enumeration value="true"/>
+              <xs:enumeration value="false"/>
+            </xs:restriction>
+          </xs:simpleType>
+          <xs:attributeGroup ref="use-request-parameters.attlist"/>
+        </xs:restriction>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="use-request-parameters.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="use-browser-capabilities-db">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:restriction base="xs:anyType">
+          <xs:simpleType>
+            <xs:restriction base="xs:token">
+              <xs:enumeration value="true"/>
+              <xs:enumeration value="false"/>
+            </xs:restriction>
+          </xs:simpleType>
+          <xs:attributeGroup ref="use-browser-capabilities-db.attlist"/>
+        </xs:restriction>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="use-browser-capabilities-db.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="catalogues">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="catalogue"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="catalogues.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="catalogues.attlist">
+    <xs:attributeGroup ref="default.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="catalogue">
+    <xs:complexType>
+      <xs:attributeGroup ref="catalogue.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="catalogue.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+    <xs:attribute name="location" use="required"/>
+  </xs:attributeGroup>
+  <xs:element name="catalogue-name">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attributeGroup ref="catalogue-name.attlist"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="catalogue-name.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="catalogue-location">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attributeGroup ref="catalogue-location.attlist"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="catalogue-location.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="use-deli">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:restriction base="xs:anyType">
+          <xs:simpleType>
+            <xs:restriction base="xs:token">
+              <xs:enumeration value="true"/>
+              <xs:enumeration value="false"/>
+            </xs:restriction>
+          </xs:simpleType>
+          <xs:attributeGroup ref="use-deli.attlist"/>
+        </xs:restriction>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="use-deli.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="xslt-processor-role">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attributeGroup ref="xslt-processor-role.attlist"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="xslt-processor-role.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="cache-at-startup">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:restriction base="xs:anyType">
+          <xs:simpleType>
+            <xs:restriction base="xs:token">
+              <xs:enumeration value="true"/>
+              <xs:enumeration value="false"/>
+            </xs:restriction>
+          </xs:simpleType>
+          <xs:attributeGroup ref="cache-at-startup.attlist"/>
+        </xs:restriction>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="cache-at-startup.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="mapping" type="xs:string"/>
+  <!-- Readers =========================================== -->
+  <xs:attributeGroup name="map.readers.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="default.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.reader.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+    <xs:attributeGroup ref="src.attr"/>
+    <xs:attributeGroup ref="component.attr"/>
+  </xs:attributeGroup>
+  <xs:group name="database.reader.content">
+    <xs:sequence>
+      <xs:element minOccurs="0" ref="use-connection"/>
+    </xs:sequence>
+  </xs:group>
+  <xs:element name="use-connection" type="xs:string"/>
+  <!-- Serializers ======================================= -->
+  <xs:attributeGroup name="map.serializers.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="default.attr"/>
+  </xs:attributeGroup>
+  <!-- CPA: parameter is used by HSSFSerializer -->
+  <!-- CPA: set-content-length is used by iTextSerializer -->
+  <!-- RNG: are these the only children of serializer? -->
+  <!-- CPA: No. Added buffer-size for slide and others - don't know -->
+  <!-- where it comes from in the source -->
+  <!-- CPA: mime-type changed from #REQUIRED to #IMPLIED, because of LinkSerializer -->
+  <xs:attributeGroup name="map.serializer.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+    <xs:attributeGroup ref="mime.attr"/>
+    <xs:attributeGroup ref="src.attr"/>
+    <xs:attributeGroup ref="component.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="cdata-section-elements">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attributeGroup ref="cdata-section-elements.attlist"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="cdata-section-elements.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="doctype-public">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attributeGroup ref="doctype-public.attlist"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="doctype-public.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="doctype-system">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attributeGroup ref="doctype-system.attlist"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="doctype-system.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="encoding">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attributeGroup ref="encoding.attlist"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="encoding.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="omit-xml-declaration">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:restriction base="xs:anyType">
+          <xs:simpleType>
+            <xs:restriction base="xs:token">
+              <xs:enumeration value="yes"/>
+              <xs:enumeration value="no"/>
+            </xs:restriction>
+          </xs:simpleType>
+          <xs:attributeGroup ref="omit-xml-declaration.attlist"/>
+        </xs:restriction>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="omit-xml-declaration.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:group name="parameter">
+    <xs:sequence>
+      <xs:element name="parameter">
+        <xs:complexType>
+          <xs:attributeGroup ref="parameter.attlist"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:group>
+  <xs:attributeGroup name="parameter.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+    <xs:attributeGroup ref="value.attr"/>
+    <xs:attributeGroup ref="type.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.parameter.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+    <xs:attributeGroup ref="value.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="buffer-size">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:positiveInteger">
+          <xs:attributeGroup ref="buffer-size.attlist"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="buffer-size.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="user-config">
+    <xs:complexType>
+      <xs:attributeGroup ref="user-config.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="user-config.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="src.attr"/>
+  </xs:attributeGroup>
+  <!-- Selectors ========================================= -->
+  <xs:attributeGroup name="map.selectors.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="default.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.selector.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+    <xs:attributeGroup ref="src.attr"/>
+    <xs:attributeGroup ref="component.attr"/>
+  </xs:attributeGroup>
+  <!-- CPA: elements currently used by map:selector s -->
+  <xs:element name="browser">
+    <xs:complexType>
+      <xs:attributeGroup ref="browser.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="browser.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+    <xs:attribute name="useragent" use="required"/>
+  </xs:attributeGroup>
+  <xs:element name="host">
+    <xs:complexType>
+      <xs:attributeGroup ref="host.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="host.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+    <xs:attributeGroup ref="value.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="cookie-name">
+    <xs:complexType/>
+  </xs:element>
+  <xs:group name="anyElement">
+    <xs:sequence>
+      <xs:any processContents="skip"/>
+    </xs:sequence>
+  </xs:group>
+  <xs:attributeGroup name="anyAttribute">
+    <xs:anyAttribute processContents="skip"/>
+  </xs:attributeGroup>
+  <!-- Matchers ========================================== -->
+  <xs:attributeGroup name="map.matchers.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="default.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.matcher.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+    <xs:attributeGroup ref="src.attr"/>
+    <xs:attributeGroup ref="component.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="attribute-name">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attributeGroup ref="attribute-name.attlist"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attribute-name.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="parameter-name">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attributeGroup ref="parameter-name.attlist"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="parameter-name.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="header-name">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attributeGroup ref="header-name.attlist"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="header-name.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:group name="input-module">
+    <xs:sequence>
+      <xs:element name="input-module">
+        <xs:complexType>
+          <xs:group minOccurs="0" maxOccurs="unbounded" ref="anyElement"/>
+          <xs:attributeGroup ref="input-module.attlist"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:group>
+  <xs:attributeGroup name="input-module.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+  </xs:attributeGroup>
+  <!-- Actions =========================================== -->
+  <xs:attributeGroup name="map.actions.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="default.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.action.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+    <xs:attributeGroup ref="src.attr"/>
+    <xs:attributeGroup ref="component.attr"/>
+  </xs:attributeGroup>
+  <!-- Pipes ======================================== -->
+  <xs:attributeGroup name="map.pipes.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="default.attr"/>
+  </xs:attributeGroup>
+  <xs:complexType name="map.pipe.attlist">
+    <xs:sequence>
+      <xs:element minOccurs="0" ref="autoCachingPoint"/>
+    </xs:sequence>
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+    <xs:attributeGroup ref="src.attr"/>
+    <xs:attributeGroup ref="component.attr"/>
+  </xs:complexType>
+  <!-- =============================================================== -->
+  <!-- Views -->
+  <!-- =============================================================== -->
+  <xs:attributeGroup name="map.views.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.view.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+    <xs:attribute name="from-label"/>
+    <xs:attribute name="from-position" default="last">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="first"/>
+          <xs:enumeration value="last"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.serialize.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="type.attr"/>
+    <xs:attributeGroup ref="mime.attr"/>
+    <xs:attributeGroup ref="label.attr"/>
+    <xs:attribute name="status-code"/>
+    <xs:attributeGroup ref="optsrc.attr"/>
+  </xs:attributeGroup>
+  <!-- =============================================================== -->
+  <!-- Resources -->
+  <!-- =============================================================== -->
+  <xs:attributeGroup name="map.resources.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.resource.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+  </xs:attributeGroup>
+  <!-- =============================================================== -->
+  <!-- Action Sets -->
+  <!-- =============================================================== -->
+  <xs:attributeGroup name="map.action-sets.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.action-set.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.act.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="type.attr"/>
+    <xs:attribute name="action"/>
+    <xs:attribute name="set"/>
+    <xs:attributeGroup ref="optsrc.attr"/>
+    <xs:attributeGroup ref="optname.attr"/>
+  </xs:attributeGroup>
+  <!-- =============================================================== -->
+  <!-- Pipelines -->
+  <!-- =============================================================== -->
+  <xs:attributeGroup name="map.pipelines.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="default.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.pipeline.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attribute name="internal-only"/>
+    <xs:attributeGroup ref="optname.attr"/>
+    <xs:attributeGroup ref="optsrc.attr"/>
+    <xs:attributeGroup ref="type.attr"/>
+    <xs:attributeGroup ref="component.attr"/>
+  </xs:attributeGroup>
+  <!--
+    RNG: It seemed from the example that match should be defined as
+    match (map:mount*|map:redirect-to*|(map:generate*,map:transform*,map:serialize*)*|map:read*|map:aggregate*)
+    but I have no way of knowing.
+  -->
+  <!-- DC: Now map:act complicates the content model even further -->
+  <xs:attributeGroup name="map.match.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="type.attr"/>
+    <xs:attribute name="pattern" use="required"/>
+    <xs:attributeGroup ref="optname.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.select.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="type.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.when.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attribute name="test" use="required"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.otherwise.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="autoCachingPoint">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:restriction base="xs:anyType">
+          <xs:simpleType>
+            <xs:restriction base="xs:token">
+              <xs:enumeration value="on"/>
+              <xs:enumeration value="On"/>
+              <xs:enumeration value="off"/>
+              <xs:enumeration value="Off"/>
+            </xs:restriction>
+          </xs:simpleType>
+          <xs:attributeGroup ref="autoCachingPoint.attlist"/>
+        </xs:restriction>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="autoCachingPoint.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.mount.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attribute name="uri-prefix" use="required"/>
+    <xs:attributeGroup ref="src.attr"/>
+    <xs:attribute name="reload-method" default="asynchron">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="synchron"/>
+          <xs:enumeration value="asynchron"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="check-reload" default="no">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="true"/>
+          <xs:enumeration value="false"/>
+          <xs:enumeration value="yes"/>
+          <xs:enumeration value="no"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+  <!-- CH: redirects to resources are now deprecated -->
+  <!-- CPA: attributes confirmed by inspection of RedirectToNodeBuilder -->
+  <xs:attributeGroup name="map.redirect-to.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="opturi.attr"/>
+    <xs:attributeGroup ref="resource.attr"/>
+    <xs:attribute name="target"/>
+    <xs:attribute name="session" default="no">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="true"/>
+          <xs:enumeration value="false"/>
+          <xs:enumeration value="yes"/>
+          <xs:enumeration value="no"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.call.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="resource.attr"/>
+    <xs:attribute name="function"/>
+    <xs:attribute name="continuation"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.generate.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="type.attr"/>
+    <xs:attributeGroup ref="optsrc.attr"/>
+    <xs:attributeGroup ref="label.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.transform.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="type.attr"/>
+    <xs:attributeGroup ref="optsrc.attr"/>
+    <xs:attributeGroup ref="label.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.read.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="optsrc.attr"/>
+    <xs:attributeGroup ref="mime.attr"/>
+    <xs:attributeGroup ref="type.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.aggregate.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="aggregate.attr"/>
+    <xs:attributeGroup ref="label.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.part.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="optsrc.attr"/>
+    <xs:attributeGroup ref="label.attr"/>
+    <xs:attributeGroup ref="aggregate.attr"/>
+    <xs:attribute name="strip-root"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.handle-errors.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="type.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.component-configurations.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="global-variables">
+    <xs:complexType>
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="anyElement"/>
+      <xs:attributeGroup ref="global-variables.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="global-variables.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="authentication-manager">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="handlers">
+          <xs:attributeGroup ref="authentication-manager.attlist"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="authentication-manager.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:complexType name="handlers">
+    <xs:sequence>
+      <xs:element ref="handlers"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="handlers">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="handler"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="handler">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="redirect-to"/>
+        <xs:element ref="authentication"/>
+        <xs:element minOccurs="0" ref="applications"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="handler.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="handler.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="redirect-to">
+    <xs:complexType>
+      <xs:attributeGroup ref="redirect-to.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="redirect-to.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="authentication">
+    <xs:complexType>
+      <xs:attributeGroup ref="authentication.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="authentication.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="applications">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="application"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="applications.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="applications.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="application">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="configuration"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="application.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="application.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attribute name="loadondemand" use="required"/>
+    <xs:attributeGroup ref="name.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="configuration">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="auth-redirect"/>
+        <xs:element ref="portal-uri"/>
+        <xs:element ref="profile-cache"/>
+        <xs:element ref="default-coplet-timeout"/>
+        <xs:element ref="profile"/>
+        <xs:element ref="load-users"/>
+        <xs:element ref="load-roles"/>
+        <xs:element ref="new-user"/>
+        <xs:element ref="new-role"/>
+        <xs:element ref="change-user"/>
+        <xs:element ref="delete-role"/>
+        <xs:element ref="delete-user"/>
+        <xs:element ref="process-coplets-parallel"/>
+      </xs:choice>
+      <xs:attributeGroup ref="configuration.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="configuration.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="name.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="auth-redirect">
+    <xs:complexType mixed="true">
+      <xs:attributeGroup ref="auth-redirect.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="auth-redirect.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="portal-uri">
+    <xs:complexType mixed="true">
+      <xs:attributeGroup ref="portal-uri.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="portal-uri.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="profile-cache">
+    <xs:complexType mixed="true">
+      <xs:attributeGroup ref="profile-cache.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="profile-cache.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="default-coplet-timeout">
+    <xs:complexType mixed="true">
+      <xs:attributeGroup ref="default-coplet-timeout.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="default-coplet-timeout.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="process-coplets-parallel">
+    <xs:complexType mixed="true">
+      <xs:attributeGroup ref="process-coplets-parallel.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="process-coplets-parallel.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="profile">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="layout-base"/>
+        <xs:element ref="coplet-base"/>
+        <xs:element ref="coplet-base-save"/>
+        <xs:element ref="type-base"/>
+        <xs:element ref="admin-type-base"/>
+        <xs:element ref="global-delta-load"/>
+        <xs:element ref="global-delta-save"/>
+        <xs:element ref="role-delta-load"/>
+        <xs:element ref="role-delta-save"/>
+        <xs:element ref="user-delta-load"/>
+        <xs:element ref="user-delta-save"/>
+        <xs:element ref="user-status-load"/>
+        <xs:element ref="user-status-save"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="profile.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="profile.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="layout-base">
+    <xs:complexType>
+      <xs:attributeGroup ref="layout-base.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="layout-base.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="coplet-base">
+    <xs:complexType>
+      <xs:attributeGroup ref="coplet-base.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="coplet-base.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="coplet-base-save">
+    <xs:complexType>
+      <xs:attributeGroup ref="coplet-base-save.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="coplet-base-save.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="type-base">
+    <xs:complexType>
+      <xs:attributeGroup ref="type-base.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="type-base.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="admin-type-base">
+    <xs:complexType>
+      <xs:attributeGroup ref="admin-type-base.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="admin-type-base.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="global-delta-load">
+    <xs:complexType>
+      <xs:attributeGroup ref="global-delta-load.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="global-delta-load.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="global-delta-save">
+    <xs:complexType>
+      <xs:attributeGroup ref="global-delta-save.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="global-delta-save.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="role-delta-load">
+    <xs:complexType>
+      <xs:attributeGroup ref="role-delta-load.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="role-delta-load.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="role-delta-save">
+    <xs:complexType>
+      <xs:attributeGroup ref="role-delta-save.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="role-delta-save.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="user-delta-load">
+    <xs:complexType>
+      <xs:attributeGroup ref="user-delta-load.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="user-delta-load.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="user-delta-save">
+    <xs:complexType>
+      <xs:attributeGroup ref="user-delta-save.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="user-delta-save.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="user-status-load">
+    <xs:complexType>
+      <xs:attributeGroup ref="user-status-load.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="user-status-load.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="user-status-save">
+    <xs:complexType>
+      <xs:attributeGroup ref="user-status-save.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="user-status-save.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="load-users">
+    <xs:complexType>
+      <xs:attributeGroup ref="load-users.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="load-users.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="load-roles">
+    <xs:complexType>
+      <xs:attributeGroup ref="load-roles.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="load-roles.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="new-user">
+    <xs:complexType>
+      <xs:attributeGroup ref="new-user.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="new-user.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="new-role">
+    <xs:complexType>
+      <xs:attributeGroup ref="new-role.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="new-role.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="change-user">
+    <xs:complexType>
+      <xs:attributeGroup ref="change-user.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="change-user.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="delete-user">
+    <xs:complexType>
+      <xs:attributeGroup ref="delete-user.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="delete-user.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="delete-role">
+    <xs:complexType>
+      <xs:attributeGroup ref="delete-role.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="delete-role.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="uri.attr"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.flow-interpreters.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attribute name="default" use="required"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="map.flow.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attribute name="language" use="required"/>
+  </xs:attributeGroup>
+  <xs:complexType name="map.script">
+    <xs:sequence>
+      <xs:element ref="map:script"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:attributeGroup name="map.script.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+    <xs:attributeGroup ref="src.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="include-name">
+    <xs:complexType>
+      <xs:attributeGroup ref="include-name.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="include-name.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="exclude-name">
+    <xs:complexType>
+      <xs:attributeGroup ref="exclude-name.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="exclude-name.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="method">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attributeGroup ref="method.attlist"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="method.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="use-cookies">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:restriction base="xs:anyType">
+          <xs:simpleType>
+            <xs:restriction base="xs:token">
+              <xs:enumeration value="true"/>
+              <xs:enumeration value="false"/>
+            </xs:restriction>
+          </xs:simpleType>
+          <xs:attributeGroup ref="use-cookies.attlist"/>
+        </xs:restriction>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="use-cookies.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="untranslated-text">
+    <xs:complexType>
+      <xs:attributeGroup ref="untranslated-text.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="untranslated-text.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="media-type">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attributeGroup ref="media-type.attlist"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="media-type.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="version">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:NMTOKEN">
+          <xs:attributeGroup ref="version.attlist"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="version.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="transformer-factory">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attributeGroup ref="transformer-factory.attlist"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="transformer-factory.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="use-session-info">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:restriction base="xs:anyType">
+          <xs:simpleType>
+            <xs:restriction base="xs:token">
+              <xs:enumeration value="true"/>
+              <xs:enumeration value="false"/>
+            </xs:restriction>
+          </xs:simpleType>
+          <xs:attributeGroup ref="use-session-info.attlist"/>
+        </xs:restriction>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="use-session-info.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="incremental-processing">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:restriction base="xs:anyType">
+          <xs:simpleType>
+            <xs:restriction base="xs:token">
+              <xs:enumeration value="true"/>
+              <xs:enumeration value="false"/>
+            </xs:restriction>
+          </xs:simpleType>
+          <xs:attributeGroup ref="incremental-processing.attlist"/>
+        </xs:restriction>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="incremental-processing.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="indent">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:restriction base="xs:anyType">
+          <xs:simpleType>
+            <xs:restriction base="xs:token">
+              <xs:enumeration value="yes"/>
+              <xs:enumeration value="no"/>
+            </xs:restriction>
+          </xs:simpleType>
+          <xs:attributeGroup ref="indent.attlist"/>
+        </xs:restriction>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="indent.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="set-content-length">
+    <xs:complexType>
+      <xs:attributeGroup ref="set-content-length.attlist"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="set-content-length.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+  <xs:element name="standalone">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:restriction base="xs:anyType">
+          <xs:simpleType>
+            <xs:restriction base="xs:token">
+              <xs:enumeration value="yes"/>
+              <xs:enumeration value="no"/>
+            </xs:restriction>
+          </xs:simpleType>
+          <xs:attributeGroup ref="standalone.attlist"/>
+        </xs:restriction>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="standalone.attlist">
+    <xs:attributeGroup ref="universal.attr"/>
+  </xs:attributeGroup>
+</xs:schema>

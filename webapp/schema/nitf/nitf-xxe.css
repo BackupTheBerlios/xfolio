@@ -1,0 +1,121 @@
+nitf {
+	display: block;
+	border: 1 solid gray;
+}
+
+head, body, body\.head, body\.content, body\.end, hedline, byline, dateline, p, ul,hl2 {
+	display:block;
+	margin: 5px;
+	border: 1 solid gray;
+}
+
+
+pre {
+	font-family: monospace;
+	padding-left: 1em;
+	white-space: pre;
+}
+
+pre.highlight {
+	background-color: #ffff99;
+}
+
+head {
+	background-color: #FFFFEF;
+	color:blue;
+	padding: 0.5em;
+	border: 1px solid blue;
+}
+
+body {
+	background-color: #EFFFFF;
+}
+body\.head {
+	background-color: #EFEFFF;
+}
+body\.content {
+	background-color: #EFFFEF;
+}
+body\.end {
+	background-color: #EFEFFF;
+}
+
+title {
+	font-weight: bold;
+	display: block;
+}
+
+hl1 {
+	display: block;
+	font-weight: bold;
+	font-size: large;
+}
+
+hl2, hl2.level1 {
+	display: block;
+	font-weight: bold;
+	font-size:140%;
+	padding:4px;
+	margin-top:1em;
+}
+hl2.level2 {
+	display: block;
+	font-weight: bold;
+	margin-left:0.5em;
+	font-size:120%;
+	padding:4px;
+	margin-top:0.5em;
+}
+hl2.level3 {
+	display: block;
+	font-weight: bold;
+	margin-left: 1em;
+	font-size:100%;
+	margin-top:0.5em;
+	padding:4px;
+}
+
+ul, p {
+	display: block;
+	padding: 0.5em;
+	margin-left: 1em;
+}
+
+org {
+	color: #A00000;
+	font-weight: bold;
+}
+
+em {
+	color: #666666;
+	font-weight: bold;
+}
+
+chron {
+	color: #ff9900;
+}
+
+object\.title {
+	color: #008000;
+	font-weight: bold;
+}
+person {
+	color: #0000A0;
+	font-weight: bold;
+}
+
+virtloc, a {
+	text-decoration: underline;
+	color: #101090;
+}
+
+li:before {
+	content: "- ";
+}
+
+li {
+	display: block;
+	margin-left: 1em;
+}
+
+

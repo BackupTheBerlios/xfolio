@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+created 2003-11-05
+
+FG:frederic.glorieux@xfolio.org
+
+(c) xfolio.org, ajlsm.com, strabon.org
+Licence : GPL
+
+This global sitemap only declare components
+
+  history/features
+2004-07-08:FG  wash unuseful components
+
+-->
+<map:sitemap xmlns:map="http://apache.org/cocoon/sitemap/1.0">
+  <!-- =========================== Components ================================ -->
+  <map:components>
+    <!--
+
+  GENERATORS
+
+  -->
+    <map:generators default="file">
+      <map:generator name="file" label="content" logger="sitemap.generator.file" pool-grow="4" pool-max="32" pool-min="8" src="org.apache.cocoon.generation.FileGenerator"/>
+      <map:generator name="xsp" label="content" logger="sitemap.generator.serverpages" pool-grow="2" pool-max="32" pool-min="4" src="org.apache.cocoon.generation.ServerPagesGenerator"/>
+      <!-- for upload ? -->
+      <!-- map:generator label="content" logger="sitemap.generator.stream" name="stream" pool-grow="2" pool-max="16" pool-min="1" src="org.apache.cocoon.generation.StreamGenerator"/ -->
+      <!-- The notifying generator can only be used in a <handle-errors> section : it produces an XML
+         representation of the exception that caused the error handler to be executed -->
+      <map:generator name="notifying" src="org.apache.cocoon.sitemap.NotifyingGenerator"/>
+      <!-- keep idea for also Base64 generation -->
+      <!-- map:generator label="content" logger="sitemap.generator.extractor" name="extractor" src="org.apache.cocoon.generation.FragmentExtractorGenerator"/ -->
+      <!-- enclose text in a one only root element -->
+      <map:generator name="text" logger="sitemap.generator.text" src="org.apache.cocoon.generation.TextGenerator">
+        <!-- parameter name="localizable" value="true"/ -->
+      </map:generator>
+      <!-- jtidy, should be configured -->
+      <map:generator name="html" label="content" logger="sitemap.generator.html" src="org.apache.cocoon.generation.HTMLGenerator">
+        <jtidy-config>WEB-INF/classes/jtidy.properties</jtidy-config>
+      </map:generator>
+      <!-- could be nicely used -->
+      <!-- map:generator logger="sitemap.generator.asciiart-svg" name="asciiart-svg" src="org.apache.cocoon.generation.asciiart.AsciiArtSVGGenerator"/ -->
+      <map:generator name="directory" label="content" logger="sitemap.generator.directory" pool-grow="2" pool-max="16" pool-min="2" src="org.apache.cocoon.generation.DirectoryGenerator"/>
+      <!-- used in the profiler.xmap -->
+      <map:generator name="profiler" label="content" logger="sitemap.generator.profiler" src="org.apache.cocoon.generation.ProfilerGenerator"/>
+      <!--
+ xfolio added or specific
+    -->
+      <map:generator name="metadir" label="content" logger="sitemap.generator.xfoliodir" src="org.xfolio.cocoon.generation.MetaDirectoryGenerator"/>
+      <map:generator name="xmp" label="content" logger="sitemap.generator.xmp" src="org.xfolio.cocoon.generation.XMPjpgGenerator"/>
+    </map:generators>
+    <!--
+
+  TRANSFORMERS
+
+  -->
+    <map:transformers default="xslt">
+      <!-- Saxon is default (what about xt ?) -->
+      <map:transformer logger="sitemap.transformer.xslt" name="xslt" pool-grow="2" pool-max="32" pool-min="8" src="org.apache.cocoon.transformation.TraxTransformer">
+        <use-request-parameters>false</use-request-parameters>
+        <use-session-parameters>false</use-session-parameters>
+        <use-cookie-parameters>false</use-cookie-parameters>
+        <xslt-processor-role>saxon</xslt-processor-role>
+        <check-includes>true</check-includes>
+      </map:transformer>
+      <map:transformer logger="sitemap.transformer.log" name="log" pool-grow="2" pool-max="16" pool-min="2" src="org.apache.cocoon.transformation.LogTransformer"/>
+      <!-- includes are unplugged because of their cache problems -->
+      <!-- test if necessary -->
+      <!-- map:transformer logger="sitemap.transformer.write-source" name="write-source" src="org.apache.cocoon.transformation.SourceWritingTransformer"/ -->
+      <!-- to test -->
+      <!-- map:transformer logger="sitemap.transformer.paginate" name="paginate" src="org.apache.cocoon.transformation.pagination.Paginator"/ -->
+      <!-- see FragmentExtractorGenerator -->
+      <!-- map:transformer logger="sitemap.transformer.extractor" name="extractor" src="org.apache.cocoon.transformation.FragmentExtractorTransformer"/ -->
+      <!-- chaperon components -->
+      <map:transformer logger="sitemap.transformer.lexer" name="lexer" src="org.apache.cocoon.transformation.LexicalTransformer"/>
+      <map:transformer logger="sitemap.transformer.parser" name="parser" src="org.apache.cocoon.transformation.ParserTransformer"/>
+      <map:transformer logger="sitemap.transformer.pattern" name="pattern" src="org.apache.cocoon.transformation.PatternTransformer"/>
+      <!-- Configure i18n transformer -->
+      <map:transformer name="i18n" logger="sitemap.transformer.i18n" src="org.apache.cocoon.transformation.I18nTransformer">
+        <catalogues default="messages">
+          <catalogue id="messages" name="messages" location="locale"/>
+        </catalogues>
+        <cache-at-startup>true</cache-at-startup>
+      </map:transformer>
+      <!-- XFolio deprecate these transformers because of caching issues -->
+      <map:transformer logger="sitemap.transformer.xinclude" name="xinclude" pool-grow="2" pool-max="16" pool-min="2" src="org.apache.cocoon.transformation.XIncludeTransformer"/>
+      <map:transformer logger="sitemap.transformer.cinclude" name="cinclude" pool-grow="2" pool-max="16" pool-min="2" src="org.apache.cocoon.transformation.CIncludeTransformer"/>
+    </map:transformers>
+    <!--
+
+  SERIALIZERS
+
+  -->
+    <map:serializers default="xhtml">
+      <map:serializer logger="sitemap.serializer.links" name="links" src="org.apache.cocoon.serialization.LinkSerializer"/>
+      <map:serializer logger="sitemap.serializer.xml" mime-type="text/xml" name="xml" src="org.apache.cocoon.serialization.XMLSerializer"/>
+      <map:serializer logger="sitemap.serializer.svgxml" mime-type="image/svg+xml" name="svg" src="org.apache.cocoon.serialization.XMLSerializer">
+        <doctype-public>-//W3C//DTD SVG 1.0//EN</doctype-public>
+        <doctype-system>http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd</doctype-system>
+      </map:serializer>
+      <!-- xhtml -->
+      <map:serializer name="xhtml" logger="sitemap.serializer.xhtml" mime-type="text/html" pool-grow="2" pool-max="64" pool-min="2" src="org.apache.cocoon.serialization.XMLSerializer">
+        <doctype-public>-//W3C//DTD XHTML 1.0 Strict//EN</doctype-public>
+        <doctype-system>http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd</doctype-system>
+        <indent>no</indent>
+        <encoding>UTF-8</encoding>
+      </map:serializer>
+      <!-- html -->
+    <map:serializer logger="sitemap.serializer.html" mime-type="text/html" name="html" pool-grow="4" pool-max="32" pool-min="4" src="org.apache.cocoon.serialization.HTMLSerializer">
+    </map:serializer>
+      <map:serializer name="text" mime-type="text/plain" logger="sitemap.serializer.text" src="org.apache.cocoon.serialization.XMLSerializer">
+        <indent>yes</indent>
+        <encoding>UTF-8</encoding>
+      </map:serializer>
+      <map:serializer logger="sitemap.serializer.zip" mime-type="application/zip" name="zip" src="org.apache.cocoon.serialization.ZipArchiveSerializer"/>
+      <!-- TODO -->
+      <!-- map:serializer logger="sitemap.serializer.sxw" mime-type="application/vnd.sun.xml.writer" name="sxw" src="org.apache.cocoon.serialization.ZipArchiveSerializer"/ -->
+      <map:serializer logger="sitemap.serializer.svg2jpeg" mime-type="image/jpeg" name="svg2jpeg" src="org.apache.cocoon.serialization.SVGSerializer">
+        <parameter name="quality" type="float" value="0.9"/>
+      </map:serializer>
+      <map:serializer logger="sitemap.serializer.svg2png" mime-type="image/png" name="svg2png" src="org.apache.cocoon.serialization.SVGSerializer"/>
+      <map:serializer logger="sitemap.serializer.fo2pdf" mime-type="application/pdf" name="fo2pdf" src="org.apache.cocoon.serialization.FOPSerializer">
+        <!-- This element specifies URL to FOP user configuration file.
+           It can be absolute file URL or relative to the servlet context.
+           Examples:
+
+      <user-config>file:/C:/cocoon/fop-config.xml</user-config>
+      <user-config>WEB-INF/fop-config.xml</user-config>
+      -->
+        <!-- Should serializer set content length header or not?
+           Default is true.
+      <set-content-length>true</set-content-length>
+      -->
+      </map:serializer>
+    </map:serializers>
+    <!--
+
+  READERS
+
+  -->
+    <map:readers default="resource">
+      <map:reader logger="sitemap.reader.resource" name="resource" pool-max="32" src="org.apache.cocoon.reading.ResourceReader"/>
+      <!-- xfolio override the default cocoon ImageReader -->
+      <map:reader name="image" src="org.xfolio.cocoon.reading.ImageReader" logger="sitemap.reader.image"/>
+    </map:readers>
+    <!--
+
+  MATCHERS
+
+  -->
+    <map:matchers default="wildcard">
+      <map:matcher logger="sitemap.matcher.wildcard" name="wildcard" src="org.apache.cocoon.matching.WildcardURIMatcher"/>
+      <map:matcher logger="sitemap.matcher.regexp" name="regexp" src="org.apache.cocoon.matching.RegexpURIMatcher"/>
+      <map:matcher logger="sitemap.matcher.request-parameter" name="request-parameter" src="org.apache.cocoon.matching.RequestParameterMatcher"/>
+      <map:matcher logger="sitemap.matcher.cookie" name="cookie" src="org.apache.cocoon.matching.CookieMatcher"/>
+      <map:matcher logger="sitemap.matcher.header" name="header" src="org.apache.cocoon.matching.HeaderMatcher"/>
+      <map:matcher logger="sitemap.matcher.parameter" name="parameter" src="org.apache.cocoon.matching.ParameterMatcher"/>
+      <map:matcher name="referer-match" src="org.apache.cocoon.matching.WildcardHeaderMatcher" logger="sitemap.matcher.referer-match">
+        <header-name>referer</header-name>
+      </map:matcher>
+    </map:matchers>
+    <!--
+
+  SELECTORS
+
+  -->
+    <map:selectors default="exists">
+      <map:selector name="exists" src="org.apache.cocoon.selection.ResourceExistsSelector" logger="sitemap.selector.resource-exists"/>
+      <!-- probably the easiest selector -->
+      <map:selector logger="sitemap.selector.simple" name="simple" src="org.apache.cocoon.selection.SimpleSelector"/>
+      <!--+ TODO
+       | Exception selector : used in <map:handle> errors to build different pipelines
+       | depending on the error that occured.
+       | The configuration allows to associate a symbolic name to exception classes
+       | which is used in the <map:when> tests.
+       | An exception can also be "unrolled", meaning that cascaded exception will be checked.
+       +-->
+      <map:selector logger="sitemap.selector.exception" name="exception" src="org.apache.cocoon.selection.ExceptionSelector">
+        <exception class="org.apache.cocoon.ResourceNotFoundException" name="not-found"/>
+        <exception class="org.apache.cocoon.components.flow.InvalidContinuationException" name="invalid-continuation"/>
+        <!-- The statement below tells the selector to unroll as much exceptions as possible -->
+        <exception class="java.lang.Throwable" unroll="true"/>
+      </map:selector>
+    </map:selectors>
+    <!--
+
+  ACTIONS
+
+  -->
+    <map:actions>
+      <map:action name="xsp" pool-grow="2" pool-max="32" pool-min="4" src="org.apache.cocoon.acting.ServerPagesAction" logger="sitemap.action.serverpages"/>
+      <map:action name="exists" src="org.apache.cocoon.acting.ResourceExistsAction" logger="sitemap.action.resource-exists"/>
+      <map:action name="clear-cache" src="org.apache.cocoon.acting.ClearCacheAction" logger="sitemap.action.clear-cache"/>
+      <map:action name="clear-persistent-store" src="org.apache.cocoon.acting.ClearPersistentStoreAction" logger="sitemap.action.clear-persistent-store"/>
+      <map:action name="locale" src="org.apache.cocoon.acting.LocaleAction" logger="sitemap.action.locale"/>
+    </map:actions>
+    <!--+
+      | The different pipe implementations
+      | 
+      | NON-CACHING:
+      |   The non caching implementation of cocoon pipelines.
+      | 
+      | CACHING:
+      |   Traditional longest cacheable key caching.
+      | 
+      | CACHING-POINT:
+      |   The caching-point pipeline implements an extended             
+      |   caching algorithm which is of particular benefit for use with 
+      |   those pipelines that utilise cocoon-views and/or provide      
+      |   drill-down functionality.                                     
+      | 
+      | The autoCachingPoint algorithim (if enabled) will automatically
+      | cache common elements of the pipeline currently being processed - as well
+      | as the entire cacheable pipeline according to the "longest cacheable key"
+      | algorithm.
+      | 
+      | Consider the following simple pipeline, where generator G is labelled with
+      | a cocoon-view enabling the pipeline to serialize data to either html or pdf 
+      | depending on the value of cocoon-view (as provided by the request):
+      | G - T -  S(html)
+      | |__ T -  S(pdf)
+      | 
+      | If cocoon-view=html, then the caching-point algorithm will not only cache 
+      | the longest cacheable path, which would be GTS(html) but also the
+      | *common element* which in this case would be the results from G. If the
+      | next request to this pipeline was cocoon-view=pdf, then there would be no
+      | need to invoke the generator a second time, as it's value has already been
+      | cached (provided G generates the same cache key)
+      | 
+      | Also note: One can switch "Off" autoCachingPoint and use "pipeline-hints" to
+      | manually indicate that certain pipeline-components should be considered as
+      | cache points.
+      +-->
+    <map:pipes default="xfolio">
+      <map:pipe name="caching" src="org.apache.cocoon.components.pipeline.impl.CachingProcessingPipeline">
+        <!--+
+           | If not specified, the value of the outputBufferSize parameter is -1.
+           | This will cause Cocoon to buffer all output until processing has finished
+           | before sending it to the client. This has the advantage that in case
+           | an error occurs during the processing of the SAX-pipeline, Cocoon is still
+           | able to reset the response and send an error page instead. Otherwise the
+           | error page will be appended to the output already send to the client. 
+           | If you are generating larger pages, it might be benificial to enable
+           | this parameter, so that output is gradually send to the client as it
+           | is being generated.
+           | For more granularity, you can also supply this parameter to
+           | individual map:pipeline elements (using map:parameter syntax).
+           +-->
+        <parameter name="outputBufferSize" value="8192"/>
+      </map:pipe>
+      <map:pipe name="caching-point" src="org.apache.cocoon.components.pipeline.impl.CachingPointProcessingPipeline">
+        <parameter name="autoCachingPoint" value="On"/>
+        <!-- parameter name="outputBufferSize" value="8192"/ -->
+      </map:pipe>
+      <map:pipe name="noncaching" src="org.apache.cocoon.components.pipeline.impl.NonCachingProcessingPipeline">
+        <parameter name="outputBufferSize" value="8192"/>
+      </map:pipe>
+      <!-- this test pipeline try to have a file writer on request (problem will be on delete) -->
+      <map:pipe name="xfolio" src="org.xfolio.cocoon.components.pipeline.impl.WriteFileCachingProcessingPipeline">
+        <parameter name="outputBufferSize" value="8192"/>
+      </map:pipe>
+      <!-- The following two can be used for profiling:-->
+      <map:pipe name="profile-caching" src="org.apache.cocoon.components.profiler.ProfilingCachingProcessingPipeline"/>
+      <map:pipe name="profile-noncaching" src="org.apache.cocoon.components.profiler.ProfilingNonCachingProcessingPipeline"/>
+    </map:pipes>
+  </map:components>
+  <!-- =========================== Views =================================== -->
+  <!--+
+      | Views provide different, well, views to resources. Views are
+      | orthogonal to pipelines. Please refer to the docs.
+      |
+      | It would be wise to disable any unneeded views in a 
+      | production environment in order to avoid exposing data
+      | that you may not necessarily wish to.
+      +-->
+  <map:views>
+    <map:view from-label="content" name="content">
+      <map:serialize type="xml"/>
+    </map:view>
+    <map:view from-label="content" name="pretty-content">
+      <map:transform src="stylesheets/system/xml2html.xslt"/>
+      <map:serialize/>
+    </map:view>
+    <map:view from-position="last" name="links">
+      <map:serialize type="links"/>
+    </map:view>
+  </map:views>
+  <!-- =========================== Resources ================================= -->
+  <!--+
+      | Resources are pipeline fragments that may be used from different
+      | pipeline fragments. For our needs, they behave exactly like
+      | pipelines, only that they are not accessible from outside.
+      | Hence I will explain what's inside below for pipelines.
+      +-->
+  <map:resources>
+ </map:resources>
+  <!-- ========================== Action sets ================================ -->
+  <!--+
+     | Action sets group actions together. If some actions are often used
+     | together in pipeline fragments, it's easier to group them and refer
+     | to the group. For more info, please see the docs.
+     +-->
+  <map:action-sets>
+  </map:action-sets>
+  <!-- =========================== Pipelines ================================= -->
+  <!--+
+     | Pipelines. The beef. Pipelines specify how the processing of your
+     | content is done. Usually, a pipeline consists of several fragments
+     | that specify the generation, transformation, and serialization of
+     | SAX events.
+     |
+     | Processing is done in two steps:
+     |
+     | 1) The top level elements are executed in order of appearance until
+     |    one signals success. These top level elements are usually
+     |    matchers.
+     |
+     |    Other components are called depth-first to determine what
+     |    fragments make up the processing pipeline. When a component
+     |    fails, no nested components are called but the next component on
+     |    the same level.
+     |
+     | 2) Once it is determined which generator, which transformers and
+     |    wich serializer is used, these components are executed. During
+     |    this, the pipeline may not be changed.
+     |
+     | You may have as many pipelines in your sitemap as you like.
+     +-->
+  <map:pipelines>
+    <!-- 2004-02-15 : frederic.glorieux@ajlsm.com
+wash all pipelines, give hand to xfolio.xmap
+-->
+    <map:pipeline>
+      <!-- 
+        2004-05-04 FG
+
+  this pipeline check if all needed properties are set
+  if not, an admin page is provided, only one time
+  for security reasons, the only access to admin is when the server is started
+  so rights policy lay on sys-admin security, not on the app
+
+  parameters are needed, 
+  a simple form is provide to set them by the one who start the server  
+  MAYDO: set it only from localhost ?
+
+-->
+      <map:match pattern="**">
+        <map:act type="xsp" src="script/params.xsp">
+          <map:match pattern="params">
+            <map:generate type="xsp" src="script/params.xsp"/>
+            <map:serialize type="xml"/>
+          </map:match>
+          <map:aggregate element="aggregate">
+            <map:part src="cocoon:/params"/>
+            <map:part src="locale/params.xhtml" element="content"/>
+          </map:aggregate>
+          <map:transform src="transform/xfolio/params.xsl"/>
+          <map:serialize/>
+          <!-- admin could not appear in skin, because skin is set by it -->
+        </map:act>
+      </map:match>
+      <!-- metadata -->
+      <map:match pattern="**.meta">
+        <map:mount check-reload="yes" src="meta.xmap" uri-prefix=""/>
+      </map:match>
+      <map:match pattern="profiler**">
+        <map:mount check-reload="yes" src="profiler.xmap" uri-prefix="profiler"/>
+      </map:match>
+      <map:mount check-reload="yes" src="xfolio.xmap" uri-prefix=""/>
+    </map:pipeline>
+  </map:pipelines>
+</map:sitemap>

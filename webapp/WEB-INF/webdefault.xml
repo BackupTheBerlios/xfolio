@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" "http://java.sun.com/dtd/web-app_2_3.dtd">   
+<!--
+
+
+(c) 2003, 2004 xfolio.org, [http://www.ajlsm.com AJLSM], [http://www.strabon.org Strabon] , [http://www.eumedis.net eumedis].
+Licence :  [http://www.apache.org/licenses/LICENSE-2.0 Apache].
+
+= WHAT =
+
+A webdefault.xml for jetty which do, nothing!
+Let servlet developper do what they know.
+
+-->
+<web-app/>
