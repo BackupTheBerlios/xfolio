@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
+
 (c) 2003, 2004; ADNX <http://adnx.org>
 
 = WHAT =
@@ -279,6 +280,7 @@ in RDF / XML and gives practical examples.
   <xsl:output method="xml" encoding="UTF-8" indent="yes"/>
   <!-- bug possible from here (used to format description) -->
   <xsl:variable name="CR" select="'&#xD;'"/>
+  <xsl:param name="LF" select="'&#10;'"/>
   <!-- root -->
   <xsl:template match="/">
     <rdf:RDF>
@@ -286,6 +288,17 @@ in RDF / XML and gives practical examples.
         <xsl:apply-templates/>
       </rdf:Description>
     </rdf:RDF>
+  </xsl:template>
+  <!--
+Default handles
+-->
+  <xsl:template match="text()[normalize-space(.) ='']"/>
+  <!-- should be unuseful but copy everything, in case of something missed -->
+  <xsl:template match="*">
+    <xsl:copy>
+      <xsl:copy-of select="@*"/>
+      <xsl:apply-templates/>
+    </xsl:copy>
   </xsl:template>
   <!-- order the record, output only dc:property 
 1) the dc:properties
@@ -370,13 +383,11 @@ Note: Use of this DataSet is Deprecated. It is likely that this
 DataSet will not be included in further versions of the IIM.
 -->
   <xsl:template match="photoshop:SupplementalCategories">
-    <!--
     <xsl:for-each select=".//rdf:li">
       <dc:subject xsi:type="IIM:SupplementalCategories">
         <xsl:apply-templates/>
       </dc:subject>
     </xsl:for-each>
--->
   </xsl:template>
   <!-- 
 
@@ -577,21 +588,70 @@ parsing description text in case of multilingual description
 * 2004-10-08 [FG] debugging on real life records
 
 -->
+  <xsl:template name="titledesc" match="dc:description//text()">
+    <!-- normalize record, and add a LF at the end -->
+    <xsl:param name="text" select="concat(translate(., $CR, $LF), $LF)"/>
+    <xsl:choose>
+      <xsl:when test="normalize-space($text)=''"/>
+      <!-- start with a lang, but still another after, 
+cut after next lang to have a mololang block, but keep '[' -->
+      <xsl:when test="starts-with(normalize-space($text), '[')
+        and contains(substring-after($text, '['), '[')
+      ">
+        <xsl:call-template name="titledesc">
+          <xsl:with-param name="text" select="concat('[', substring-before(substring-after($text, '['), '['))"/>
+        </xsl:call-template>
+        <xsl:call-template name="titledesc">
+          <xsl:with-param name="text">
+            <xsl:value-of select="concat('[',substring-after(substring-after($text, '['), '['))"/>
+          </xsl:with-param>
+        </xsl:call-template>
+      </xsl:when>
+      <!-- here we should have only one lang -->
+      <xsl:when test="starts-with(normalize-space($text), '[')">
+        <xsl:variable name="lang" select="substring-before(substring-after($text, '['), ']')"/>
+        <dc:title xsi:type="IIM:Title" xml:lang="{$lang}">
+          <xsl:value-of select="substring-before(substring-after($text, ']'), $LF)"/>
+        </dc:title>
+        <xsl:if test="normalize-space(substring-after($text, $LF)) != ''">
+          <dc:description xsi:type="IIM:Description" xml:lang="{$lang}">
+            <xsl:value-of select="substring-after($text, $LF)"/>
+          </dc:description>
+        </xsl:if>
+      </xsl:when>
+      <!-- a lang somewhere, resend before and after, but keep '[' -->
+      <xsl:when test="contains($text, '[')">
+        <xsl:call-template name="titledesc">
+          <xsl:with-param name="text" select="substring-before($text, '[')"/>
+        </xsl:call-template>
+        <xsl:call-template name="titledesc">
+          <xsl:with-param name="text" select="concat('[', substring-after($text, '['))"/>
+        </xsl:call-template>
+      </xsl:when>
+      <!-- no lang, a simple desc -->
+      <xsl:otherwise>
+        <dc:description xsi:type="IIM:Description">
+          <xsl:value-of select="$text"/>
+        </dc:description>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+<!--
+old buggy version of the template, with less experience of text processing in XSL
+
   <xsl:template name="text" match="dc:description//text()">
     <xsl:param name="text" select="."/>
     <xsl:param name="max" select="5"/>
     <xsl:choose>
-      <!-- don't forget to finish ! -->
       <xsl:when test="$max = 0"/>
       <xsl:when test="normalize-space($text)=''"/>
-      <!-- wash spaces before a language declaration -->
       <xsl:when test="substring-before($text, '[') != '' and normalize-space(substring-before($text, '[')) = ''">
         <xsl:call-template name="text">
           <xsl:with-param name="text" select="substring-after($text, substring-before($text, '['))"/>
           <xsl:with-param name="max" select="$max - 1"/>
         </xsl:call-template>
       </xsl:when>
-      <!-- here is formatting -->
       <xsl:when test="starts-with($text, '[') and contains($text, ']')">
         <xsl:variable name="lang" select="substring-after(substring-before($text, ']'), '[')"/>
         <dc:title xsi:type="IIM:Description">
@@ -601,7 +661,7 @@ parsing description text in case of multilingual description
             </xsl:attribute>
           </xsl:if>
           <xsl:choose>
-            <xsl:when test="contains(substring-after($text, ']'), $CR)">
+            <xsl:when test="contains(substring-after($text, ']'), $LF)">
               <xsl:value-of select="normalize-space(substring-before(substring-after($text, ']'), $CR))"/>
             </xsl:when>
             <xsl:otherwise>
@@ -611,14 +671,12 @@ parsing description text in case of multilingual description
         </dc:title>
         <xsl:variable name="after" select="substring-after(substring-after($text, ']'), $CR)"/>
         <xsl:choose>
-          <!-- other language -->
           <xsl:when test="contains($after, '[') or true()">
             <xsl:call-template name="text">
               <xsl:with-param name="text" select="concat('[', substring-after($after, '['))"/>
               <xsl:with-param name="max" select="$max - 1"/>
             </xsl:call-template>
           </xsl:when>
-          <!-- a description after a title -->
           <xsl:when test="contains($after, concat($CR, '['))">
             <dc:description xsi:type="IIM:Description">
               <xsl:if test="normalize-space($lang) != ''">
@@ -633,7 +691,6 @@ parsing description text in case of multilingual description
               <xsl:with-param name="max" select="$max - 1"/>
             </xsl:call-template>
           </xsl:when>
-          <!-- end of field -->
           <xsl:otherwise>
             <dc:description xsi:type="IIM:Description">
               <xsl:if test="normalize-space($lang) != ''">
@@ -646,7 +703,6 @@ parsing description text in case of multilingual description
           </xsl:otherwise>
         </xsl:choose>
       </xsl:when>
-      <!-- text before a language declaration is a description in default language -->
       <xsl:when test="contains($text, '[')">
         <xsl:if test="normalize-space(substring-before($text, '['))!=''">
           <dc:description xsi:type="IIM:Description">
@@ -665,11 +721,5 @@ parsing description text in case of multilingual description
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
-  <!-- should be unuseful but copy everything, in case of something missed -->
-  <xsl:template match="*">
-    <xsl:copy>
-      <xsl:copy-of select="@*"/>
-      <xsl:apply-templates/>
-    </xsl:copy>
-  </xsl:template>
+-->
 </xsl:transform>
