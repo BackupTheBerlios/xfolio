@@ -1,0 +1,70 @@
+html,body {
+	height: 100%;
+}
+
+
+body {
+  margin:0px;
+  padding:0px;
+  scrollbar-track-color:ButtonFace;
+
+
+}
+
+
+/*
+too dangerous for a not nice IE thing
+body {
+		 overflow:hidden;
+	}
+
+*/
+
+#dir {
+  font-size:9pt;
+  font-family: Verdana, sans-serif;
+  white-space:nowrap;
+  margin:0px;
+  padding:5px;
+}
+#dir a {
+  text-decoration:none;
+  color:#000000;
+}
+#dir a:active,
+#dir a:focus {
+  color:white; 
+  background:#000080;
+  text-decoration:none;
+}
+#dir a:hover {
+  text-decoration:underline;
+}
+
+/* gif is needed for transparency under IE , images are supposed to be 16x16px*/
+
+li.home {
+  list-style:circle inside  url('icons/home.gif') ;
+}
+li.open {
+  list-style:circle inside  url('icons/open.gif') ;
+}
+li.close {
+  list-style:disc inside  url('icons/close.gif') ;
+}
+li.pdf {
+  list-style:none inside  url('icons/pdf.gif') ;
+}
+li.jpg {
+  list-style:none inside  url('icons/image.gif') ;
+}
+li {
+  list-style:none inside  url('icons/file.gif');
+}
+ul.dir {
+  margin-top:0px; 
+  margin-bottom:0px;
+  margin-left:1ex;
+  padding-left:1ex;
+  border-left:dotted 1px;
+}

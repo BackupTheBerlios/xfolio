@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+(c) 2003, 2004 xfolio.org, [http://www.ajlsm.com AJLSM], [http://www.strabon.org Strabon] , [http://www.eumedis.net eumedis].
+Licence :  [http://www.apache.org/licenses/LICENSE-2.0 Apache].
+
+= WHAT =
+
+How to display text documents in a more fancy web layout ? The templates !
+Best process could be, tell your designer to produce the HTML page
+he likes, and ask him (or do it) to put tags code where he wants the text and 
+also, different widgets that the engine can provide (navigation, searching
+and so on).
+
+= HOW =
+
+TODO: 
+html or xhtml ?
+a namespace or a matcher like @id ?
+
+= WHO =
+
+
+
+= CHANGES =
+
+2004-02-17
+2004-06-10
+
+frederic.glorieux@ajlsm.com
+
+
+
+	syntax:
+The included parts are expressed in a very simple namespace
+
+	history:
+Come from an xsl becoming a bit too complex to be simple editable layout.
+
+	MAYDO:
+A more configurable taglib, for example to choose which meta to display
+in menu or with images.
+
+-->
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title> Transfolio, default title </title>
+    <!-- ?? -->
+    <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+    <!-- default html style -->
+		<link rel="stylesheet" type="text/css" href="html.css" />
+    <!-- specific CSS for this template -->
+		<link rel="stylesheet" type="text/css" href="layout.css" />
+    <!-- styles for the explorer -->
+		<link rel="stylesheet" type="text/css" href="explorer.css" />
+		<!-- script to fit char size to window size -->
+		<script type="text/javascript" src="html.js"> </script>
+  </head>
+  <body onload="if(window.init) init(); " onresize="if (window.fit) fit(80)">
+    <table id="bar" width="100%" cellpadding="2" cellspacing="0" border="0">
+      <tr>
+<td>&#160;&#160;&#160;&#160;</td>
+<td valign="bottom"><a href="home" class="but"><img src="icons/home.gif" alt="0" border="0"/></a></td>
+<td valign="bottom"><a href="prev" class="but"><img src="icons/prev.gif" alt="&lt;" border="0"/></a></td>
+<td valign="bottom"><a href="up" class="but"><img src="icons/up.gif"  alt="^" border="0"/></a></td>
+<td valign="bottom"><a href="next" class="but"><img src="icons/next.gif" alt="&gt;" border="0"/></a></td>
+<td width="100%" valign="bottom" align="right"> Transfolio &#160; </td>
+      </tr>
+    </table>
+    <table width="100%" cellpadding="5">
+      <td id="toc" valign="top">
+        <ul id="dir">
+          <li class="home">Home</li>
+          <li class="sxw">File</li>
+        </ul>
+      </td>
+      <td >
+        <p>&#160;</p>
+        <div id="article">
+          <center>
+            <h1>Article</h1>
+          </center>
+          <p>
+Some text to verify behavior of simple blocks in this layout.          
+Some text to verify behavior of simple blocks in this layout.          
+Some text to verify behavior of simple blocks in this layout.          
+Some text to verify behavior of simple blocks in this layout.          
+Some text to verify behavior of simple blocks in this layout.          
+Some text to verify behavior of simple blocks in this layout.          
+Some text to verify behavior of simple blocks in this layout.          
+          </p>
+          <h1>First Part</h1>
+        </div>
+        <p>&#160;</p>
+      </td>
+    </table>
+  </body>
+</html>
