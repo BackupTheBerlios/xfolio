@@ -123,7 +123,10 @@ normalize-space(.//office:meta/dc:title) = ''
 and normalize-space($title) = ''
 and normalize-space(//text:h) != ''
 ">
+      <dc:title>
+        <xsl:call-template name="lang"/>
       <xsl:value-of select="normalize-space(//text:h)"/>
+      </dc:title>
     </xsl:if>
     <!-- dc:creator -->
     <xsl:call-template name="creators"/>
