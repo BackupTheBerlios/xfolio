@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-(c) 2004 AJLSM http://ajlsm.com, xfolio.org. 
-
-
-
+(c) 2003, 2004; ADNX <http://adnx.org>
 
 = WHAT =
 

@@ -53,11 +53,13 @@ Long attention have been paid to dependencies and update.
 dev target.
 
 -->
-  <target name="test" depends="init, build, directory"/>
+  <target name="test" depends="init, build"/>
   <!--
 init target
 -->
   <target name="init">
+    <javac srcdir="lib/classes" destdir="lib/classes"/>
+    <taskdef name="xjpeg" classname="AntJpegInfo" classpath="lib/classes"/>
     <mkdir dir="${website}"/>
   </target>
   <!-- 
@@ -65,7 +67,7 @@ init target
 build target.
 
 -->
-  <target name="build" depends="normalize">
+  <target name="build" depends="init, normalize, directory">
     <echo>Your source webfolder ${src}</echo>
     <echo>Your target website ${website}</echo>
     <!-- copy the skin directory -->
@@ -114,12 +116,25 @@ don't work for extensions identical to generated ones
         </fileset>
       </path>
     </foreach>
+    <!-- jpeg date from the source is kept, so the marker is *.xjpeg -->
+    <!-- delete all target rdf if something have changed in the engine -->
+    <dependset>
+      <srcfileset dir="transform/meta">
+        <include name="**/xmp2dc.xsl"/>
+      </srcfileset>
+      <targetfileset dir="${website}">
+        <include name="**/*.xjpeg"/>
+        <exclude name="skin/**"/>
+      </targetfileset>
+    </dependset>
     <!-- jpeg : do tasks for files newer in src webfolder than in target website -->
     <foreach target="jpeg" param="file">
       <path>
         <fileset dir="${src}">
           <include name="**/*.jpg"/>
-          <depend targetdir="${website}"/>
+          <depend targetdir="${website}">
+            <mapper type="glob" from="*.jpg" to="*.xjpeg"/>
+          </depend>
         </fileset>
       </path>
     </foreach>
@@ -175,15 +190,13 @@ Delete files from build and dist when deleted from src
     <echo>delete ${path}</echo>
     <dirname property="build.dir" file="${website}${path}"/>
     <basename property="build.name" file="${path}"/>
-    <echo>name "${build.name}"</echo>
-    <echo>dir "${build.dir}"</echo>
-    <delete>
+    <delete includeEmptyDirs="true">
       <fileset dir="${build.dir}">
         <include name="${build.name}*"/>
       </fileset>
     </delete>
     <!-- MAYDO more generic one day with dirset -->
-    <delete dir="${website}${path}"/>
+    <delete dir="${website}${path}" includeEmptyDirs="true"/>
   </target>
   <!--
 work on a jpeg file
@@ -199,6 +212,10 @@ work on a jpeg file
     </pathconvert>
     <echo>process "${path}"</echo>
     <copy file="${file}" tofile="${website}${path}.jpg" preservelastmodified="true"/>
+    <xjpeg srcfile="${website}${path}.jpg"/>
+    <!-- a quite nice text version -->
+    <xslt in="${website}${path}.xjpeg" out="${website}${path}.rdf" style="transform/meta/xmp2dc.xsl"/>
+    
   </target>
   <!--
 list files in src
