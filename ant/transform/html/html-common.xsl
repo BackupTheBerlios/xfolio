@@ -17,7 +17,7 @@ This sheet have to been imported to take advantage.
 <xsl:transform 
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
 xmlns:html="http://www.w3.org/1999/xhtml"
-version="1.0" xmlns="http://www.w3.org/1999/xhtml">
+version="1.0" xmlns="http://www.w3.org/1999/xhtml" exclude-result-prefixes="xsl html">
     <!-- avoid indent for xhtml (some layout) -->
     <xsl:output method="xml" indent="no" omit-xml-declaration="yes" encoding="UTF-8"/>
     <!-- load the XSL only one time -->
@@ -56,17 +56,21 @@ same logic as css for a js file, but without default value
       <!-- no default value ! -->
     </xsl:choose>
   </xsl:param>
-  <!--
-Different useful declarations for head in an html doc
--->
-  <xsl:template name="html-metas">
-    <!-- encoding declaration from output of the xsl -->
+  <!-- a not too bad encoding declaration -->
+  <xsl:template name="meta-charset">
     <meta http-equiv="Content-type">
       <xsl:attribute name="content">
         <xsl:text>text/html; charset=</xsl:text>
         <xsl:value-of select="$encoding"/>
       </xsl:attribute>
     </meta>
+  </xsl:template>
+
+  <!--
+Different useful declarations for head in an html doc
+-->
+  <xsl:template name="html-metas">
+    <xsl:call-template name="meta-charset"/>
     <xsl:if test="normalize-space($css) != ''">
       <link rel="stylesheet">
         <xsl:attribute name="href">
@@ -82,6 +86,10 @@ rely on a namin.xsl
         </xsl:attribute>
       </link>
     </xsl:if>
+    <xsl:call-template name="js-link"/>
+  </xsl:template>
+  <!-- resolve link to javascript file -->
+  <xsl:template name="js-link">
     <xsl:if test="normalize-space($js) != ''">
       <script type="text/javascript">
         <xsl:attribute name="src">
@@ -99,6 +107,7 @@ rely on a naming.xsl
         &#160;
       </script>
     </xsl:if>
+  
   </xsl:template>
   <!-- template for link resolution -->
   <xsl:template name="href">

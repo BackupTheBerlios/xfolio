@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="../html/xsl2html.xsl"?>
 <!--
-copyright : (c) 2003, 2004; "ADNX" <http://adnx.org>
-licence   : "LGPL" <http://www.gnu.org/copyleft/lesser.html> 
-creator   : [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com> ("AJLSM" <http://ajlsm.org>)
-relation  : "sxw2html.xsl" <sxw2html.xsl>
+Label     : sxw-common.xsl
+Title     : Different tools to transform sxw xml.
+Copyright : © 2003, 2004, "ADNX" <http://adnx.org>.
+Licence   : "CeCILL" <http://www.cecill.info/licences/Licence_CeCILL_V1.1-US.html> 
+            ("GPL" <http://www.gnu.org/copyleft/gpl.html> like)
+Creator   : [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com> 
+            ("AJLSM" <http://ajlsm.org>)
 
 
  = What =

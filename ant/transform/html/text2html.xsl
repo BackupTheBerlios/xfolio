@@ -5,11 +5,16 @@
 <!--
 
 
-rights:Copyright 2003-2004 ADNX <http://adnx.org>
-creator:[FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com> (documentation ingeneering)
+Title     : Transform structured text in semantic XHTML
+Label     : text2html.xsl
+Copyright : © 2003, 2004, "ADNX" <http://adnx.org>.
+Licence   : "CeCILL" <http://www.cecill.info/licences/Licence_CeCILL_V1.1-US.html> 
+            ("GPL" <http://www.gnu.org/copyleft/gpl.html> like)
+Creator   : [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com> 
+            ("AJLSM" <http://ajlsm.org>)
 
 
-. What
+= What =
 
   This transformation parse text to produce some well-formed XML 
   (in fact, XHTML is usually enough). 
@@ -20,7 +25,7 @@ creator:[FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com> (documentation 
   First destination is to extract formatted comments from XML document, 
   especially for an XSL documentation tool. 
 
-. Features
+= Features =
 
 .. Titles
 
@@ -243,7 +248,10 @@ which should not be indented.
     * 2004-11-09 [FG] Lots of work, quite all
     * 2004-11-01 [FG] creation
 
-. References
+ = References =
+
+ * [CeCILL]  <http://www.cecill.info/licences/Licence_CeCILL_V1.1-US.html>
+ * [GPL]     <http://www.gnu.org/copyleft/gpl.html> 
 
 
 -->
@@ -1075,7 +1083,16 @@ Normalize fields, maybe nicer if lists was possible as a field value.
 -->
   <xsl:template name="fields-norm">
     <xsl:param name="text"/>
-    <xsl:variable name="field" select="normalize-space(substring-before($text, ':'))"/>
+    <xsl:variable name="token" select="substring-before($text, ':')"/>
+    <xsl:variable name="field">
+      <xsl:choose>
+        <xsl:when test="contains($token, '&lt;')"/>
+        <xsl:when test="contains($token, 'http:')"/>
+        <xsl:otherwise>
+          <xsl:value-of select="$token"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
     <xsl:choose>
       <xsl:when test="normalize-space($text) = ''"/>
       <!-- should split all lines -->

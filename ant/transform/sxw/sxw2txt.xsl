@@ -135,7 +135,10 @@ process a table of contents only if requested in the source
   <xsl:template match="text:h" mode="text-toc">
     <xsl:value-of select="$CR"/>
     <xsl:value-of select="substring('                         ', 1, number(@text:level) * 2)"/>
-    <xsl:apply-templates select="." mode="text-number"/>
+    <xsl:variable name="number">
+      <xsl:apply-templates select="." mode="text-number"/>
+    </xsl:variable>
+    <xsl:value-of select="normalize-space($number)"/>
     <xsl:text> </xsl:text>
     <xsl:value-of select="."/>
   </xsl:template>

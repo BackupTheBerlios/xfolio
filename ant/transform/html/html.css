@@ -40,7 +40,7 @@ frederic.glorieux@xfolio.org
 
     
     /* a dark on light */
-    body { 
+    body, html { 
         color : #332000; 
         background-color : #FFFEFA;
         /* used for negative indent titles */
@@ -446,13 +446,18 @@ frederic.glorieux@xfolio.org
     h1 em, em, h1 i, em h1, i h1 { 
         font-family: Garamond, Melior, Georgia, Times,  serif; 
     }
-    center em h1 {
-        margin-top:0px; padding-top:0px;
+    center em h1,
+    h1.subtitle {
+        font-family: Garamond, Melior, Georgia, Times,  serif; 
+        letter-spacing: 0px;
+        margin-top:0px; 
+        padding-top:0px;
         font-size:150%;
         font-style:italic;
         font-weight:normal; 
         text-align:center;
         border:none;
+        margin-bottom:2em;
     }
     
     h1 { 

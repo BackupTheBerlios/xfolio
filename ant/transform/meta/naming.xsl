@@ -16,6 +16,10 @@ goal:
   <!-- list of space separated of file extensions 
 from which generate dcterms:hasFormat declarations -->
   <xsl:param name="formats"/>
+  <!-- A root for absolute generated links -->
+  <xsl:param name="server"/>
+  <!-- A path from which resolve some links -->
+  <xsl:param name="path"/>
     <!--
 Normalize path
  * '\' > '/'
@@ -24,7 +28,7 @@ Normalize path
 Careful, not a lot of tests, may bug in lots of cases.
 -->
   <xsl:template name="normalizePath">
-    <!-- The supposed absolute path from which resolve -->
+    <!-- The supposed absolute path from which resolve links -->
     <xsl:param name="path"/>
     <xsl:choose>
       <xsl:when test="contains($path, '\')">
@@ -70,10 +74,29 @@ TODO wash port :
           <xsl:with-param name="to" select="translate($to, '\', '/')"/>
         </xsl:call-template>
       </xsl:when>
-      <xsl:when test="starts-with($from, '/') and starts-with($to, '/')">
+      <!-- in case of root path (starting with '/') -->
+      <xsl:when test="starts-with($from, '/') or starts-with($to, '/')">
         <xsl:call-template name="getRelative_">
-          <xsl:with-param name="from" select="substring-after($from, '/')"/>
-          <xsl:with-param name="to" select="substring-after($to, '/')"/>
+          <xsl:with-param name="from">
+            <xsl:choose>
+              <xsl:when test="starts-with($from, '/')">
+                <xsl:value-of select="substring-after($from, '/')"/>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:value-of select="$from"/>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:with-param>
+          <xsl:with-param name="to">
+            <xsl:choose>
+              <xsl:when test="starts-with($to, '/')">
+                <xsl:value-of select="substring-after($to, '/')"/>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:value-of select="$to"/>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:with-param>
         </xsl:call-template>
       </xsl:when>
       <!-- same domain (will bug on file:///) -->
@@ -488,10 +511,12 @@ From a param provide by server of other supported export formats,
 <dcterms:hasFormat/> elements are generated
 -->
   <xsl:template name="hasFormat">
+    <!-- default mode is Dublin core, maybe translated in html:meta if $mode='html'  -->
+    <xsl:param name="mode"/>
     <!-- normalize extensions to have always a substring-before ' ' -->
     <xsl:param name="formats" select="concat(normalize-space($formats), ' ')"/>
     <!-- supposed path of the source file -->
-    <xsl:param name="path" select="$path"/>
+    <xsl:param name="path"/>
     <!-- -->
     <xsl:choose>
       <!-- no extensions, break here -->
@@ -504,8 +529,8 @@ From a param provide by server of other supported export formats,
             <xsl:with-param name="path" select="$extension"/>
           </xsl:call-template>
         </xsl:variable>
-        <xsl:variable name="name">
-          <xsl:call-template name="getName">
+        <xsl:variable name="basename">
+          <xsl:call-template name="getBasename">
             <xsl:with-param name="path" select="$path"/>
           </xsl:call-template>
         </xsl:variable>
@@ -514,15 +539,32 @@ From a param provide by server of other supported export formats,
             <xsl:with-param name="path" select="$path"/>
           </xsl:call-template>
         </xsl:variable>
-        <dcterms:hasFormat dc:format="{$mime}" rdf:resource="{$parent}{$name}.{$extension}">
-          <!-- what should I do ther ?
-          <xsl:call-template name="lang"/>
-            -->
-          <!-- relation maybe relative to identifier ? -->
-          <xsl:value-of select="$name"/>
-          <xsl:text>.</xsl:text>
-          <xsl:value-of select="$extension"/>
-        </dcterms:hasFormat>
+        <xsl:choose>
+          <xsl:when test="$mode='html'">
+            <dcterms:hasFormat dc:format="{$mime}" rdf:resource="{$parent}{$basename}.{$extension}">
+              <!-- what should I do ther ?
+              <xsl:call-template name="lang"/>
+                -->
+              <!-- relation maybe relative to identifier ? -->
+              <xsl:value-of select="$basename"/>
+              <xsl:text>.</xsl:text>
+              <xsl:value-of select="$extension"/>
+            </dcterms:hasFormat>
+          </xsl:when>
+          <xsl:otherwise>
+            <link rel="alternate" type="{$mime}">
+               <xsl:attribute name="href">
+                  <xsl:if test="normalize-space($server) != ''">
+                    <xsl:value-of select="$server"/>
+                    <xsl:value-of select="$parent"/>
+                  </xsl:if>
+                  <xsl:value-of select="$basename"/>
+                  <xsl:text>.</xsl:text>
+                  <xsl:value-of select="$extension"/>
+               </xsl:attribute>
+            </link>
+          </xsl:otherwise>
+        </xsl:choose>
         <xsl:call-template name="hasFormat">
           <xsl:with-param name="formats" select="substring-after($formats, ' ')"/>
         </xsl:call-template>

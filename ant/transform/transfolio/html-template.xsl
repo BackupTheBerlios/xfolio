@@ -60,7 +60,7 @@ will be resolved from the path of the document to be relative
   <!-- the variable where the template is stored -->
   <xsl:variable name="template" select="document($template.xhtml, .)"/>
   <!-- variable to store content (the document to be processed -->
-  <xsl:variable name="content" select="/*"/>
+  <xsl:variable name="content" select="/"/>
   <!-- address toc.rdf where metadatas are stored -->
   <xsl:param name="toc-path" select="'/toc.rdf'"/>
   <!-- get an uri for toc.rdf -->
@@ -117,6 +117,8 @@ $resource/preceding::resource[@radical != $resource/@radical][not(@xml:lang)]//d
   <xsl:template match="/">
     <xsl:apply-templates select="$template/*" mode="template"/>
   </xsl:template>
+  <!-- no output of template comments -->
+  <xsl:template match="comment()" mode="template"/>
   <!-- rewrite links from template to be relative to the theme directory -->
   <xsl:template match="html:script" mode="template">
     <script>
@@ -127,9 +129,9 @@ $resource/preceding::resource[@radical != $resource/@radical][not(@xml:lang)]//d
   </xsl:template>
   <!-- rewrite links in template -->
   <xsl:template match="
-	  *[local-name()='img']/@src[not(contains(., ':'))] 
-	| *[local-name()='script']/@src[not(contains(., ':'))] 
-	| *[local-name()='link'][@rel='stylesheet']/@href[not(contains(., ':'))]
+	  html:img/@src[not(contains(., ':'))] 
+	| html:script/@src[not(contains(., ':'))] 
+	| html:link[@rel='stylesheet']/@href[not(contains(., ':'))]
 	| */@background[not(contains(., ':'))]
 	
 	" mode="template">
@@ -138,6 +140,14 @@ $resource/preceding::resource[@radical != $resource/@radical][not(@xml:lang)]//d
       <xsl:value-of select="."/>
     </xsl:attribute>
   </xsl:template>
+  <!-- take title from template if there's not in the source -->
+  <xsl:template match="html:head/html:title[1]" mode="template">
+    <xsl:if test="not($content/html:html/html:head/html:title)">
+      <xsl:copy-of select="."/>
+    </xsl:if>
+  </xsl:template>
+  <!-- strip other titles -->
+  <xsl:template match="html:head/html:title[position() &gt; 1]" mode="template"/>
   <!-- replace home link by a relative link to an existing file -->
 
   <!--
@@ -148,7 +158,7 @@ MAYDO:put in xhtml template layout of images (after tests here)
 
 Problems waited because of relative links
 -->
-  <xsl:template match="*[local-name()='img']" mode="content">
+  <xsl:template match="html:img" mode="content">
     <xsl:variable name="parent">
       <xsl:call-template name="getParent">
         <xsl:with-param name="path" select="@src"/>
@@ -243,12 +253,10 @@ bug in IE
     </xsl:choose>
   </xsl:template>
   <!-- should be head of the template, from which copy head of xhtml -->
-  <xsl:template match="*[local-name()='head']" mode="template">
+  <xsl:template match="html:head" mode="template">
     <head>
       <xsl:apply-templates mode="template"/>
-      <!-- TODO: xhtml serializer of cocoon add an empty title if none are available, this is a fast patch -->
-      <title>&#160;</title>
-      <xsl:apply-templates select="$content/*[local-name()='head']/node()" mode="content"/>
+      <xsl:apply-templates select="$content/html:html/html:head/node()" mode="content"/>
     </head>
   </xsl:template>
   <!--
@@ -256,12 +264,12 @@ bug in IE
 catch css links from content may break layout 
 Maybe beet
 	-->
-  <xsl:template match="*[local-name()='head']/*[local-name()='link'][@rel='stylesheet']" mode="content"/>
+  <xsl:template match="html:head/html:link[@rel='stylesheet']" mode="content"/>
   <!-- match the article substitute -->
   <xsl:template match="html:*[@id='article']" mode="template">
     <xsl:copy>
       <xsl:copy-of select="@*"/>
-      <xsl:apply-templates select="$content/*[local-name()='body']/node()" mode="content"/>
+      <xsl:apply-templates select="$content/html:html/html:body/node()" mode="content"/>
     </xsl:copy>
   </xsl:template>
   <!-- handle possible tocs -->

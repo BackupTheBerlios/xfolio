@@ -1,16 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="../html/xsl2html.xsl"?>
 <!--
-copyright : (c) 2003, 2004. "ADNX" <http://adnx.org>
-licence   : "LGPL" <http://www.gnu.org/copyleft/lesser.html> 
-creator   : [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com) ("AJLSM" <http://ajlsm.org>)
+
+Title     : Find metadatas in OpenOffice.org Writer XML
+Label     : sxw2rdf.xsl
+Copyright : © 2003, 2004, "ADNX" <http://adnx.org>.
+Licence   : "CeCILL" <http://www.cecill.info/licences/Licence_CeCILL_V1.1-US.html> 
+            ("GPL" <http://www.gnu.org/copyleft/gpl.html> like)
+Creator   : [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com> 
+            ("AJLSM" <http://ajlsm.org>)
 
  = What =
 
 provide the best set of Dublin Core properties possible from an OpenOffice.org
 writer document (sxw). This transformation is tested under different contexts
  * OOo export filter
- * "Cocoon" <http://cocoon.apache.org> transformer step (with "Saxon" <http://saxon.sourceforge.net/>)
+ * "Cocoon" <http://cocoon.apache.org> transformer step (with "Saxon"
+   <http://saxon.sourceforge.net/>)
  * "Ant" <http://ant.apache.org> task
 Should be applied to an XML file with office:body
 
@@ -24,6 +30,7 @@ This template may be externalize in a specific rdf2meta ?
 
  = Changes =
 
+ * 2004-11-22 [FG] transfer same logic for html:meta
  * 2004-11-17 [FG] introduction of dcterms
  * 2004-06-28 [FG] better linking resolving
 The metas could be used separated for other usages.
@@ -45,10 +52,44 @@ These transformation was extracted from a global oo2html
  * DCMI Metadata Terms. "DCMI Usage Board" <dc-usage@jiscmail.ac.uk>. 
    "The Dublin Core Metadata Initiative" <http://dublincore.org/>.
    <http://dublincore.org/documents/dcmi-terms/>
- * <http://www.w3.org/TR/xhtml2/abstraction.html#dt_MediaDesc>
+ * Expressing Dublin Core in HTML/XHTML meta and link elements.
+   "Andy Powell" <a.powell@ukoln.ac.uk> (UKOLN, University of Bath).
+   How Dublin Core metadata can be encoded in HTML/XHTML <meta> and <link> elements.
+   <http://dublincore.org/documents/dcq-html/>
+ * <http://www.w3.org/TR/xhtml2/mod-meta.html#s_metamodule>
+ * [html:meta] <http://www.w3.org/TR/html4/struct/global.html#edef-META>
+ * [html:link] <http://www.w3.org/TR/html4/struct/links.html#edef-LINK>
+ * [html:linktypes] <http://www.w3.org/TR/html4/types.html#type-links>
 
 -->
-<xsl:transform version="1.1" xmlns:style="http://openoffice.org/2000/style" xmlns:text="http://openoffice.org/2000/text" xmlns:office="http://openoffice.org/2000/office" xmlns:table="http://openoffice.org/2000/table" xmlns:draw="http://openoffice.org/2000/drawing" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="http://openoffice.org/2000/meta" xmlns:number="http://openoffice.org/2000/datastyle" xmlns:svg="http://www.w3.org/2000/svg" xmlns:chart="http://openoffice.org/2000/chart" xmlns:dr3d="http://openoffice.org/2000/dr3d" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="http://openoffice.org/2000/form" xmlns:script="http://openoffice.org/2000/script" xmlns:config="http://openoffice.org/2001/config" office:class="text" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" exclude-result-prefixes="office table number fo xlink chart math script xsl draw svg dr3d form config">
+<xsl:transform version="1.1" 
+  xmlns:style="http://openoffice.org/2000/style" 
+  xmlns:text="http://openoffice.org/2000/text"
+  xmlns:office="http://openoffice.org/2000/office"
+  xmlns:table="http://openoffice.org/2000/table" 
+  xmlns:draw="http://openoffice.org/2000/drawing" 
+  xmlns:fo="http://www.w3.org/1999/XSL/Format" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:dc="http://purl.org/dc/elements/1.1/" 
+  xmlns:meta="http://openoffice.org/2000/meta" 
+  xmlns:number="http://openoffice.org/2000/datastyle" 
+  xmlns:svg="http://www.w3.org/2000/svg" 
+  xmlns:chart="http://openoffice.org/2000/chart" 
+  xmlns:dr3d="http://openoffice.org/2000/dr3d" 
+  xmlns:math="http://www.w3.org/1998/Math/MathML" 
+  xmlns:form="http://openoffice.org/2000/form" 
+  xmlns:script="http://openoffice.org/2000/script" 
+  xmlns:config="http://openoffice.org/2001/config" 
+  office:class="text" 
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+  xmlns:dcterms="http://purl.org/dc/terms/" 
+  xmlns="http://www.w3.org/1999/xhtml"
+  exclude-result-prefixes="
+  office table number fo xlink chart math script xsl draw svg dr3d form config
+  dc dcterms xsi style text meta rdf  
+  ">
   <!-- naming util on filenames -->
   <xsl:import href="sxw-common.xsl"/>
   <xsl:import href="sxw2txt.xsl"/>
@@ -63,6 +104,8 @@ These transformation was extracted from a global oo2html
   <xsl:param name="path"/>
   <!-- extensions for which a transformation is expected -->
   <xsl:param name="formats"/>
+  <!-- To generate absolute links -->
+  <xsl:param name="server"/>
   <!-- Carriage return, can't understand why but this one works better than the one in sxw2txt.xsl -->
   <xsl:param name="CR">&#160;
 </xsl:param>
@@ -100,8 +143,18 @@ FG:2004-06-10
   <xsl:template match="/">
     <xsl:call-template name="rdf"/>
   </xsl:template>
+  <!-- 
+A template to generate RDF with all namespace declaration needed
+for children (especially for xsi:type Qname)
+ -->
   <xsl:template name="rdf">
-    <rdf:RDF>
+    <rdf:RDF   
+    dc:xmlns="http://purl.org/dc/elements/1.1/" 
+    xsi:xmlns="http://www.w3.org/2001/XMLSchema-instance"
+    dcterms:xmlns="http://purl.org/dc/terms/" 
+    meta:xmlns="http://openoffice.org/2000/meta" 
+    text:xmlns="http://openoffice.org/2000/text" 
+>
       <rdf:Description rdf:about="{$path}">
         <xsl:call-template name="dc:properties"/>
       </rdf:Description>
@@ -165,6 +218,86 @@ $office:body/*[generate-id(following-sibling::text:h[1]) = generate-id($next)]
       </dc:rights>
     -->
   </xsl:template>
+  <!--
+template to be called for an html generation
+  -->
+  <xsl:template name="metas">
+    <!-- find a short title -->
+    <title>
+      <xsl:choose>
+        <!-- 1) title in meta form -->
+        <xsl:when test="$office:meta/dc:title[normalize-space(.)!='']">
+          <xsl:value-of select="normalize-space($office:meta/dc:title[normalize-space(.)!=''])"/>
+        </xsl:when>
+        <!-- <text:p text:style-name="Title"/> -->
+        <xsl:when test="$office:body/text:p[@text:style-name='Title'][normalize-space(.)!='']">
+          <xsl:value-of select="
+normalize-space($office:body/text:p[@text:style-name='Title'][normalize-space(.)!=''])
+"/>
+        </xsl:when>
+        <!-- first text:h -->
+        <xsl:when test="
+$office:body/text:h[normalize-space(.)!='']
+">
+          <xsl:value-of select="
+normalize-space($office:body/text:h[normalize-space(.)!=''])
+"/>
+        </xsl:when>
+        <!-- TODO, a nice break long string on size max -->
+        <xsl:otherwise>
+          <xsl:value-of select="
+substring( $office:body/text:p[string-length(normalize-space(.)) &gt; 10], 30)
+"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </title>
+    <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/" />
+    <link rel="schema.DCTERMS" href="http://purl.org/dc/terms/" />
+    <xsl:call-template name="hasFormat">
+      <xsl:with-param name="mode" select="'html'"/>
+    </xsl:call-template>
+    <script type="application/rdf+xml">
+      <xsl:call-template name="rdf"/>
+    </script>
+
+<!--
+    <xsl:apply-templates select="$office:meta/dc:title" mode="dc"/>
+    <xsl:apply-templates select="$office:meta/dc:subject" mode="dc"/>
+    <xsl:apply-templates select="$office:meta/meta:keywords" mode="dc"/>
+    <xsl:apply-templates select="$office:meta/meta:user-defined" mode="dc"/>
+    <xsl:apply-templates select="$office:meta/dc:description" mode="dc"/>
+    <xsl:variable name="next" select="$office:body/text:h[1]"/>
+    <xsl:choose>
+      <xsl:when test="not($next)">
+        <xsl:apply-templates mode="dc" select="
+$office:body/*
+"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:apply-templates mode="dc" select="
+$office:body/*[generate-id(following-sibling::text:h[1]) = generate-id($next)]
+"/>
+      </xsl:otherwise>
+    </xsl:choose>
+    <dcterms:tableOfContents>
+      <xsl:apply-templates select="$office:body/text:h" mode="text-toc"/>
+    </dcterms:tableOfContents>
+    <xsl:apply-templates select="$office:body//text:bibliography-mark[not(@text:identifier = following::text:bibliography-mark/@text:identifier)]" mode="dc">
+      <xsl:sort select="@text:identifier"/>
+    </xsl:apply-templates>
+    <xsl:apply-templates select="$office:meta/dc:date" mode="dc"/>
+    <xsl:apply-templates select="$office:meta/meta:creation-date" mode="dc"/>
+    <xsl:call-template name="hasFormat"/>
+    <dc:format xsi:type="dcterms:IMT">application/vnd.sun.xml.writer</dc:format>
+    <xsl:apply-templates select="$office:meta/meta:document-statistic" mode="dc"/>
+      <dc:rights>
+        <xsl:call-template name="lang"/>
+        <xsl:value-of select="$copyright"/>
+      </dc:rights>
+    -->
+  
+  </xsl:template>
+  
   <!--
 
 Properties from meta.xml
