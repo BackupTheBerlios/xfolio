@@ -1154,13 +1154,13 @@ Find inlines
         <a name="{$anchor}" href="#{$anchor}">
           <xsl:value-of select="$anchor"/>
         </a>
-        <xsl:text>]</xsl:text>
+        <xsl:text>] </xsl:text>
         <xsl:call-template name="inlines">
            <xsl:with-param name="text" select="substring-after($text, ']')"/>
         </xsl:call-template>
       </xsl:when>
       
-      <!-- links in form "clicable phares" <URI> -->
+      <!-- links in form "clicable text" <http://www.google.com> -->
       <xsl:when test="
   contains($text, $quot)
 and contains(
@@ -1215,7 +1215,8 @@ substring-after(
                "/>
             </xsl:call-template>
           </xsl:when>
-      <!-- links in form <URI> -->
+      <!-- links in form <http://www.google.com>, unplug, too dangerous -->
+      <!--
       <xsl:when test="
     contains($text, '&lt;') 
 and substring-before(substring-after($text, '&lt;'), $gt) != ''
@@ -1236,21 +1237,36 @@ substring-after(substring-after($text, '&lt;'), '&gt;')
             "/>
             </xsl:call-template>
       </xsl:when>
+      -->
       <!-- absolute link -->
       <xsl:when test="contains($text, 'http:')">
-        <xsl:variable name="uri" select="substring-before(substring-after($text, 'http:'), ' ')"/>
+        <xsl:variable name="uri">
+          <xsl:choose>
+            <xsl:when test="contains(substring-after($text, 'http:'), $gt)">
+              <xsl:text>http:</xsl:text>
+              <xsl:value-of select="substring-before(substring-after($text, 'http:'), $gt)"/>
+            </xsl:when>
+            <xsl:when test="contains(substring-after($text, 'http:'), ' ')">
+              <xsl:text>http:</xsl:text>
+              <xsl:value-of select="substring-before(substring-after($text, 'http:'), ' ')"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:text>http:</xsl:text>
+              <xsl:value-of select="substring-after($text, 'http:')"/>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
         <xsl:call-template name="inlines">
           <xsl:with-param name="text" select="substring-before($text, 'http:')"/>
         </xsl:call-template>
         <a href="{$uri}">
           <xsl:value-of select="$uri"/>
         </a>
-        <xsl:text> </xsl:text>
         <xsl:call-template name="inlines">
-          <xsl:with-param name="text" select="substring-after(substring-after($text, 'http:'), ' ')"/>
+          <xsl:with-param name="text" select="substring-after($text, $uri)"/>
         </xsl:call-template>
       </xsl:when>
-      <!-- internal link -->
+      <!-- internal link to anchors -->
       <xsl:when test="
 contains($text, '[')
 and contains(substring-after($text, '['), ']')      

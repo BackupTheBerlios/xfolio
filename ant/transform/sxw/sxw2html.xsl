@@ -1,52 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="../html/xsl2html.xsl"?>
 <!--
-(c) 2003, 2004; ADNX <http://adnx.org>
 
- = WHAT =
+copyright : (c) 2003, 2004; "ADNX" <http://adnx.org>
+licence   : "LGPL" <http://www.gnu.org/copyleft/lesser.html> 
+creator   : [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com) ("AJLSM" <http://ajlsm.org>)
+
+ = What =
 
 provide an easy and clean xhtml, handling most of the structuration that
 a word processor is able to provide.
 
- = HOW =
-
-Could be used as 
- * an OOo Writer export filter
- * to view flat sxw XML as HTML in browsers (IE, Mozilla)
- * 
-
  = Features =
 
- * compatible with most of the XSL engines
+ * an OOo Writer export filter
+ * to view flat sxw XML as HTML in browsers (IE, Mozilla)
 
- = WHO =
 
-[FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com>
-
- = HOW =
+ = How =
 
 All style classes handle in this xsl are standard openOffice. To
 define specific styles to handle, best is import this xsl. If possible, 
 modify only for better rendering of standard oo.
 
- = CHANGES =
+ = Changes =
 
 The original xsl was designed for docbook.
 This work is continued, in the xhtml 
 syntax. Most of the comments are from the author
 to help xsl developpers to understand some tricks.
 
- = TODO =
-
- * index terms ?
-
- = ISSUES =
+ = Issues =
 
 Work with multi xml files of an unzip sxw (content.xml, meta.xml, style.xml) 
-is less easier than a first step to merge them because of teh DTD declaration.
+is less easier than a first step to merge them because of the DTD declaration.
 
 
- = REFERENCES =
+ = References =
 
 
 
@@ -377,21 +367,16 @@ FG:2004-06-17  careful when strip empty blocks, some can contain images
           <xsl:apply-templates mode="html"/>
         </p>
       </xsl:when>
-      <xsl:when test="text:title | text:subject">
+      <!-- title of document -->
+      <xsl:when test="($style='title' or text:title ) and normalize-space(.)!=''">
         <center>
-          <h1 class="{$style}">
+          <h1 class="title">
             <xsl:apply-templates mode="html"/>
           </h1>
         </center>
       </xsl:when>
-      <xsl:when test="$style='title' and normalize-space(.)!=''">
-        <center>
-          <h1 class="{$style}">
-            <xsl:apply-templates mode="html"/>
-          </h1>
-        </center>
-      </xsl:when>
-      <xsl:when test="$style='subtitle'">
+      <!-- subtitle of document -->
+      <xsl:when test="$style='subtitle' or text:subject">
         <center>
           <em>
             <h1 class="subtitle">
@@ -1113,7 +1098,7 @@ images
 			</xsl:attribute>
 		</img>
 -->
-    <img class="oo" alt="{svg:desc}" align="{$align}" width="{$width}%" border="0">
+    <img id="{@draw:name}" class="oo" alt="{svg:desc}" align="{$align}" width="{$width}%" border="0">
       <!--
 	If image is not in frame or table, a width attribute could be add
 		width="{$width}%"

@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="../html/xsl2html.xsl"?>
 <!--
-(c) 2003, 2004; ADNX <http://adnx.org>
+copyright : (c) 2003, 2004; "ADNX" <http://adnx.org>
+licence   : "LGPL" <http://www.gnu.org/copyleft/lesser.html> 
+creator   : [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com> ("AJLSM" <http://ajlsm.org>)
+relation  : "sxw2html.xsl" <sxw2html.xsl>
 
- = WHAT =
 
-Resolution of links, specific to sxw, but shared ebtween the formats.
-Needs a naming.xsl import
+ = What =
 
- = WHO =
+This sheet is a part of an sxw transformation pack. 
+Resolution of links, specific to sxw, but shared between the formats.
+Needs "naming tools" <naming.xsl> to have extension, parent or other members of a path.
 
-[FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com>
 
   -->
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:style="http://openoffice.org/2000/style" xmlns:text="http://openoffice.org/2000/text" xmlns:office="http://openoffice.org/2000/office" xmlns:table="http://openoffice.org/2000/table" xmlns:draw="http://openoffice.org/2000/drawing" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="http://openoffice.org/2000/meta" xmlns:number="http://openoffice.org/2000/datastyle" xmlns:svg="http://www.w3.org/2000/svg" xmlns:chart="http://openoffice.org/2000/chart" xmlns:dr3d="http://openoffice.org/2000/dr3d" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="http://openoffice.org/2000/form" xmlns:script="http://openoffice.org/2000/script" xmlns:config="http://openoffice.org/2001/config" office:class="text" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:i18n="http://apache.org/cocoon/i18n/2.1" exclude-result-prefixes="office meta  table number dc fo xlink chart math script xsl draw svg dr3d form config text style i18n">
@@ -37,6 +39,12 @@ Needs a naming.xsl import
       </xsl:when>
     </xsl:choose>
   </xsl:param>
+  <!-- get extension of the possible desired target path -->
+  <xsl:variable name="extension-path">
+    <xsl:call-template name="getExtension">
+      <xsl:with-param name="path" select="$path"/>
+    </xsl:call-template>
+  </xsl:variable>
     <!-- extension on which continue relative links
 take care that this transform could be used to generate html
 but also see directly xml
@@ -46,11 +54,11 @@ but also see directly xml
       <xsl:when test="processing-instruction('extension')">
         <xsl:value-of select="processing-instruction('extension')"/>
       </xsl:when>
-      <xsl:when test="$path">
-        <xsl:call-template name="getExtension">
-          <xsl:with-param name="path" select="$path"/>
-        </xsl:call-template>
+      <xsl:when test="normalize-space($extension-path) != ''">
+        <xsl:value-of select="$extension-path"/>
       </xsl:when>
+      <!-- which default extension ? html ? -->
+      <xsl:otherwise>html</xsl:otherwise>
     </xsl:choose>
   </xsl:param>
 
@@ -64,10 +72,35 @@ These variables are used to normalize names of styles
   <!-- image links could be in the draw:a -->
   <!-- global redirection of links -->
   <xsl:template match="@xlink:href | @href">
+    <!-- extension of the dest link -->
     <xsl:variable name="destExtension">
       <xsl:call-template name="getExtension">
         <xsl:with-param name="path" select="."/>
       </xsl:call-template>
+    </xsl:variable>
+    <!-- anchor -->
+    <xsl:variable name="anchor">
+      <xsl:choose>
+        <xsl:when test="not(contains(., '#'))"/>
+        <xsl:when test="contains(substring-after(., '#'), '%7Coutline')
+and contains(substring-after(., '#'), '%20')        
+        ">
+          <xsl:text>#</xsl:text>
+          <xsl:value-of select="substring-before(substring-after(., '#'), '.%20')"/>
+        </xsl:when>
+        <xsl:when test="contains(substring-after(., '#'), '%7Ctable')">
+          <xsl:text>#</xsl:text>
+          <xsl:value-of select="substring-before(substring-after(., '#'), '%7Ctable')"/>
+        </xsl:when>
+        <xsl:when test="contains(substring-after(., '#'), '%7Cgraphic')">
+          <xsl:text>#</xsl:text>
+          <xsl:value-of select="substring-before(substring-after(., '#'), '%7Cgraphic')"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:text>#</xsl:text>
+          <xsl:value-of select="substring-after(., '#')"/>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:variable>
     <!-- the path without extension -->
     <xsl:variable name="basepath">
@@ -87,6 +120,7 @@ These variables are used to normalize names of styles
         <xsl:value-of select="$basepath"/>
         <xsl:if test="normalize-space($extension) != ''">.</xsl:if>
         <xsl:value-of select="$extension"/>
+        <xsl:value-of select="$anchor"/>
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="."/>

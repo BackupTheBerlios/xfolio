@@ -11,7 +11,8 @@ rem ----- Use Ant shipped with Cocoon. Ignore installed in the system Ant
 set OLD_ANT_HOME=%ANT_HOME%
 set ANT_HOME=.
 echo webfolder=%1
-call %ANT_HOME%\bin\ant -Dwebfolder=%1
+echo %ANT_HOME%
+call %ANT_HOME%\bin\ant.bat -Dwebfolder=%1
 pause
 
 rem ----- Restore ANT_HOME and ANT_OPTS

@@ -43,8 +43,9 @@ The value added come also from imported resources
 
  = Ideas =
 
- * Index of matched elements
+ * Link resolution of imported templates
  * Usage of named templates
+ * Index of matched elements
  * Clickable xpath expressions (matched elements, functions)
  * An autotoc on <h1/>
 
@@ -67,6 +68,8 @@ Interesting to format comments.
   <xsl:import href="xml2html.xsl"/>
   <!-- the output declaration -->
   <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
+
+
 
   <!-- root template -->
   <xsl:template match="/">
@@ -101,22 +104,22 @@ call this template in xsl:transform to get a table header about it
 
 TODO attribute-set, 
 -->
-  <xsl:template name="xsl:summary">
-      <h1>XSL Summary</h1>
+  <xsl:template name="xsl:header">
+      <h1>Header</h1>
       <table class="table" width="100%">
         <xsl:apply-templates select="xsl:include | xsl:import"/>
         <xsl:if test="xsl:param">
             <tr>
-              <td>Parameter</td>
+              <th>Parameter</th>
               <th>description</th>
               <th>value</th>
               <th>usage</th>
             </tr>
             <xsl:apply-templates select="xsl:param"/>
         </xsl:if>
-        <xsl:if test="xsl:param">
+        <xsl:if test="xsl:variable">
             <tr>
-                <td>Variable</td>
+                <th>Variable</th>
                 <th>description</th>
                 <th>value</th>
                 <th>usage</th>
@@ -124,7 +127,7 @@ TODO attribute-set,
             <xsl:apply-templates select="xsl:variable"/>
         </xsl:if>
           <tr>
-            <td>Generated elements</td>
+            <th>Generated elements</th>
             <td colspan="4">
               <!-- this tricky xpath expression is done to get only one elemnt with same name by template -->
               <xsl:for-each select="
@@ -152,7 +155,7 @@ TODO attribute-set,
             </td>
           </tr>
           <tr>
-            <td>Messages</td>
+            <th>Messages</th>
             <td colspan="4">
 
               <xsl:for-each select="
@@ -199,23 +202,6 @@ TODO attribute-set,
             </tr>
             
           </xsl:if>
-            <!-- templates -->
-
-        <tr>
-          <td>template</td>
-          <th>match</th>
-          <th>parameters</th>
-          <th>mode</th>
-        </tr>
-
-
-        <xsl:apply-templates select="xsl:template" mode="tr">
-          <xsl:sort select="@name"/>
-          <xsl:sort select="@mode"/>
-          <xsl:sort select="normalize-space(@match)"/>
-        
-        </xsl:apply-templates>
-
       </table>
 
   </xsl:template>
@@ -320,9 +306,29 @@ preceding-sibling::comment()[1][generate-id(following-sibling::*)=generate-id(cu
     <!-- task lists -->
     <xsl:call-template name="tasks"/>
     <!-- header -->
-    <xsl:call-template name="xsl:summary"/>
+    <xsl:call-template name="xsl:header"/>
     <!-- templates description -->
-    <h1>Template detail</h1>
+    <h1>Templates</h1>
+    <table>
+            <!-- templates -->
+
+        <tr>
+          <th>template</th>
+          <th>match</th>
+          <th>parameters</th>
+          <th>mode</th>
+        </tr>
+
+
+        <xsl:apply-templates select="xsl:template" mode="tr">
+          <xsl:sort select="@name"/>
+          <xsl:sort select="@mode"/>
+          <xsl:sort select="normalize-space(@match)"/>
+        
+        </xsl:apply-templates>
+
+    </table>
+
     <xsl:apply-templates select="xsl:template"/>
   </xsl:template>
 

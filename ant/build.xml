@@ -5,7 +5,7 @@ Copyright 2003-2004 ADNX <http://adnx.org>
 
   = WHAT =
 
-Build a website from on organized webfolder of OpenOffice writer docs
+Build a website from an organized webfolder of OpenOffice writer docs
 and gallery of images.
 Long attention have been paid to dependencies and update.
 
@@ -15,14 +15,18 @@ Long attention have been paid to dependencies and update.
 
   = FEATURES =
 
- * update only what is needed
- * renaming of bad extensions 
+ * update only what is needed (depend on source documents or transform engine)
+ * normalize source documents filenames (JPG > jpg)
+ * extract infos from jpg (especially xmp) as a SAX generator
+ * link generated XML with a transformation 
+
+  = CHANGES =
+
+ * 2004-11-05 [FG] for browser compatibility reason, sxw xml is named sxw.xml
+ * 2004-11-01 [FG] creation
+ 
 
   = MAYDO =
-
- * Depend update on xslt changes.
- * rename files to ASCII (issue on depends !)
- * delete empty dirs in website
 
 
   = REFERENCES =
@@ -77,6 +81,10 @@ build target.
     <copy todir="${website}/skin" preservelastmodified="true">
       <fileset dir="${skin}"/>
     </copy>
+    <!-- copy a transform pack -->
+    <copy todir="${website}/xsl" preservelastmodified="true">
+      <fileset dir="transform"/>
+    </copy>
     <!-- 
 update website from deleted files in src 
 don't work for extensions identical to generated ones
@@ -94,17 +102,17 @@ don't work for extensions identical to generated ones
         </fileset>
       </path>
     </foreach>
-    <!-- date from the source sxw is kept, so the marker is *.oo -->
+    <!-- date from the source sxw is kept, so the marker is *.sxw.xml -->
     <!-- delete all target oo if something have changed in the engine -->
     <dependset>
-      <srcfileset dir="transform/OOo">
+      <srcfileset dir="transform/sxw">
         <include name="**/*"/>
       </srcfileset>
       <!-- good idea ?
       <srcfilelist dir="${basedir}" files="build.xml"/>
       -->
       <targetfileset dir="${website}">
-        <include name="**/*.oo"/>
+        <include name="**/*.sxw.xml"/>
         <exclude name="skin/**"/>
       </targetfileset>
     </dependset>
@@ -114,7 +122,7 @@ don't work for extensions identical to generated ones
         <fileset dir="${src}">
           <include name="**/*.sxw"/>
           <depend targetdir="${website}">
-            <mapper type="glob" from="*.sxw" to="*.oo"/>
+            <mapper type="glob" from="*.sxw" to="*.sxw.xml"/>
           </depend>
         </fileset>
       </path>
@@ -245,26 +253,32 @@ sxw files, do job "foreach"
       <map from="${src}" to=""/>
       <mapper type="regexp" from="(.*)\.(.*)$$" to="\1"/>
     </pathconvert>
+    <basename property="basename" file="${path}"/>
     <echo>process "${path}"</echo>
     <copy file="${file}" tofile="${website}${path}.sxw" preservelastmodified="true"/>
     <unzip src="${website}${path}.sxw" dest="${website}${path}.sxw!"/>
     <!-- aggregate OO doc, force because the  *.xml in sxw are not updated-->
-    <xslt force="true" in="${website}${path}.sxw!/content.xml" out="${website}${path}.oo" style="transform/OOo/sxw2sxw.xsl">
+    <xslt force="true" in="${website}${path}.sxw!/content.xml" out="${website}${path}.sxw.xml" style="transform/sxw/sxw2sxw.xsl">
       <xmlcatalog>
         <dtd publicId="-//OpenOffice.org//DTD OfficeDocument 1.0//EN" location="schema/dummy.dtd"/>
       </xmlcatalog>
       <param name="meta.xml" expression="meta.xml"/>
       <param name="styles.xml" expression="styles.xml"/>
+      <param name="xsl" expression="/xsl/sxw/sxw2html.xsl"/>
+      <param name="css" expression="/skin/html.css"/>
+      <param name="path" expression="${path}.sxw.xml"/>
+      <param name="pictures" expression="${basename}/"/>
     </xslt>
     <!-- extract meta for an RDF -->
-    <xslt in="${website}${path}.oo" out="${website}${path}.rdf" style="transform/OOo/sxw2rdf.xsl">
+    <xslt in="${website}${path}.sxw.xml" out="${website}${path}.rdf" style="transform/sxw/sxw2rdf.xsl">
       <param name="path" expression="${file}"/>
     </xslt>
     <!-- a quite nice text version -->
-    <xslt in="${website}${path}.oo" out="${website}${path}.txt" style="transform/OOo/sxw2txt.xsl"/>
-    <!-- an clean xhtml without navigation -->
-    <xslt in="${website}${path}.oo" out="${website}${path}.xhtml" style="transform/OOo/sxw2html.xsl">
-      <param name="path" expression="${path}"/>
+    <xslt in="${website}${path}.sxw.xml" out="${website}${path}.txt" style="transform/sxw/sxw2txt.xsl"/>
+    <!-- a clean xhtml without navigation -->
+    <xslt in="${website}${path}.sxw.xml" out="${website}${path}.xhtml" style="transform/sxw/sxw2html.xsl">
+      <!-- target path of this transformation, used to resolve links -->
+      <param name="path" expression="${path}.xhtml"/>
       <param name="css" expression="/skin/html.css"/>
     </xslt>
     <!-- flatten pictures -->

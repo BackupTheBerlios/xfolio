@@ -179,7 +179,7 @@ public class AntJpegInfo extends MatchingTask {
             saxParser = parseFactory.newSAXParser();
             /*XML Reader is the interface for reading an XML document using callbacks*/
             XMLReader xmlReader = saxParser.getXMLReader();
-            IncludeXMLConsumer includer=new IncludeXMLConsumer(handler);
+            IncludeHandler includer=new IncludeHandler(handler);
             includer.setIgnoreEmptyCharacters(true);
             xmlReader.setContentHandler(includer);
             String xmp = this.getXMP();

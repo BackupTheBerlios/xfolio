@@ -276,42 +276,26 @@ need the extension logic
 -->
   <xsl:template name="getMime">
     <xsl:param name="path"/>
+    <!-- Careful on logic "*.sxw.xml" of GetExtension template -->
+    <xsl:variable name="extension">
+      <xsl:call-template name="getExtension">
+        <xsl:with-param name="path" select="$path"/>
+      </xsl:call-template>
+    </xsl:variable>
     <xsl:choose>
-      <!-- windows filepath -->
-      <xsl:when test="contains($path, '\')">
-        <xsl:call-template name="getMime">
-          <xsl:with-param name="path" select="translate($path, '\', '/')"/>
-        </xsl:call-template>
-      </xsl:when>
       <!-- direct extension ? -->
-      <xsl:when test="not (contains($path, '/') or contains($path, '/') or contains($path, '.') or string-length($path) &gt; 4)">
+      <xsl:when test="not (contains($path, '/') or contains($path, '\') or contains($path, '.') or string-length($path) &gt; 4)">
         <xsl:value-of select="$mimes/*/*[@extension=$path]/@mime-type"/>
       </xsl:when>
-      <!-- case of a directory, break here -->
-      <xsl:when test="contains($path, '/') and normalize-space(substring-after($path, '/')) =''">application/directory</xsl:when>
-      <!-- not the end of the path, continue -->
-      <xsl:when test="contains($path, '/')">
-        <xsl:call-template name="getMime">
-          <xsl:with-param name="path" select="substring-after($path, '/')"/>
-        </xsl:call-template>
+      <!-- if last char is '/', probably a directory, break here -->
+      <xsl:when test="substring(normalize-space($path), string-length(normalize-space($path))) ='/'">application/directory</xsl:when>
+      <!-- extension seems to contain a dot '.' -->
+      <xsl:when test="contains($extension, '.')">
+        <xsl:value-of select="$mimes/*/*[@extension=substring-after($extension, '.')]/@mime-type"/>
       </xsl:when>
-      <!-- no dot in filename, probably text -->
-      <xsl:when test="not(contains($path, '.'))">text/plain</xsl:when>
-      <!-- hidden file -->
-      <xsl:when test="starts-with($path, '.')">
-        <xsl:call-template name="getMime">
-          <xsl:with-param name="path" select="substring-after($path, '.')"/>
-        </xsl:call-template>
-      </xsl:when>
-      <!-- more than one dot, continue to break -->
-      <xsl:when test="contains(substring-after($path, '.'), '.')">
-        <xsl:call-template name="getMime">
-          <xsl:with-param name="path" select="substring-after($path, '.')"/>
-        </xsl:call-template>
-      </xsl:when>
-      <!-- should be an extension -->
+      <!-- extension seems correct -->
       <xsl:otherwise>
-        <xsl:value-of select="$mimes/*/*[@extension=substring-after($path, '.')]/@mime-type"/>
+        <xsl:value-of select="$mimes/*/*[@extension=$extension]/@mime-type"/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -331,6 +315,18 @@ this code have to be copy/paste for get mime
           <xsl:with-param name="path" select="translate($path, '\', '/')"/>
         </xsl:call-template>
       </xsl:when>
+      <!-- anchor -->
+      <xsl:when test="contains($path, '#')">
+        <xsl:call-template name="getExtension">
+          <xsl:with-param name="path" select="substring-before($path, '#')"/>
+        </xsl:call-template>
+      </xsl:when>
+      <!-- query -->
+      <xsl:when test="contains($path, '?')">
+        <xsl:call-template name="getExtension">
+          <xsl:with-param name="path" select="substring-before($path, '?')"/>
+        </xsl:call-template>
+      </xsl:when>
       <!-- case of a directory, break here -->
       <xsl:when test="contains($path, '/') and normalize-space(substring-after($path, '/')) =''"/>
       <!-- not the end of the path -->
@@ -347,11 +343,21 @@ this code have to be copy/paste for get mime
           <xsl:with-param name="path" select="substring-after($path, '.')"/>
         </xsl:call-template>
       </xsl:when>
-      <!-- more than one dot -->
+      <!-- more than one dot, maybe something in form .sxw.xml ? -->
       <xsl:when test="contains(substring-after($path, '.'), '.')">
-        <xsl:call-template name="getExtension">
-          <xsl:with-param name="path" select="substring-after($path, '.')"/>
-        </xsl:call-template>
+        <xsl:value-of select="''"/>
+        <xsl:choose>
+          <!-- letters between dots is a registred extension -->
+          <xsl:when test="$mimes/*/key[@extension=substring-before(substring-after($path, '.'), '.')]">
+            <xsl:value-of select="substring-after($path, '.')"/>
+          </xsl:when>
+          <!-- probably a name coucou.beuh.extension -->
+          <xsl:otherwise>
+            <xsl:call-template name="getExtension">
+              <xsl:with-param name="path" select="substring-after($path, '.')"/>
+            </xsl:call-template>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:when>
       <!-- should be an extension -->
       <xsl:otherwise>

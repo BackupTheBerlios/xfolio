@@ -1,50 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="../html/xsl2html.xsl"?>
 <!--
+copyright : (c) 2003, 2004. "ADNX" <http://adnx.org>
+licence   : "LGPL" <http://www.gnu.org/copyleft/lesser.html> 
+creator   : [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com) ("AJLSM" <http://ajlsm.org>)
 
 
- = WHAT =
+ = What =
 
-provide the best set of Dublin Core properties from an OpenOffice.org
-writer document. This transformation is tested under different contexts
+provide the best set of Dublin Core properties possible from an OpenOffice.org
+writer document (sxw). This transformation is tested under different contexts
  * OOo export filter
- * Cocoon transformer step
- * Ant task
+ * "Cocoon" <http://cocoon.apache.org> transformer step (with "Saxon" <http://saxon.sourceforge.net/>)
+ * "Ant" <http://ant.apache.org> task
 Should be applied to an XML file with office:body
 
- = WHO =
 
- [FG] "Frédéric Glorieux" <frederic.glorieux@xfolio.org>
-
-
- = HOW =
+ = How =
 
 The root template produce an RDF document with the DC properties
 Single DC properties may be accessed by global xsl:param
 A template "metas" give an HTML version of this properties.
 This template may be externalize in a specific rdf2meta ?
 
- = CHANGES =
+ = Changes =
 
- * 2004-06-28:FG better linking resolving
+ * 2004-06-28 [FG] better linking resolving
 The metas could be used separated for other usages.
 These transformation was extracted from a global oo2html
  * 2004-O1-27 [FG]  creation from an OOo2html.xsl
 
 
- = TODO =  
+ = Ideas =  
 
 may be used for other target namespace DC compatible
 what about a default properties document ?
 format in arabic
 
- = BUGS =
 
-seems to bug with xalan under cocoon in creator template
+ = References =  
 
- = REFERENCES =  
-
-http://www.w3.org/TR/xhtml2/abstraction.html#dt_MediaDesc
+ * http://www.w3.org/TR/xhtml2/abstraction.html#dt_MediaDesc
 
 -->
 <xsl:transform version="1.1" xmlns:style="http://openoffice.org/2000/style" xmlns:text="http://openoffice.org/2000/text" xmlns:office="http://openoffice.org/2000/office" xmlns:table="http://openoffice.org/2000/table" xmlns:draw="http://openoffice.org/2000/drawing" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="http://openoffice.org/2000/meta" xmlns:number="http://openoffice.org/2000/datastyle" xmlns:svg="http://www.w3.org/2000/svg" xmlns:chart="http://openoffice.org/2000/chart" xmlns:dr3d="http://openoffice.org/2000/dr3d" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="http://openoffice.org/2000/form" xmlns:script="http://openoffice.org/2000/script" xmlns:config="http://openoffice.org/2001/config" office:class="text" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" exclude-result-prefixes="office table number fo xlink chart math script xsl draw svg dr3d form config">
@@ -144,6 +140,9 @@ $office:body/*[generate-id(following-sibling::text:h[1]) = generate-id($next)]
     <xsl:apply-templates select="$office:body//text:bibliography-mark[not(@text:identifier = following::text:bibliography-mark/@text:identifier)]" mode="dc">
       <xsl:sort select="@text:identifier"/>
     </xsl:apply-templates>
+    <!-- relative links -->
+    <xsl:apply-templates select="$office:body//text:a" mode="dc"/>
+    <!-- images -->
     <xsl:apply-templates select="$office:body//draw:image" mode="dc"/>
     <!-- dates -->
     <xsl:apply-templates select="$office:meta/dc:date" mode="dc"/>
@@ -305,7 +304,7 @@ Process document to extract DC properties
     <xsl:variable name="link">
       <xsl:apply-templates select="@xlink:href"/>
     </xsl:variable>
-    <dc:relation>
+    <dc:relation xsi:type="dcterms:URI">
       <xsl:attribute name="dc:format">
         <xsl:call-template name="getMime">
           <xsl:with-param name="path" select="$link"/>
@@ -314,6 +313,53 @@ Process document to extract DC properties
       <xsl:call-template name="lang"/>
       <xsl:value-of select="$link"/>
     </dc:relation>
+  </xsl:template>
+  <!-- relative links as relation -->
+  <xsl:template match="draw:a | text:a" mode="dc">
+    <xsl:variable name="path" select="@xlink:href"/>
+    <xsl:variable name="link">
+      <xsl:apply-templates select="@xlink:href"/>
+    </xsl:variable>
+    <xsl:variable name="lang">
+      <xsl:call-template name="getLang">
+        <xsl:with-param name="path" select="$path"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:choose>
+      <!-- internal link, not really interersting -->
+      <xsl:when test="starts-with($path, '#')"/>
+      <!-- semantic link in form name:value -->
+      <xsl:when test="starts-with($path, './') and contains(substring-after($path, './'), ':')">
+        <dc:subject xsi:type="{substring-before(substring-after($path, './'), ':')}" dc:title="{.}">
+          <xsl:value-of select="substring-after($path, ':')"/>
+        </dc:subject>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:variable name="element">
+          <xsl:choose>
+            <xsl:when test="starts-with($path, 'http://')">dc:source</xsl:when>
+            <xsl:otherwise>dc:relation</xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
+        <xsl:element name="{$element}">
+          <xsl:attribute name="xsi:type">dcterms:URI</xsl:attribute>
+          <xsl:attribute name="dc:format">
+            <xsl:call-template name="getMime">
+              <xsl:with-param name="path" select="$link"/>
+            </xsl:call-template>
+          </xsl:attribute>
+          <xsl:if test="normalize-space($lang) != ''">
+            <xsl:attribute name="dc:language">
+              <xsl:value-of select="$lang"/>
+            </xsl:attribute>
+          </xsl:if>
+          <xsl:attribute name="dc:title">
+            <xsl:value-of select="normalize-space(.)"/>
+          </xsl:attribute>
+          <xsl:value-of select="$link"/>
+        </xsl:element>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
   <!-- index marks ??? -->
   <!--
