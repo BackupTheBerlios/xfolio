@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<!--
+  Copyright 2003-2004 
+  frederic.glorieux@ajlsm.com
+
+2004-04-27
+An ant driver for different tasks
+For now, do nothing.
+
+Should compile some classes
+
+
+= REFERENCES =
+http://home.earthlink.net/~russelllear/WebSvcs.html
+
+
+-->
+<project basedir="." default="test" name="xfolio">
+  <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+  <!-- the webfolder property properties for this build -->
+  <property name="wefolder" location="../docs"/>
+  <property name="website" location="${webfolder}-website"/>
+  <target name="test">
+    <echo>from ${webfolder}</echo>
+    <echo>to ${website}</echo>
+    <!-- copy source to dest -->
+    <copy todir="${website}">
+      <fileset dir="${webfolder}">
+        <exclude name="**/Thumbs.db"/>
+      </fileset>
+    </copy>
+    <!-- for each OOo files -->
+    <foreach target="OOoWriter" param="file">
+      <fileset dir="${website}" includes="**/*.sxw"/>
+    </foreach>
+  </target>
+  <!-- do job "foreach" oo files  -->
+  <target name="OOoWriter">
+    <unzip src="${file}" dest="${file}!"/>
+    <!-- aggregate OO doc -->
+    <xslt in="${file}!/content.xml" out="${file}.OOo" style="transform/OOo/sxw2sxw.xsl">
+      <xmlcatalog>
+        <dtd publicId="-//OpenOffice.org//DTD OfficeDocument 1.0//EN" location="schema/dummy.dtd"/>
+      </xmlcatalog>
+      <param name="meta.xml" expression="meta.xml"/>
+      <param name="styles.xml" expression="styles.xml"/>
+    </xslt>
+    <!-- extract meta for an RDF -->
+    <xslt in="${file}.OOo" out="${file}.rdf" style="transform/OOo/sxw2rdf.xsl"/>
+    <!-- a quite nice text version -->
+    <xslt in="${file}.OOo" out="${file}.txt" style="transform/OOo/sxw2txt.xsl"/>
+    <!-- restore nice extensions -->
+    <move todir="${file}/..">
+      <fileset dir="${file}/.." >
+        <include name="*.sxw.rdf"/>
+      </fileset>
+      <mapper type="glob" from="*.sxw.rdf" to="*.rdf"/>
+    </move>
+    <move todir="${file}/..">
+      <fileset dir="${file}/.." >
+        <include name="*.sxw.txt"/>
+      </fileset>
+      <mapper type="glob" from="*.sxw.txt" to="*.txt"/>
+    </move>
+    <move todir="${file}/..">
+      <fileset dir="${file}/.." >
+        <include name="*.sxw.OOo"/>
+      </fileset>
+      <mapper type="glob" from="*.sxw.OOo" to="*.OOo"/>
+    </move>
+    <!--
+    <move todir="${file}/.." file="${file}.OOo">
+      <mapper type="glob" from="*.sxw.OOo" to="*.OOo"/>
+    </move>
+    <move todir="${file}/.." file="${file}.rdf">
+      <mapper type="glob" from="*.sxw.rdf" to="*.rdf"/>
+    </move>
+-->
+<!--
+    <move todir="${file}/..">
+      <fileset dir="${file}/.." >
+        <include name="*.sxw.*"/>
+      </fileset>
+      <mapper type="glob" from="*.sxw.rdf" to="*.rdf"/>
+    </move>
+-->
+    <!--
+  <move todir="my/src/dir" includeemptydirs="false">
+    <fileset dir="my/src/dir">
+      <exclude name="**/*.bak"/>
+    </fileset>
+    <mapper type="glob" from="*" to="*.bak"/>
+  </move>
+-->
+  </target>
+</project>
