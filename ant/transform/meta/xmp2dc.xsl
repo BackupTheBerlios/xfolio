@@ -160,7 +160,7 @@ in RDF / XML and gives practical examples.
 -->
 <xsl:transform version="1.0" xmlns:IIM="http://iptc.org/IIM/" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/" xmlns:pdf="http://ns.adobe.com/pdf/1.3/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:x="adobe:ns:meta/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xap="http://ns.adobe.com/xap/1.0/" xmlns:xapMM="http://ns.adobe.com/xap/1.0/mm/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xapRights="http://ns.adobe.com/xap/1.0/rights/" exclude-result-prefixes="photoshop pdf x xap xapMM xapRights">
   <!-- file naming utilities, especially for the "hasFormat" template -->
-  <xsl:import href="naming.xsl"/>
+  <xsl:import href="../explorer/path.xsl"/>
   <xsl:output method="xml" encoding="UTF-8" indent="yes"/>
   <!-- the path of the file as identifier  -->
   <xsl:param name="path"/>
