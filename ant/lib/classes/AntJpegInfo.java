@@ -15,11 +15,26 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 import java.util.Arrays;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.sax.TransformerHandler;
+import javax.xml.transform.stream.StreamResult;
 
 
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.taskdefs.MatchingTask;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.AttributesImpl;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 
 
@@ -62,7 +77,7 @@ public class AntJpegInfo extends MatchingTask {
 
     public void execute() throws BuildException {
         // log("AntXMPjpeg");
-		String xmp;
+		String xml;
 		try {
 			if (srcFile == null) throw new BuildException ("\n[" + this.getTaskName() + "] no @srcFile in task to extract xmp from.");
 			in = new FileInputStream(srcFile);
@@ -73,30 +88,20 @@ public class AntJpegInfo extends MatchingTask {
 				log(srcFile + " omitted as " + destFile + " is up to date.", Project.MSG_VERBOSE);
                	return;
             }
-
+			saxDoc(destFile);
+			/* 
 			// it works but badly, should be SAX
-			xmp="<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-			xmp+="<jpeginfo ";
-			xmp+= "\n    file=\"" + srcFile +"\" ";
-			/* works but not relevant
-			File file;
-			file=getPrevImage(srcFile);
-			if (file != null) xmp+= "\n    prev=\"" + file +"\" ";
-			file=getNextImage(srcFile);
-			if (file != null) xmp+= "\n    next=\"" + file +"\" ";
-			*/
-			xmp+= ">\n";
+			xml="<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+			xml+="<jpeginfo ";
+			xml+= "\n    file=\"" + new String(srcFile.getCanonicalPath().getBytes("UTF-8")) +"\" ";
+			// works but not relevant
+			// File file;
+			// file=getPrevImage(srcFile);
+			// if (file != null) xml+= "\n    prev=\"" + file +"\" ";
+			// file=getNextImage(srcFile);
+			// if (file != null) xml+= "\n    next=\"" + file +"\" ";
+			xml+= ">\n";
 
-			try {
-				scanHeaders();
-				xmp+="<info ";
-				xmp+= "width=\"" + width +"\" ";
-				xmp+= "height=\"" + height +"\" ";
-				xmp+= "compression=\"" + compression +"\" ";
-				xmp+= "colors=\"" + (int)Math.pow(2, bitsPerPixel) +"\" ";
-				xmp+= "/>\n";
-				xmp+= this.getXMP();
-			}
 			// FG 2004-10-09
 			// TODO, better Exception handling in case of guilty image
 			catch (JpegException e) {
@@ -106,11 +111,15 @@ public class AntJpegInfo extends MatchingTask {
 				log(e.getLocalizedMessage());
 			}
 
-			xmp+="\n</jpeginfo>";
+			xml+="\n</jpeginfo>";
 
 			FileOutputStream out=new FileOutputStream(destFile);
-			out.write(xmp.getBytes());
-			log ("  --  xmp extracted from jpeg\n" + srcFile + "\n"+ destFile );
+			out.write(xml.getBytes());
+			*/
+			log (""+ destFile );
+		}
+		catch (TransformerConfigurationException e) {
+			throw new BuildException("TransformerConfigurationException:" +e);
 		}
 		catch (FileNotFoundException e) {
 			throw new BuildException("FileNotFoundException:" +e);
@@ -118,6 +127,72 @@ public class AntJpegInfo extends MatchingTask {
 		catch (IOException e) {
 			throw new BuildException("IOException:" +e);
 		}
+		catch (SAXException e) {
+			throw new BuildException("SAXException:" +e);
+		}
+		catch (ParserConfigurationException e) {
+			throw new BuildException("ParserConfigurationException:" +e);
+		}
+    }
+
+    /** begin the process, create an info.xml with the file given 
+     * @throws TransformerConfigurationException*/
+    public void saxDoc(File destination) throws SAXException, IOException, 
+    TransformerConfigurationException, ParserConfigurationException {
+        // Pour créer des transformateurs
+        SAXTransformerFactory transformer = null;
+        if (transformer == null) transformer = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
+        if (destination == null) throw new BuildException("No file provide for SAXdoc");
+
+        TransformerHandler handler = transformer.newTransformerHandler();
+        handler.getTransformer().setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        handler.getTransformer().setOutputProperty(OutputKeys.INDENT, "yes");
+        handler.getTransformer().setOutputProperty(OutputKeys.METHOD, "xml");
+        // Le résultat est dans le fichier...
+        Result result = new StreamResult(destination);
+        handler.setResult(result);
+
+
+        // On crée le document
+        handler.startDocument();
+        AttributesImpl atts;
+        atts= new AttributesImpl();
+        atts.addAttribute("", "file", "file", "CDATA", "" + srcFile);
+        handler.startElement("", "jpeginfo", "jpeginfo", atts);
+        // try to add XMP inside a root element to assure something
+        try {
+            // parse image
+            scanHeaders();
+            atts= new AttributesImpl();
+            atts.addAttribute("", "length", "length", "CDATA", "" + srcFile.length());
+            atts.addAttribute("", "width", "width", "CDATA", "" + width);
+            atts.addAttribute("", "height", "height", "height", "" + height);
+            atts.addAttribute("", "compression", "compression", "CDATA", "" + compression);
+            atts.addAttribute("", "colors", "colors", "CDATA", "" + (int)Math.pow(2, bitsPerPixel));
+            handler.startElement("http://purl.org/dc/elements/1.1/", "format", "dc:format", atts);
+            handler.endElement("http://purl.org/dc/elements/1.1/", "format", "dc:format");
+            
+            /*Create a SAX Parser Factory*/
+            SAXParserFactory parseFactory = SAXParserFactory.newInstance();
+            /*Obtain a SAX Parser */
+            SAXParser saxParser;
+            saxParser = parseFactory.newSAXParser();
+            /*XML Reader is the interface for reading an XML document using callbacks*/
+            XMLReader xmlReader = saxParser.getXMLReader();
+            IncludeXMLConsumer includer=new IncludeXMLConsumer(handler);
+            includer.setIgnoreEmptyCharacters(true);
+            xmlReader.setContentHandler(includer);
+            String xmp = this.getXMP();
+            xmlReader.parse(new InputSource(new StringReader(xmp)));
+        }
+		catch (JpegException e) {
+			// careful, no XMP is highly possible in a jpeg
+			// don't send too much to the log
+			log("No XMP in "+srcFile);
+			log(e.getLocalizedMessage());
+		}
+        handler.endElement("", "jpeginfo", "jpeginfo");
+        handler.endDocument();
     }
 
 
