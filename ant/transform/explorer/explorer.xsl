@@ -17,13 +17,14 @@ and give some HTML views on it.
 
 -->
 <xsl:transform version="1.0" 
-xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
-xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
-xmlns:dc="http://purl.org/dc/elements/1.1/"
-xmlns:i18n="http://apache.org/cocoon/i18n/2.1"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-xmlns="http://www.w3.org/1999/xhtml" 
-exclude-result-prefixes="xsl rdf dc xsi i18n">
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:i18n="http://apache.org/cocoon/i18n/2.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:dcterms="http://purl.org/dc/terms/"
+  xmlns="http://www.w3.org/1999/xhtml" 
+  exclude-result-prefixes="xsl rdf dc dcterms xsi i18n">
   <!-- different tools to output not too bad xhtml (especially encoding) -->
   <xsl:import href="../html/html-common.xsl"/>
   <!-- path utilities -->
@@ -184,7 +185,7 @@ maybe problems with directories called index ?
         </xsl:attribute>
       </xsl:if>
       <xsl:attribute name="href">
-        <xsl:call-template name="href"/>
+        <xsl:call-template name="href-explorer"/>
       </xsl:attribute>
       <xsl:call-template name="title"/>
     </a>
@@ -192,40 +193,53 @@ maybe problems with directories called index ?
   </xsl:template>
   <!-- no output for empty directories -->
   <xsl:template match="collection[not(.//resource)]"/>
-  <!-- open a directory -->
+  <!-- 
+open a directory 
+
+The tricky goal is to get a good link for this directory,
+with a target file, in the best lang according to the one requested
+
+-->
   <xsl:template match="collection" name="collection">
     <xsl:variable name="id">
       <xsl:call-template name="toc-number"/>
     </xsl:variable>
-      <xsl:choose>
-        <!-- no welcome file, write a link on directory name, and pray for an auto  -->
-        <xsl:when test="not(resource[@radical = $welcome])">
-          <xsl:call-template name="toc-link">
-            <xsl:with-param name="id" select="$id"/>
-          </xsl:call-template>
-        </xsl:when>
-        <!-- different things and a welcome file to get a title -->
-        <xsl:otherwise>
-          <xsl:apply-templates select="*[@radical = $welcome]">
-            <xsl:with-param name="id" select="$id"/>
-          </xsl:apply-templates>
-        </xsl:otherwise>
-      </xsl:choose>
-      <ul class="explorer" id="{$id}-">
-        <!-- in case of error to not let an empty tag (considered open by brother) -->
-        <xsl:comment> - </xsl:comment>
-        <xsl:apply-templates select="*[not(@radical) or @radical != $welcome]"/>
-      </ul>
+    <xsl:variable name="first-radical" select="resource[1]/@radical"/>
+    <xsl:choose>
+      <!-- no welcome file, write a link on directory name, and pray for an auto  -->
+      <xsl:when test="not(resource[@radical = $welcome])">
+        <xsl:apply-templates select="*[@radical = $first-radical]">
+          <xsl:with-param name="id" select="$id"/>
+        </xsl:apply-templates>
+        <ul class="explorer" id="{$id}-">
+          <!-- in case of error to not let an empty tag (considered open by brother) -->
+          <xsl:comment> - </xsl:comment>
+          <xsl:apply-templates select="*[not(@radical) or @radical != $first-radical]"/>
+        </ul>
+      </xsl:when>
+      <!-- different things and a welcome file to get a title -->
+      <xsl:otherwise>
+        <xsl:apply-templates select="*[@radical = $welcome]">
+          <xsl:with-param name="id" select="$id"/>
+        </xsl:apply-templates>
+        <ul class="explorer" id="{$id}-">
+          <!-- in case of error to not let an empty tag (considered open by brother) -->
+          <xsl:comment> - </xsl:comment>
+          <xsl:apply-templates select="*[not(@radical) or @radical != $welcome]"/>
+        </ul>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
   <!-- 
 A quite tricky matching of resources
 
 Idea is to exclude some resource to have a nicer list
-
 to display only one file by radical, proceed only the first (and catch others) 
 Input should be not too badly ordered, especially for extensions
+
 -->
   <xsl:template match="resource" >
+    <!-- a mode to apply the same logic with different outputs,  -->
     <!-- param send from collection if this resource is used as a welcome file -->
     <xsl:param name="id"/>
     <xsl:choose>
@@ -244,7 +258,9 @@ and not(../resource[@radical= current()/@radical]
 and preceding::resource[@radical= current()/@radical]               
       "/>
       <!-- NO : a more friendly extension exist with same basename (radical + lang) -->
+      <!-- TODO BUG with index.sxw and index.html -->
       <xsl:when test="
+not (contains($transformable, concat(' ', current()/@extension, ' '))) and
 ../resource[@basename= current()/@basename]
            [generate-id() != generate-id(current())]
            [contains($transformable, concat(' ', @extension, ' ') )]
@@ -290,7 +306,7 @@ get title
     </xsl:choose>
   </xsl:template>
   <!-- global redirection of links -->
-  <xsl:template name="href">
+  <xsl:template name="href-explorer">
     <xsl:choose>
       <xsl:when test="false()"/>
       <xsl:when test="name()='collection'">

@@ -561,7 +561,7 @@ From a param provide by server of other supported export formats,
             </link>
           </xsl:when>
           <xsl:otherwise>
-            <dcterms:hasFormat dc:format="{$mime}" rdf:resource="{$parent}{$basename}.{$extension}">
+            <dcterms:hasFormat dc:format="{$mime}" dc:title="{$extension}" rdf:resource="{$parent}{$basename}.{$extension}">
               <!-- what should I do ther ?
               <xsl:call-template name="lang"/>
                 -->

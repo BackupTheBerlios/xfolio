@@ -25,8 +25,9 @@ and insert information from an RDF tree.
   xmlns:i18n="http://apache.org/cocoon/i18n/2.1" 
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
   xmlns:dc="http://purl.org/dc/elements/1.1/" 
+  xmlns:dcterms="http://purl.org/dc/terms/"
   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
-  exclude-result-prefixes="xsl dc html rdf i18n">
+  exclude-result-prefixes="xsl dc dcterms html rdf i18n">
   <!-- to resolve some path -->
   <xsl:import href="../explorer/path.xsl"/>
   <!-- for navigation views -->
@@ -36,7 +37,7 @@ and insert information from an RDF tree.
   <!-- override an explorer param on extension -->
   <xsl:param name="extension" select="'html'"/>
   <!-- extension able to be htmlisable, overide an explorer param -->
-  <xsl:param name="htmlizable" select="' sxw '"/>
+  <xsl:param name="htmlizable" select="' sxw xhtml '"/>
   <!-- path of the directory theme, 
 where to find template and resolve links of the template
 will be resolved from the path of the document to be relative
@@ -49,10 +50,20 @@ will be resolved from the path of the document to be relative
       <xsl:with-param name="to" select="$theme-path"/>
     </xsl:call-template>
   </xsl:param>
+  <!-- path of the file (to resolve links and display URI) -->
+  <xsl:param name="path"/>
   <!-- server, for absolute URI -->
   <xsl:param name="server"/>
-  <!-- absolute URI of the doc -->
-  <xsl:param name="uri" select="concat($server, $path)"/>
+  <!-- identifier of the doc (without extension) -->
+  <xsl:param name="identifier">
+    <xsl:value-of select="$server"/>
+    <xsl:call-template name="getParent">
+      <xsl:with-param name="path" select="$path"/>
+    </xsl:call-template>
+    <xsl:call-template name="getBasename">
+      <xsl:with-param name="path" select="$path"/>
+    </xsl:call-template>
+  </xsl:param>
   <!-- uri of the template.xhtml to process, probably in theme directory -->
   <xsl:param name="template.xhtml" select="concat($theme, 'template.xhtml')"/>
   <!-- the variable where the template is stored -->
@@ -74,9 +85,6 @@ will be resolved from the path of the document to be relative
   <xsl:variable name="resource" select="$toc//resource[@href=substring-after($path,'/')]"/>
   <!-- no indent, let original indentation of source (especially for spaces) -->
   <xsl:output method="xml" indent="no" encoding="UTF-8"/>
-
-  <!-- path of the file (to resolve links and display URI) -->
-  <xsl:param name="path"/>
   <!-- get a lang to follow for relative links -->
   <xsl:param name="lang" select="$toc//resource[contains(@href, substring-after($path,'/'))]/@xml:lang"/>
   <!-- 
@@ -141,6 +149,58 @@ $resource/preceding::resource[@radical != $resource/@radical][not(@xml:lang)]//d
       <xsl:value-of select="."/>
     </xsl:attribute>
   </xsl:template>
+  <!-- 
+rewrite links in xhtml source for
+ * email hiding
+ * *.xhtml > .html
+ -->
+     <!-- template for link resolution -->
+  <xsl:template name="href" match="@href" mode="content">
+    <xsl:param name="href" select="."/>
+    <xsl:variable name="destExtension">
+      <xsl:call-template name="getExtension">
+        <xsl:with-param name="path" select="$href"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:choose>
+      <!-- hide emails -->
+      <xsl:when test="contains($href, '@')">
+        <xsl:attribute name="href">#</xsl:attribute>
+        <xsl:attribute name="onclick">
+          <xsl:text>this.href='mailto:</xsl:text>
+          <xsl:value-of select="substring-before($href, '@')"/>
+          <xsl:text>'+'\x40'+'</xsl:text>
+          <xsl:value-of select="substring-after($href, '@')"/>
+          <xsl:text>'</xsl:text>
+        </xsl:attribute>
+      </xsl:when>
+      <!-- relative link to xhtml ? point on html -->
+      <xsl:when test="
+  not(contains($href, ':')) and
+  $destExtension = 'xhtml'">
+        <xsl:attribute name="href">
+          <xsl:call-template name="getBasepath">
+            <xsl:with-param name="path" select="."/>
+          </xsl:call-template>
+          <!-- TODO ? more generic -->
+          <xsl:text>.html</xsl:text>
+          <xsl:if test="contains($href, '#')">
+            <xsl:text>#</xsl:text>
+            <xsl:value-of select="substring-after($href, '#')"/>
+          </xsl:if>
+        </xsl:attribute>
+      </xsl:when>
+      <!-- let it -->
+      <xsl:otherwise>
+        <xsl:attribute name="href">
+          <xsl:value-of select="$href"/>
+        </xsl:attribute>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  
+  
   <!-- take title from template if there's not in the source -->
   <xsl:template match="html:head/html:title[1]" mode="template">
     <xsl:if test="not($content/html:html/html:head/html:title)">
@@ -300,18 +360,41 @@ bug in IE
       <xsl:apply-templates select="/aggregate/rdf:RDF/rdf:Description[1]" mode="langs"/>
     </xsl:copy>
   </xsl:template>
-  <!-- formats of this doc -->
+  <!-- 
+formats of this doc
+TODO ? localize name of documents by mime types ?
+A localized label ? Or from theme ?
+ -->
   <xsl:template match="html:*[@id='formats']" mode="template">
     <xsl:copy>
       <xsl:copy-of select="@*"/>
-      <xsl:apply-templates select="/aggregate/rdf:RDF/rdf:Description[1]" mode="formats"/>
+      <xsl:if test="$resource//dcterms:hasFormat">
+        <select onchange="window.location.href=this.options[this.selectedIndex].value;">
+          <option/>
+          <xsl:for-each select="$resource//dcterms:hasFormat">
+            <option title="{@dc:format}" value="{.}">
+              <xsl:choose>
+                <xsl:when test="@dc:title">
+                  <xsl:value-of select="@dc:title"/>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:call-template name="getExtension">
+                    <xsl:with-param name="path" select="."/>
+                  </xsl:call-template>
+                </xsl:otherwise>
+              </xsl:choose>
+            </option>
+          </xsl:for-each>
+        </select>
+      </xsl:if>
     </xsl:copy>
   </xsl:template>
   <!-- match the clickable uri substitute -->
-  <xsl:template match="html:*[@id='identifier']" mode="template">
-    <xsl:call-template name="path-links">
-      <xsl:with-param name="uri" select="$uri"/>
-    </xsl:call-template>
+  <xsl:template match="html:*[@id='path']" mode="template">
+    <xsl:copy>
+      <xsl:copy-of select="@*"/>
+      <xsl:call-template name="path-links"/>
+    </xsl:copy>
   </xsl:template>
   <!-- match a skin selector -->
   <!-- specific to a server implementation like cocoon
@@ -338,63 +421,10 @@ This template seems to work with different kind of paths,
 may be interesting to test more.
 	-->
   <xsl:template name="path-links">
-    <xsl:param name="uri" select="$uri"/>
-    <xsl:choose>
-      <!-- the root -->
-      <xsl:when test="starts-with($uri, 'http://')">
-        <xsl:variable name="server">
-          <xsl:choose>
-            <xsl:when test="contains(substring-after($uri, 'http://'), '/')">
-              <xsl:value-of select="substring-before(substring-after($uri, 'http://'), '/')"/>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:value-of select="substring-after($uri, 'http://')"/>
-            </xsl:otherwise>
-          </xsl:choose>
-        </xsl:variable>
-        <a href="/">
-          <!--
-          <xsl:attribute name="href">
-            <xsl:text>http://</xsl:text>
-            <xsl:value-of select="$server"/>
-          </xsl:attribute>
--->
-          <xsl:value-of select="$server"/>
-        </a>
-        <xsl:call-template name="path-links">
-          <xsl:with-param name="uri" select="substring-after($uri, concat('http://', $server ))"/>
-        </xsl:call-template>
-      </xsl:when>
-      <!-- not nice, but in case of path begining by a slash -->
-      <xsl:when test="starts-with($uri, '/')">
-        <a href="/" style="padding-left:1ex; padding-right:1ex">/</a>
-        <xsl:call-template name="path-links">
-          <xsl:with-param name="uri" select="substring-after($uri, '/')"/>
-        </xsl:call-template>
-      </xsl:when>
-      <!-- a branch -->
-      <xsl:when test="substring-after($uri, '/')!=''">
-        <a>
-          <xsl:attribute name="href">
-            <xsl:text>./</xsl:text>
-            <xsl:call-template name="path-upper">
-              <xsl:with-param name="path" select="$uri"/>
-            </xsl:call-template>
-          </xsl:attribute>
-          <xsl:value-of select="substring-before($uri, '/')"/>
-        </a>
-        <span style="padding-left:1ex; padding-right:1ex;">/</span>
-        <xsl:call-template name="path-links">
-          <xsl:with-param name="uri" select="substring-after($uri, '/')"/>
-        </xsl:call-template>
-      </xsl:when>
-      <!-- the leave -->
-      <xsl:otherwise>
-        <a href="{$uri}">
-          <xsl:value-of select="$uri"/>
-        </a>
-      </xsl:otherwise>
-    </xsl:choose>
+    <xsl:for-each select="$resource/ancestor::collection">
+      <xsl:value-of select="@name"/> 
+      <span class="slash">/</span> 
+    </xsl:for-each>
   </xsl:template>
   <!-- relative upper path -->
   <xsl:template name="path-upper">
