@@ -1,76 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- - GNU Lesser General Public License Version 2.1
- - Sun Industry Standards Source License Version 1.1
-The Initial Developer of the Original Code is: Sun Microsystems, Inc.
-Copyright: 2000 by Sun Microsystems, Inc.
-All Rights Reserved.
-(c) 2003, ajlsm.com ; 2004, ajlsm.com, xfolio.org
 
-2003-02-17
-FG:frederic.glorieux@xfolio.org;
+(c) 2003, 2004; AJLSM <http://ajlsm.com>
 
-	goal
+
+ = WHAT =
+
 provide a  text version of an oo XML, 
-displayable in a mail, and compatible with common wiki.
+displayable in a mail, and parsable like a wiki.
 
-	usage
+ = HOW =
+
 All style classes handle in this xsl are standard openOffice. To
 define specific styles to handle, best is import this xsl. If possible, 
 modify only for better rendering of standard oo.
 
-= CHANGES =
+ = CHANGES =
 
-FG:2004-06-11 Start for text
-FG:2003-11-12 This work is continued, in the xhtml 
-FG:2003-02-12 The original xsl was designed for docbook.
+ * 2004-07-15 [FG] Wrapping
+ * 2004-06-11 [FG] Start for text
+ * 2003-11-12 [FG] This work is continued, in the xhtml 
+ * 2003-02-12 [FG] The original xsl was designed for docbook.
 
-=	BUGS =
+ =	BUGS =
 
 teletype style is not handled
 what to do with placeholder and definition styles ?
 the $props of inline template have strange behavior
 
-=	TODO =
+ =	TODO =
 
 tables, links, preformating, title bar
 center ?
 
-MAYDO
+ = MAYDO =
 What about numerated titles ?
 justify right to left ?
 
-= references =
+ = REFERENCES =
 
-http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html
-http://txt2html.sourceforge.net/
-http://www.triptico.com/software/grutatxt.html
-http://snipsnap.org/space/snipsnap-help
+<http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html>
+<http://txt2html.sourceforge.net/>
+<http://www.triptico.com/software/grutatxt.html>
+<http://snipsnap.org/space/snipsnap-help>
 
   -->
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:style="http://openoffice.org/2000/style" xmlns:text="http://openoffice.org/2000/text" xmlns:office="http://openoffice.org/2000/office" xmlns:table="http://openoffice.org/2000/table" xmlns:draw="http://openoffice.org/2000/drawing" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="http://openoffice.org/2000/meta" xmlns:number="http://openoffice.org/2000/datastyle" xmlns:svg="http://www.w3.org/2000/svg" xmlns:chart="http://openoffice.org/2000/chart" xmlns:dr3d="http://openoffice.org/2000/dr3d" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="http://openoffice.org/2000/form" xmlns:script="http://openoffice.org/2000/script" xmlns:config="http://openoffice.org/2001/config" office:class="text" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:i18n="http://apache.org/cocoon/i18n/2.1" exclude-result-prefixes="office meta  table number dc fo xlink chart math script xsl draw svg dr3d form config text style i18n">
   <!-- text version -->
-  <xsl:output encoding="UTF8" method="text"/>
-  <!-- encoding, default is the one specified in xsl:output -->
-  <xsl:param name="encoding" select="document('')/*/xsl:output/@encoding"/>
+  <xsl:output encoding="UTF-8" method="text"/>
   <!-- Carriage return -->
-  <xsl:param name="CR">
-</xsl:param>
+  <xsl:param name="CR" select="'&#13;'"/>
   <!-- global width -->
   <xsl:param name="width" select="72"/>
-  <!-- keep root node -->
-  <xsl:variable name="root" select="/"/>
+  <xsl:variable name="office:meta" select=".//office:meta"/>
+  <xsl:variable name="office:automatic-styles" select=".//office:automatic-styles"/>
+  <xsl:variable name="office:body" select=".//office:body"/>
   <!-- 
 These variables are used to normalize names of styles
 -->
   <xsl:variable name="majs" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöùúûüýÿþ .()/\?'"/>
   <xsl:variable name="mins" select="'abcdefghijklmnopqrstuvwxyzaaaaaaaeeeeiiiidnooooouuuuybbaaaaaaaceeeeiiiionooooouuuuyyb------'"/>
-  <!-- MAYDO -->
-  <xsl:variable name="hr1">=======</xsl:variable>
-  <xsl:variable name="hr2">-=-=-=-=-=</xsl:variable>
-  <xsl:variable name="hr3">-------</xsl:variable>
-  <xsl:variable name="hr4">~~~~~~</xsl:variable>
-  <xsl:variable name="hr5">++++++</xsl:variable>
+  <xsl:variable name="spaces" select="'                                                                                                    '"/>
+  <xsl:variable name="hr">--------------------------------------------------------------------------------------------------------------</xsl:variable>
+  <xsl:variable name="hr1">====================================================================================================</xsl:variable>
+  <xsl:variable name="hr2">-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=</xsl:variable>
+  <xsl:variable name="hr4">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</xsl:variable>
+  <xsl:variable name="hr5">++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</xsl:variable>
   <!--
 
   root template for an oo the document
@@ -78,13 +73,13 @@ These variables are used to normalize names of styles
 -->
   <xsl:template match="/">
     <root>
-      <xsl:apply-templates select="// office:body" mode="text"/>
+      <xsl:apply-templates select="$office:body" mode="text"/>
       <xsl:if test=".//text:footnote">
         <xsl:value-of select="$CR"/>
         <xsl:value-of select="$CR"/>
-        <xsl:text>----</xsl:text>
+        <xsl:value-of select="substring($hr, 1,$width)"/>
         <xsl:value-of select="$CR"/>
-        <xsl:apply-templates select="//office:body" mode="text-foot"/>
+        <xsl:apply-templates select="$office:body" mode="text-foot"/>
       </xsl:if>
     </root>
   </xsl:template>
@@ -101,6 +96,15 @@ These variables are used to normalize names of styles
   <xsl:template match="text:tracked-changes" mode="text"/>
   <xsl:template match="office:forms | text:sequence-decls" mode="text"/>
   <!-- pass elements -->
+  <xsl:template match="text()" mode="text">
+    <xsl:choose>
+      <!-- for inline -->
+      <xsl:when test="normalize-space(.) =''"/>
+      <xsl:otherwise>
+        <xsl:value-of select="."/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
   <xsl:template match="*" mode="text">
     <xsl:apply-templates mode="text"/>
   </xsl:template>
@@ -149,247 +153,140 @@ Should
     <xsl:variable name="next">
       <xsl:apply-templates select="following-sibling::*[1]/@text:style-name"/>
     </xsl:variable>
-    <!-- store the block in a variable to * it after inline process -->
+    <!-- store the block in a variable to process it later -->
     <xsl:variable name="text">
-      <xsl:choose>
-        <!--  empty block -->
-        <xsl:when test="normalize-space(.)='' and not(*[name()!='text:change'])"/>
-        <xsl:when test="$style='standard' or $style='default' or $style='text-body'">
-          <xsl:apply-templates mode="text"/>
-          <xsl:if test="not(ancestor::text:list-item)">
-            <xsl:value-of select="$CR"/>
-          </xsl:if>
-        </xsl:when>
-        <xsl:when test="$style='first-line-indent'">
-          <xsl:value-of select="$CR"/>
-          <!-- <xsl:text>    </xsl:text> -->
-          <xsl:apply-templates mode="text"/>
-        </xsl:when>
-        <!-- handling of fields -->
-        <xsl:when test="(text:title or $style='title') and normalize-space(.)!=''">
-          <xsl:value-of select="$CR"/>
-          <xsl:text>!!! </xsl:text>
-          <xsl:apply-templates mode="text"/>
-          <xsl:value-of select="$CR"/>
-          <xsl:if test="$next != 'subtitle'">
-            <xsl:text>----</xsl:text>
-            <xsl:value-of select="$CR"/>
-          </xsl:if>
-        </xsl:when>
-        <xsl:when test="($style='subtitle' or text:subject) and normalize-space(.)!=''">
-          <xsl:value-of select="$CR"/>
-          <xsl:text>!!!'' </xsl:text>
-          <xsl:apply-templates  mode="text"/>
-          <xsl:text> ''</xsl:text>
-          <xsl:text>----</xsl:text>
-          <xsl:value-of select="$CR"/>
-        </xsl:when>
-        <!-- Definition list -->
-        <xsl:when test="$style='list-heading' or $style='dt'">
-          <xsl:if test="$prev!='list-heading' and $prev!='dt'">
-            <xsl:value-of select="$CR"/>
-            <xsl:text>;</xsl:text>
-          </xsl:if>
-          <xsl:apply-templates mode="text"/>
-          <xsl:choose>
-            <xsl:when test="$next ='list-heading' or $next='dt'"> \\ </xsl:when>
-            <xsl:otherwise> : </xsl:otherwise>
-          </xsl:choose>
-        </xsl:when>
-        <xsl:when test="$style = 'list-contents' or $style = 'dd'">
-          <xsl:apply-templates mode="text"/>
-          <xsl:choose>
-            <xsl:when test="$next = 'list-contents' or $next = 'dd'"> \\ </xsl:when>
-            <xsl:otherwise>
-              <xsl:value-of select="$CR"/>
-            </xsl:otherwise>
-          </xsl:choose>
-        </xsl:when>
-        <!-- abstract -->
-        <xsl:when test="text:description or $style='abstract'">
-          <xsl:if test="not ($prev='abstract')">
-            <xsl:value-of select="$CR"/>
-            <xsl:text>----</xsl:text>
-            <xsl:value-of select="$CR"/>
-          </xsl:if>
-          <xsl:apply-templates mode="text"/>
-          <xsl:if test="not ($next='abstract')">
-            <xsl:value-of select="$CR"/>
-            <xsl:text>----</xsl:text>
-            <xsl:value-of select="$CR"/>
-            <xsl:value-of select="$CR"/>
-          </xsl:if>
-        </xsl:when>
-        <!-- indent ? -->
-        <xsl:when test="$style='quotations'">
-          <xsl:apply-templates mode="text"/>
-        </xsl:when>
-        <!-- TODO, better format here, prev-next and no wrap -->
-        <xsl:when test="$style='preformatted-text'">
-          <xsl:value-of select="$CR"/>
-          <xsl:value-of select="$CR"/>
-          <xsl:text>{{{</xsl:text>
-          <xsl:value-of select="$CR"/>
-          <xsl:apply-templates mode="text"/>
-          <xsl:value-of select="$CR"/>
-          <xsl:text>}}}</xsl:text>
-          <xsl:value-of select="$CR"/>
-          <xsl:value-of select="$CR"/>
-        </xsl:when>
-        <xsl:when test="$style='horizontal-line'">
-          <xsl:value-of select="$CR"/>
-          <xsl:value-of select="$CR"/>
-          <xsl:text>----</xsl:text>
-          <xsl:value-of select="$CR"/>
-          <xsl:value-of select="$CR"/>
-        </xsl:when>
-        <xsl:when test="$style='comment'">
-          <xsl:value-of select="$CR"/>
-          <xsl:value-of select="$CR"/>
-          <xsl:text>;:''</xsl:text>
-          <xsl:apply-templates mode="text"/>
-          <xsl:text>''</xsl:text>
-          <xsl:value-of select="$CR"/>
-          <xsl:value-of select="$CR"/>
-        </xsl:when>
-        <!-- ??? addressee, sender, salutation, signature -->
-        <xsl:otherwise>
-          <xsl:apply-templates mode="text"/>
-        </xsl:otherwise>
-      </xsl:choose>
+      <xsl:apply-templates mode="text"/>
     </xsl:variable>
-    <!-- no problem there ? -->
-    <xsl:call-template name="wrap">
-      <xsl:with-param name="text" select="$text"/>
-      <xsl:with-param name="indent" select="$indent"/>
-      <xsl:with-param name="first-line" select="$first-line"/>
-    </xsl:call-template>
+    <xsl:choose>
+      <!--  empty block -->
+      <xsl:when test="normalize-space(.)='' and not(*[name()!='text:change'])"/>
+      <xsl:when test="ancestor::text:list-item">
+        <xsl:call-template name="wrap">
+          <xsl:with-param name="text" select="$text"/>
+          <xsl:with-param name="indent" select="3"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:when test="$style='standard' or $style='default' or $style='text-body'">
+        <xsl:call-template name="wrap">
+          <xsl:with-param name="text" select="$text"/>
+        </xsl:call-template>
+          <xsl:value-of select="$CR"/>
+      </xsl:when>
+      <xsl:when test="$style='first-line-indent'">
+        <xsl:value-of select="$CR"/>
+        <xsl:call-template name="wrap">
+          <xsl:with-param name="text" select="$text"/>
+          <xsl:with-param name="first-line" select="4"/>
+        </xsl:call-template>
+      </xsl:when>
+      <!-- handling of fields -->
+      <xsl:when test="(text:title or $style='title') and normalize-space(.)!=''">
+        <xsl:value-of select="$CR"/>
+        <xsl:call-template name="wrap">
+          <xsl:with-param name="text" select="$text"/>
+        </xsl:call-template>
+        <xsl:value-of select="concat(substring($hr1, 1,$width), $CR)"/>
+      </xsl:when>
+      <xsl:when test="($style='subtitle' or text:subject) and normalize-space(.)!=''">
+        <xsl:value-of select="$CR"/>
+        <xsl:call-template name="wrap">
+          <xsl:with-param name="text" select="$text"/>
+        </xsl:call-template>
+        <xsl:value-of select="$CR"/>
+      </xsl:when>
+      <!-- Definition list -->
+      <xsl:when test="$style='list-heading' or $style='dt'">
+        <xsl:value-of select="$CR"/>
+        <xsl:value-of select="."/>
+      </xsl:when>
+      <xsl:when test="$style = 'list-contents' or $style = 'dd'">
+        <xsl:value-of select="$CR"/>
+        <xsl:call-template name="wrap">
+          <xsl:with-param name="text" select="$text"/>
+          <xsl:with-param name="indent" select="4"/>
+        </xsl:call-template>
+      </xsl:when>
+      <!--  -->
+      <xsl:when test="contains($style, 'bibliography')">
+        <xsl:value-of select="$CR"/>
+        <!-- don't process inline in biblio record -->
+        <xsl:call-template name="wrap">
+          <xsl:with-param name="text" select="."/>
+          <xsl:with-param name="indent" select="4"/>
+          <xsl:with-param name="first-line" select="-4"/>
+        </xsl:call-template>
+      </xsl:when>
+      <!-- abstract -->
+      <xsl:when test="text:description or $style='abstract'">
+        <xsl:if test="not ($prev='abstract')">
+          <xsl:value-of select="concat($CR, substring($hr, 1,$width - 1), ' ')"/>
+          <xsl:value-of select="$CR"/>
+        </xsl:if>
+        <xsl:call-template name="wrap">
+          <xsl:with-param name="text" select="$text"/>
+        </xsl:call-template>
+        <xsl:if test="not ($next='abstract')">
+          <xsl:value-of select="concat($CR, substring($hr, 1 , $width), ' ')"/>
+          <xsl:value-of select="$CR"/>
+        </xsl:if>
+      </xsl:when>
+      <!-- indent ? -->
+      <xsl:when test="$style='quotations' or contains($style, 'blockquote')">
+        <xsl:call-template name="wrap">
+          <xsl:with-param name="text" select="$text"/>
+          <xsl:with-param name="indent" select="4"/>
+        </xsl:call-template>
+      </xsl:when>
+      <!-- TODO, better format here, prev-next and no wrap -->
+      <xsl:when test="$style='preformatted-text'">
+        <xsl:value-of select="$CR"/>
+        <xsl:value-of select="$CR"/>
+        <xsl:text>{{{</xsl:text>
+        <xsl:value-of select="$CR"/>
+        <xsl:apply-templates mode="text"/>
+        <xsl:value-of select="$CR"/>
+        <xsl:text>}}}</xsl:text>
+        <xsl:value-of select="$CR"/>
+        <xsl:value-of select="$CR"/>
+      </xsl:when>
+      <xsl:when test="$style='horizontal-line'">
+        <xsl:value-of select="$CR"/>
+        <xsl:value-of select="$CR"/>
+        <xsl:value-of select="substring($hr, 1,$width)"/>
+        <xsl:value-of select="$CR"/>
+        <xsl:value-of select="$CR"/>
+      </xsl:when>
+      <xsl:when test="$style='comment'">
+        <xsl:value-of select="$CR"/>
+        <xsl:value-of select="$CR"/>
+        <xsl:text>;:''</xsl:text>
+        <xsl:apply-templates mode="text"/>
+        <xsl:text>''</xsl:text>
+        <xsl:value-of select="$CR"/>
+        <xsl:value-of select="$CR"/>
+      </xsl:when>
+      <!-- ??? addressee, sender, salutation, signature -->
+      <xsl:otherwise>
+        <xsl:call-template name="wrap">
+          <xsl:with-param name="text" select="$text"/>
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
   <!-- an anchor, what about renaming anchors ? -->
   <xsl:template match="text:bookmark-start | text:bookmark" mode="text">
-    <a name="{@text:name}">
-      <xsl:comment> &#160; </xsl:comment>
-    </a>
+    <xsl:value-of select="$CR"/>
+    <xsl:text>[</xsl:text>
+    <xsl:value-of select="@text:name"/>
+    <xsl:text>] </xsl:text>
   </xsl:template>
   <!-- whats annotation ? -->
-  <xsl:template match="office:annotation/text:p" mode="text">
-    <note>
-      <remark>
-        <xsl:apply-templates mode="text"/>
-      </remark>
-    </note>
-  </xsl:template>
+  <xsl:template match="office:annotation/text:p" mode="text"/>
   <!--
- table 
+TODO table 
 
 
 -->
-  <xsl:template match="table:table" mode="text">
-    <table class="table">
-      <xsl:attribute name="id">
-        <xsl:value-of select="@table:name"/>
-      </xsl:attribute>
-      <xsl:call-template name="generictable"/>
-    </table>
-  </xsl:template>
-  <xsl:template name="generictable" mode="text">
-    <xsl:variable name="cells" select="count(descendant::table:table-cell)"/>
-    <xsl:variable name="rows">
-      <xsl:value-of select="count(descendant::table:table-row) "/>
-    </xsl:variable>
-    <xsl:variable name="cols">
-      <xsl:value-of select="$cells div $rows"/>
-    </xsl:variable>
-    <xsl:variable name="numcols">
-      <xsl:choose>
-        <xsl:when test="child::table:table-column/@table:number-columns-repeated">
-          <xsl:value-of select="number(table:table-column/@table:number-columns-repeated+1)"/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="$cols"/>
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:variable>
-    <!--
-Work with colspec ?
-    <xsl:element name="tgroup">
-      <xsl:attribute name="cols">
-        <xsl:value-of select="$numcols"/>
-      </xsl:attribute>
-      <xsl:call-template name="colspec">
-        <xsl:with-param name="left" select="1"/>
-      </xsl:call-template>
-    </xsl:element>
--->
-    <xsl:apply-templates mode="text"/>
-  </xsl:template>
-  <xsl:template name="colspec" mode="text">
-    <xsl:param name="left"/>
-    <xsl:if test="number($left &lt; ( table:table-column/@table:number-columns-repeated +2)  )">
-      <xsl:element name="colspec">
-        <xsl:attribute name="colnum">
-          <xsl:value-of select="$left"/>
-        </xsl:attribute>
-        <xsl:attribute name="colname">c
-                    <xsl:value-of select="$left"/>
-        </xsl:attribute>
-      </xsl:element>
-      <xsl:call-template name="colspec">
-        <xsl:with-param name="left" select="$left+1"/>
-      </xsl:call-template>
-    </xsl:if>
-  </xsl:template>
-  <xsl:template match="table:table-column" mode="text">
-    <xsl:apply-templates mode="text"/>
-  </xsl:template>
-  <xsl:template match="table:table-header-rows" mode="text">
-    <thead>
-      <xsl:apply-templates mode="text"/>
-    </thead>
-  </xsl:template>
-  <xsl:template match="table:table-header-rows/table:table-row" mode="text">
-    <tr>
-      <xsl:apply-templates mode="text"/>
-    </tr>
-  </xsl:template>
-  <!-- bad xsl example but good XML practice,
-  if thead, then put rows in tgroup
-  -->
-  <xsl:template match="table:table/table:table-row" mode="text">
-    <tr>
-      <xsl:apply-templates mode="text"/>
-    </tr>
-  </xsl:template>
-  <xsl:template match="table:table-cell" mode="text">
-    <xsl:variable name="element">
-      <xsl:choose>
-        <xsl:when test="text:p/@text:style-name='Table Heading'">th</xsl:when>
-        <xsl:otherwise>td</xsl:otherwise>
-      </xsl:choose>
-    </xsl:variable>
-    <xsl:element name="{$element}">
-      <!-- ???
-      <xsl:if test="@table:number-columns-spanned &gt; 1">
-        <xsl:attribute name="namest">
-          <xsl:value-of select="concat('c',count(preceding-sibling::table:table-cell[not(@table:number-columns-spanned)]) +sum(preceding-sibling::table:table-cell/@table:number-columns-spanned)+1)"/>
-        </xsl:attribute>
-        <xsl:attribute name="nameend">
-          <xsl:value-of select="concat('c',count(preceding-sibling::table:table-cell[not(@table:number-columns-spanned)]) +sum(preceding-sibling::table:table-cell/@table:number-columns-spanned)+ @table:number-columns-spanned)"/>
-        </xsl:attribute>
-      </xsl:if>
-    -->
-      <xsl:choose>
-        <!-- if more than one block, process them -->
-        <xsl:when test="*[2]">
-          <xsl:apply-templates mode="text"/>
-        </xsl:when>
-        <!-- if only one block, put value directly (without block declarations) -->
-        <xsl:otherwise>
-          <xsl:apply-templates select="*/node()" mode="text"/>
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:element>
-  </xsl:template>
   <!-- 
 
 lists 
@@ -405,12 +302,15 @@ lists
   </xsl:template>
   <!-- item -->
   <xsl:template match="text:list-item" mode="text">
-    <xsl:for-each select="ancestor::text:ordered-list">
-      <xsl:text>#</xsl:text>
-    </xsl:for-each>
-    <xsl:for-each select="ancestor::text:unordered-list">
-      <xsl:text>*</xsl:text>
-    </xsl:for-each>
+    <!-- TODO, should be better -->
+    <xsl:if test="not(text:h)">
+      <xsl:for-each select="ancestor::text:ordered-list">
+        <xsl:text>#</xsl:text>
+      </xsl:for-each>
+      <xsl:for-each select="ancestor::text:unordered-list">
+        <xsl:text>*</xsl:text>
+      </xsl:for-each>
+    </xsl:if>
     <!-- ?? is it the best for formatting ?? -->
     <xsl:variable name="text">
       <xsl:apply-templates select="*[not(contains(local-name(), 'list'))]" mode="text">
@@ -450,7 +350,7 @@ handle inline, and give an html form to each default style
     <xsl:variable name="style">
       <xsl:choose>
         <xsl:when test="starts-with($style-att, 'T')">
-          <xsl:value-of select="/office:document/office:automatic-styles/style:style[@style:name=$style-att]/@style:parent-style-name"/>
+          <xsl:value-of select="$office:automatic-styles/style:style[@style:name=$style-att]/@style:parent-style-name"/>
         </xsl:when>
         <xsl:otherwise>
           <xsl:value-of select="translate($style-att, $majs, $mins)"/>
@@ -512,9 +412,9 @@ handle inline, and give an html form to each default style
         <xsl:apply-templates mode="text"/>
       </xsl:when>
       <xsl:when test="$style='emphasis-bold'">
-        <xsl:text>__</xsl:text>
+        <xsl:text>*</xsl:text>
         <xsl:apply-templates mode="text"/>
-        <xsl:text>__</xsl:text>
+        <xsl:text>*</xsl:text>
       </xsl:when>
       <xsl:when test="$props">
         <xsl:choose>
@@ -525,9 +425,9 @@ and $props/style:properties/@fo:font-style='italic'">
             <xsl:text>''__</xsl:text>
           </xsl:when>
           <xsl:when test="$props/style:properties/@fo:font-weight = 'bold'">
-            <xsl:text>__</xsl:text>
+            <xsl:text>*</xsl:text>
             <xsl:apply-templates mode="text"/>
-            <xsl:text>__</xsl:text>
+            <xsl:text>*</xsl:text>
           </xsl:when>
           <xsl:when test="$props/style:properties/@fo:font-style='italic'">
             <xsl:text>''</xsl:text>
@@ -552,7 +452,7 @@ and $props/style:properties/@fo:font-style='italic'">
   </xsl:template>
   <!-- line break -->
   <xsl:template match="text:line-break" mode="text">
-    <xsl:text> \\ </xsl:text>
+    <xsl:value-of select="$CR"/>
   </xsl:template>
   <xsl:template match="text:tab-stop" mode="text">
     <xsl:text>&#160;&#160;&#160;&#160;</xsl:text>
@@ -585,13 +485,11 @@ and $props/style:properties/@fo:font-style='italic'">
   <xsl:template match="@text:style-name | @draw:style-name | @draw:text-style-name | @table:style-name">
     <xsl:variable name="current" select="."/>
     <xsl:choose>
-      <xsl:when test="
-//office:automatic-styles/style:style[@style:name = $current]
-">
+      <xsl:when test="$office:automatic-styles/style:style[@style:name = $current]">
         <!-- can't understand why but sometimes there's a confusion 
 				between automatic styles with footer, fast patch here -->
         <xsl:value-of select="
-translate(//office:automatic-styles/style:style[@style:name = $current][@style:parent-style-name!='Footer']/@style:parent-style-name
+translate($office:automatic-styles/style:style[@style:name = $current][@style:parent-style-name!='Footer']/@style:parent-style-name
 , $majs, $mins)
 "/>
       </xsl:when>
@@ -615,7 +513,7 @@ translate(//office:automatic-styles/style:style[@style:name = $current][@style:p
       </xsl:otherwise>
     </xsl:choose>
     <xsl:text> &lt;</xsl:text>
-      <xsl:apply-templates select="@xlink:href | @href"/>
+    <xsl:apply-templates select="@xlink:href | @href"/>
     <xsl:text>&gt;</xsl:text>
   </xsl:template>
   <!-- global redirection of links -->
@@ -704,7 +602,7 @@ preceding-sibling::text:h[@text:level=($level - 1)][normalize-space(.)!=''][1]
   <xsl:template match="text:footnote" mode="text-foot">
     <xsl:value-of select="$CR"/>
     <xsl:value-of select="$CR"/>
-    <xsl:text>[#</xsl:text>
+    <xsl:text> [</xsl:text>
     <xsl:value-of select="text:footnote-citation"/>
     <xsl:text>] </xsl:text>
     <xsl:apply-templates select="text:footnote-body" mode="text"/>
@@ -767,40 +665,41 @@ a text word wrap
 
 -->
   <xsl:template name="wrap">
+    <!-- reduce it at each line -->
     <xsl:param name="text" select="."/>
-    <xsl:param name="indent"/>
-    <xsl:param name="first-line"/>
-    <xsl:param name="size">
-      <xsl:choose>
-        <xsl:when test="true()">
-          <xsl:value-of select="$width"/>
-        </xsl:when>
-        <xsl:when test="number($first-line)">
-          <xsl:value-of select="$width - $first-line"/>
-        </xsl:when>
-        <xsl:when test="number($indent)">
-          <xsl:value-of select="$width - $indent"/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="72"/>
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:param>
-    <!-- index for breaking space -->
-    <xsl:param name="i" select="$size"/>
+    <!-- keep it it on loop -->
+    <xsl:param name="indent" select="0"/>
+    <!-- forget it after first line -->
+    <xsl:param name="first-line" select="0"/>
+    <!-- global width of para, don't forget to keep it on loops ! -->
+    <xsl:param name="width" select="$width"/>
+    <!-- index to run on -->
+    <xsl:param name="i" select="$width - $first-line - $indent"/>
     <xsl:choose>
-      <!-- last line -->
-      <xsl:when test="string-length($text) &lt;= $size">
+      <!-- stop -->
+      <xsl:when test="normalize-space($text) =''"/>
+      <!-- write a line on a break space, or last line -->
+      <xsl:when test="
+(string-length($text) &lt;= $i) or (substring($text, $i, 1) = ' ') or (not(contains($text, ' ')))">
+<!--
         <xsl:choose>
           <xsl:when test="number($first-line)">
-            <xsl:value-of select="substring('                         ', 1, $first-line)"/>
+            <xsl:value-of select="substring($spaces, 1, $first-line)"/>
           </xsl:when>
           <xsl:when test="number($indent)">
-            <xsl:value-of select="substring('                         ', 1, $indent)"/>
+            <xsl:value-of select="substring($spaces, 1, $indent)"/>
           </xsl:when>
         </xsl:choose>
-        <xsl:value-of select="$text"/>
+-->
+            <xsl:value-of select="substring($spaces, 1, $first-line + $indent)"/>
+        <!-- right or center align ? -->
+        <xsl:value-of select="substring($text, 1, $i)"/>
         <xsl:value-of select="$CR"/>
+        <xsl:call-template name="wrap">
+          <xsl:with-param name="text" select="substring($text, $i+1)"/>
+          <xsl:with-param name="indent" select="$indent"/>
+          <xsl:with-param name="width" select="$width"/>
+        </xsl:call-template>
       </xsl:when>
       <!-- keep break lines ? -->
       <!--
@@ -812,13 +711,14 @@ a text word wrap
         </xsl:call-template>
       </xsl:when>
 -->
-      <!-- a long non breaking line, cut after -->
+      <!-- a long non breaking line, cut after, !! careful of infinite loop -->
       <xsl:when test="not(contains(substring($text, 1, $i), ' '))">
         <xsl:call-template name="wrap">
           <xsl:with-param name="i" select="$i+1"/>
           <xsl:with-param name="text" select="$text"/>
           <xsl:with-param name="indent" select="$indent"/>
           <xsl:with-param name="first-line" select="$first-line"/>
+          <xsl:with-param name="width" select="$width"/>
         </xsl:call-template>
       </xsl:when>
       <!-- not on the break space, cut before -->
@@ -828,37 +728,12 @@ a text word wrap
           <xsl:with-param name="text" select="$text"/>
           <xsl:with-param name="indent" select="$indent"/>
           <xsl:with-param name="first-line" select="$first-line"/>
-        </xsl:call-template>
-      </xsl:when>
-      <!-- should be on a break space -->
-      <xsl:when test="substring($text, $i, 1) = ' '">
-        <xsl:choose>
-          <xsl:when test="number($first-line)">
-            <xsl:value-of select="substring('                         ', 1, $first-line)"/>
-          </xsl:when>
-          <xsl:when test="number($indent)">
-            <xsl:value-of select="substring('                         ', 1, $indent)"/>
-          </xsl:when>
-        </xsl:choose>
-        <xsl:value-of select="substring($text, 1, $i)"/>
-        <xsl:value-of select="$CR"/>
-        <xsl:call-template name="wrap">
-          <xsl:with-param name="text" select="substring($text, $i+1)"/>
-          <xsl:with-param name="indent" select="$indent"/>
+          <xsl:with-param name="width" select="$width"/>
         </xsl:call-template>
       </xsl:when>
       <!-- should never arrive -->
       <xsl:otherwise>
-        <xsl:text> ??? </xsl:text>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-  <xsl:template match="text()">
-    <xsl:choose>
-      <!-- for inline -->
-      <xsl:when test="normalize-space(.) =''"/>
-      <xsl:otherwise>
-        <xsl:value-of select="."/>
+        <xsl:text> textwrap, unhandled case </xsl:text>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
