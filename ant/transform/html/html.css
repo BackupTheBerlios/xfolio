@@ -57,10 +57,6 @@ frederic.glorieux@xfolio.org
         font-size:100%; 
     }
     
-    /* a dark blue */
-    code { 
-        color:#3F577E; 
-    } 
     cite,
     small { 
         color:#000000; 
@@ -73,19 +69,14 @@ frederic.glorieux@xfolio.org
     /* GreyText #C0B899 */
     /* consider default */
 
-    
-    /*
-        TYPOGRAPHY
-        
-        important property to define graphic identity
-        font-family for all elements + some bold  and italic
-    
-     */
 
 
+    /* Preformatting, or code formatting */
 
-/* Preformatting */
-
+    /* a dark blue */
+    code { 
+        color:#3F577E; 
+    } 
     /* InfoBackground #FCFAE0  */
     pre {
         white-space:pre;
@@ -114,6 +105,27 @@ frederic.glorieux@xfolio.org
         background:white;
     }
 
+    /* A simple code view */
+    
+    div.code-comment {
+        font-family: Bitstream Vera Serif, "Trebuchet MS", Universal, Arial, sans-serif; 
+        background:#FFFFCC;
+        font-weight:bold;
+    }
+    
+    div.code {
+        font-family: Arial, sans-serif; 
+    }
+
+    div.code div.code,
+    div.code div.code-comment {
+        margin-left:5px; 
+        padding-left:20px; 
+        border-left: 1px dotted;
+        margin-top:0px; 
+        margin-bottom:0px; 
+        margin-right:0px; 
+    }
     
     /*
         LINKS
@@ -303,25 +315,6 @@ frederic.glorieux@xfolio.org
         background:#FFFFCC; 
     }
 
-    div.code-comment {
-        font-family: Bitstream Vera Serif, "Trebuchet MS", Universal, Arial, sans-serif; 
-        background:#FFFFCC;
-        font-weight:bold;
-    }
-    
-    div.code {
-        font-family: Arial, sans-serif; 
-    }
-
-    div.code div.code,
-    div.code div.code-comment {
-        margin-left:5px; 
-        padding-left:20px; 
-        border-left: 1px dotted;
-        margin-top:0px; 
-        margin-bottom:0px; 
-        margin-right:0px; 
-    }
 
 
     /*		dd dt
@@ -357,8 +350,6 @@ frederic.glorieux@xfolio.org
     var   { font-style:normal; font-weight:bold;}
     
         /* computing */
-    
-    code  { font-style: normal; }
     kbd   {  
         font-style: normal; 
         font-weight: bold; 

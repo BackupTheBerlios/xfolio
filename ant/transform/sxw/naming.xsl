@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../html/xsl2html.xsl"?>
 <!--
-creation=2004-01-27
-modified=2004-01-27
-author=frederic.glorieux@ajlsm.com
-publisher=http://www.strabon.org
-
-goal=
+modified:2004-01-27
+creation:2004-01-27
+author:frederic.glorieux@ajlsm.com
+publisher:ADNX <http://adnx.org>
+goal:
   centralize naming policy of files to be shared by RDF ans RSS
 
 -->
@@ -30,7 +30,7 @@ TODO wash port :
         </xsl:call-template>
       </xsl:when>
       <xsl:when test="starts-with($from, '/') and starts-with($to, '/')">
-        <xsl:call-template name="_getRelative">
+        <xsl:call-template name="getRelative_">
           <xsl:with-param name="from" select="substring-after($from, '/')"/>
           <xsl:with-param name="to" select="substring-after($to, '/')"/>
         </xsl:call-template>
@@ -42,7 +42,7 @@ and
 substring-before( substring-after($from, '//'), '/')
 = substring-before( substring-after($to, '//'), '/')
 ">
-        <xsl:call-template name="_getRelative">
+        <xsl:call-template name="getRelative_">
           <xsl:with-param name="from" select="substring-after($from, '//')"/>
           <xsl:with-param name="to" select="substring-after($to, '//')"/>
         </xsl:call-template>
@@ -116,7 +116,7 @@ substring-before( substring-after($from, '//'), '/')
 -->
   </xsl:template>
   <!-- loop on clean -->
-  <xsl:template name="_getRelative">
+  <xsl:template name="getRelative_">
     <xsl:param name="from"/>
     <xsl:param name="to"/>
     <xsl:param name="max" select="20"/>
@@ -125,7 +125,7 @@ substring-before( substring-after($from, '//'), '/')
       <xsl:when test="
 contains($from, '/') and  contains($to, '/') and
  substring-before($from, '/') = substring-before($to, '/')">
-        <xsl:call-template name="_getRelative">
+        <xsl:call-template name="getRelative_">
           <xsl:with-param name="max" select="$max - 1"/>
           <xsl:with-param name="from" select="substring-after($from, '/')"/>
           <xsl:with-param name="to" select="substring-after($to, '/')"/>

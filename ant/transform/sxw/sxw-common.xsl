@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../html/xsl2html.xsl"?>
 <!--
 (c) 2003, 2004; ADNX <http://adnx.org>
 
@@ -63,9 +64,6 @@ These variables are used to normalize names of styles
   <!-- image links could be in the draw:a -->
   <!-- global redirection of links -->
   <xsl:template match="@xlink:href | @href">
-    <xsl:message>
-      <xsl:value-of select="."/>
-    </xsl:message>
     <xsl:variable name="destExtension">
       <xsl:call-template name="getExtension">
         <xsl:with-param name="path" select="."/>

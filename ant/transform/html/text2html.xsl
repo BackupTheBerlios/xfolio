@@ -6,13 +6,19 @@
 
 
 rights:Copyright 2003-2004 ADNX <http://adnx.org>
-creator:[FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com>
-
+creator:[FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com> (documentation ingeneering)
 
 
 . What
 
-    Parse text to produce some well-formed XML (here, HTML).
+  This transformation parse text to produce some well-formed XML 
+  (in fact, XHTML is usually enough). 
+  The text syntax supported is a bit wiki like, but much more liberal
+  than usual wikis, because this script maybe applied to very different
+  sources.
+
+  First destination is to extract formatted comments from XML document, 
+  especially for an XSL documentation tool. 
 
 . Features
 
@@ -21,6 +27,23 @@ creator:[FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com>
     !JSPWiki titles (starts with "!")
 
     === Moin Moin titles === 
+
+  2.4.5) Level 3 title 
+
+  ...... Level 6 title
+
+
+{{{
+
+  !JSPWiki titles (starts with "!")
+
+  === Moin Moin titles === 
+
+  2.4.5) Level 3 title (count dots '.' or ')' parenthesis)
+         
+  ...... Level 6 title, with some trailing spaces
+
+}}}
 
 .. Lists
 
@@ -41,6 +64,26 @@ creator:[FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com>
       ** item 3c
    * item 4
 
+A real life textual list
+ * item
+ * item
+
+Or another
+1) first
+2) second
+
+
+{{{
+A real life textual list
+ * item
+ * item
+
+Or another
+1) first
+2) second
+}}}
+
+
 Definition list
   A definition list is a serie of terms and definitions.
   This parser understand a definition list as a block (blank line separated)
@@ -57,8 +100,16 @@ Term:
      and see the definition after.
      This may be a problem for future extraction of terms, so the last
      ':' of a term is stripped.
+To format a definition list ?
+  Do it very simply, with some indent. 
+  Write like you want to see it.
 
 
+{{{
+To format a definition list ?
+  Do it very simply, with some indent. 
+  Write like you want to see it.
+}}}
 
 .. Code
 
@@ -94,12 +145,18 @@ Licence   : http://www.fsf.org/copyleft/gpl.html
       Pierrick Brihaye <pierrick.brihaye@culture.gouv.fr>
     Subject: Re: Serveurs MSH et CR =?ISO-8859-1?Q?r=E9union_tech?=
 
-.. Trailing spaces
-
-    !This title is not linked to the second
-    
-    === even if they are "trailing spaces" ===
-
+{{{
+Licence   : http://www.fsf.org/copyleft/gpl.html
+    Copyright : (C) 2004 ADNX <http://adnx.org>
+    Date: Wed, 27 Oct 2004 12:47:34 +0200
+    From: Paul Terray <terray@4dconcept.fr>
+    To: Nader Boutros - Strabon <boutros@msh-paris.fr>
+    Cc: =?ISO-8859-1?Q?Fr=E9d=E9ric_Glorieux?= <frederic.glorieux@ajlsm.com>,
+      Andre Del <andre.del@evcau.archi.fr>,
+      Pierrick Brihaye <pierrick.brihaye@wanadoo.fr>,
+      Pierrick Brihaye <pierrick.brihaye@culture.gouv.fr>
+    Subject: Re: Serveurs MSH et CR =?ISO-8859-1?Q?r=E9union_tech?=
+}}}
 
 . TODO
 
@@ -203,20 +260,26 @@ HTML generation (ex: encoding)
   <xsl:import href="html-common.xsl"/>
   <!-- the output declaration -->
   <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
-  <!-- LF, ASCII "Line Feed" the UNIX break line -->
-  <xsl:param name="LF" select="'&#10;'"/>
-  <!-- CR, ASCII "Carriage Return", to replace -->
-  <xsl:param name="CR" select="'&#13;'"/>
-  <!-- TAB, ASCII Tabulation -->
-  <xsl:param name="TAB" select="'&#9;'"/>
-  <!-- a test long variable -->
-  <xsl:variable name="test" select="'1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890'"/>
   <!-- demo means this applied to  -->
   <xsl:param name="demo">
     <xsl:if test="processing-instruction('demo')">
       <xsl:value-of select="true()"/>
     </xsl:if>
   </xsl:param>
+  <!-- LF, ASCII "Line Feed" the UNIX break line -->
+  <xsl:variable name="LF" select="'&#10;'"/>
+  <!-- CR, ASCII "Carriage Return", to replace -->
+  <xsl:variable name="CR" select="'&#13;'"/>
+  <!-- TAB, ASCII Tabulation -->
+  <xsl:variable name="TAB" select="'&#9;'"/>
+  <!-- quot entity -->
+  <xsl:variable name="quot" select="'&quot;'"/>
+  <!-- gt entity -->
+  <xsl:variable name="gt" select="'&gt;'"/>
+  <!-- lt entity -->
+  <xsl:variable name="lt" select="'&lt;'"/>
+  <!-- a test long variable -->
+  <xsl:variable name="test" select="'1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890'"/>
   <!-- a long string of spaces -->
   <xsl:variable name="spaces" select="'                                            '"/>
   <!-- 
@@ -233,19 +296,9 @@ HTML generation (ex: encoding)
         <title> TODO </title>
         <xsl:call-template name="html-metas"/>
       </head>
-      <xsl:choose>
-        <xsl:when test="$demo and comment()">
-          <xsl:call-template name="demo">
-            <xsl:with-param name="text" select="comment()"/>
-          </xsl:call-template>
-        </xsl:when>
-        <xsl:when test="$demo">
-          <xsl:call-template name="demo"/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:call-template name="text2html"/>
-        </xsl:otherwise>
-      </xsl:choose>
+      <body>
+        <xsl:call-template name="text2html"/>
+      </body>
     </html>
   </xsl:template>
   <!-- 
@@ -268,27 +321,31 @@ of this XSL in 3 views
       textarea.value=html;
       return true;
     ">
-    <xsl:variable name="html">
-      <xsl:call-template name="text2html">
-        <xsl:with-param name="text" select="$text"/>
-      </xsl:call-template>
-    </xsl:variable>
-    <div id="text2html">
-      <xsl:copy-of select="$html"/>
-    </div>
-    <h1>Text source</h1>
-    <pre class="code" style="background:#EEEEFF">
-      <span style="background:#FFFFFF">
-        <xsl:value-of select="$text"/>
-      </span>
-    </pre>
-    <h1>Generated HTML</h1>
 
-    <p>A very light view-source</p>
-    <textarea id="xml" style="background:#FFFFEE; width:100%;" rows="25" cols="100">
-      <!-- will not work in Mozilla, a javascript workaround is possible -->
-      <xsl:copy-of select="$html"/>
-    </textarea>
+      <xsl:variable name="html">
+        <xsl:call-template name="text2html">
+          <xsl:with-param name="text" select="$text"/>
+        </xsl:call-template>
+      </xsl:variable>
+
+      <div id="text2html">
+        <xsl:copy-of select="$html"/>
+      </div>
+
+      <h1>Text source</h1>
+      <pre class="code" style="background:#EEEEFF">
+        <span style="background:#FFFFFF">
+          <xsl:value-of select="$text"/>
+        </span>
+      </pre>
+
+      <h1>Generated HTML</h1>
+      <p>A very light view-source</p>
+      <textarea id="xml" style="background:#FFFFEE; width:100%;" rows="25" cols="100">
+        <!-- will not work in Mozilla, a javascript workaround is possible -->
+        <xsl:copy-of select="$html"/>
+      </textarea>
+
     </body>
   </xsl:template>
   <!--
@@ -435,7 +492,9 @@ split a string in blocks on empty lines
 and normalize-space(substring-before($text, '{{{') )=''">
         <!-- put that in another place ? -->
         <pre class="code">
-          <xsl:value-of select="substring-before (substring-after($text, '{{{'), '}}}')"/>
+          <span>
+            <xsl:value-of select="substring-before (substring-after($text, '{{{'), '}}}')"/>
+          </span>
         </pre>
         
         <xsl:call-template name="block-split">
@@ -503,6 +562,7 @@ choose an element name on begining of a string
   <xsl:template name="block">
     <xsl:param name="text" select="."/>
     <xsl:variable name="norm" select="normalize-space($text)"/>
+    <!-- the first token -->
     <xsl:variable name="prefix">
       <xsl:choose>
         <xsl:when test="contains($norm, ' ')">
@@ -510,6 +570,17 @@ choose an element name on begining of a string
         </xsl:when>
         <xsl:otherwise>
           <xsl:value-of select="$norm"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <!-- the first line -->
+    <xsl:variable name="line">
+      <xsl:choose>
+        <xsl:when test="contains($text, $LF)">
+          <xsl:value-of select="substring-before($text, $LF)"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="$text"/>
         </xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
@@ -547,12 +618,33 @@ normalize-space(
       </xsl:when>
       <!-- only one line, a title ? -->
       <xsl:when test="
-      not(contains($text, $LF))
+not(contains($text, $LF))
+and ( 
+     substring-before($text, $prefix)=''
+  or translate($prefix, '.)0123456789', '')=''
+)
       ">
-        <xsl:variable name="level" 
-        select="string-length(translate($prefix, '.)0123456789', '..'))"/>
+        <xsl:variable name="level">
+          <xsl:choose>
+            <!-- if last char of title not ')' or '.', add one to level -->
+            <xsl:when test="
+not(contains(  '.)', substring($prefix, string-length($prefix)) ))
+            ">
+              <xsl:value-of select="1 + string-length(translate($prefix, '.)0123456789', '..'))"/>
+            </xsl:when>
+            <!-- count dots and parenthesis -->
+            <xsl:otherwise>
+              <xsl:value-of select="string-length(translate($prefix, '.)0123456789', '..'))"/>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable> 
         <xsl:choose>
-          <xsl:when test="$level &lt; 1 or $level &gt; 6">
+          <!-- be very careful on that, but put line alone as heading out of hierarchy is a good idea -->
+          <xsl:when test="
+$level &lt; 1 or $level &gt; 6 or 
+normalize-space(substring-after($text, concat($prefix, ' '))) = ''
+or translate($prefix, '.)0123456789', '') !=''          
+          ">
             <h4>
               <xsl:call-template name="inlines">
                 <xsl:with-param name="text" select="$text"/>
@@ -603,6 +695,24 @@ or contains($text, '1)')
           </xsl:call-template>
         </div>
       </xsl:when>
+      <!-- list of fields, put it after list -->
+      <!-- TOTEST perhaps this a too large match -->
+      <xsl:when test="
+        
+        normalize-space(substring-before($line, ':')) != '' 
+and not(contains(normalize-space(substring-before($line, ':')), '&lt;'))
+and not(contains(normalize-space(substring-before($line, ':')), 'http'))
+">
+        <table>
+          <xsl:call-template name="fields-rows">
+            <xsl:with-param name="text">
+              <xsl:call-template name="fields-norm">
+                <xsl:with-param name="text" select="$text"/>
+              </xsl:call-template>
+            </xsl:with-param>
+          </xsl:call-template>
+        </table>
+      </xsl:when>
       <!-- 
 preformated of code block
 marker should be clever and to test a lot
@@ -633,25 +743,10 @@ or ( contains($text, '{') and contains($text, '}') )
 )
 ">
         <pre class="code">
-          <xsl:value-of select="$text"/>
+          <span>
+            <xsl:value-of select="$text"/>
+          </span>
         </pre>
-      </xsl:when>
-      <!-- list of fields, should come after preform -->
-      <!-- TOTEST perhaps this a too large match -->
-      <xsl:when test="
-        normalize-space(substring-before($text, ':')) != '' 
-and not(contains(normalize-space(substring-before($text, ':')), ' '))
-">
-        <table>
-          <xsl:call-template name="fields-rows">
-            <xsl:with-param name="text">
-              <xsl:call-template name="fields-norm">
-                <xsl:with-param name="text" select="$text"/>
-              </xsl:call-template>
-            </xsl:with-param>
-          </xsl:call-template>
-        </table>
-
       </xsl:when>
       <!-- list of terms, careful on trailing spaces for the marker -->
       <xsl:when test="
@@ -666,13 +761,9 @@ or (contains($text, concat($LF, $TAB)) and normalize-space(substring-after($text
       </xsl:when>
       <xsl:otherwise>
         <p>
-          <xsl:if test="contains($text, $LF)">
-            <xsl:value-of select="$LF"/>
-          </xsl:if>
-          <xsl:value-of select="$text"/>
-          <xsl:if test="contains($text, $LF)">
-            <xsl:value-of select="$LF"/>
-          </xsl:if>
+          <xsl:call-template name="inlines">
+            <xsl:with-param name="text" select="$text"/>
+          </xsl:call-template>
         </p>
       </xsl:otherwise>
     </xsl:choose>
@@ -980,7 +1071,7 @@ translate (
     </xsl:choose>
   </xsl:template>
 <!--
-normalize fields
+Normalize fields, maybe nicer if lists was possible as a field value.
 -->
   <xsl:template name="fields-norm">
     <xsl:param name="text"/>
@@ -1010,7 +1101,7 @@ normalize fields
     </xsl:choose>
   </xsl:template>
 <!--
-present fields as a table
+Presents fields as a table.
 -->
   <xsl:template name="fields-rows">
     <xsl:param name="text"/>
@@ -1031,9 +1122,13 @@ present fields as a table
             <xsl:value-of select="substring-before($text, ':')"/>
           </th>
           <td>
-            <xsl:call-template name="decode">
+            <xsl:call-template name="inlines">
               <xsl:with-param name="text">
-                <xsl:value-of select="substring-after($text, ':')"/>
+                <xsl:call-template name="decode">
+                  <xsl:with-param name="text">
+                    <xsl:value-of select="substring-after($text, ':')"/>
+                  </xsl:with-param>
+                </xsl:call-template>
               </xsl:with-param>
             </xsl:call-template>
           </td>
@@ -1042,10 +1137,141 @@ present fields as a table
     </xsl:choose>
   </xsl:template>
   
-  <!-- TODO find inlines  -->
+  <!-- 
+
+Find inlines  
+
+-->
   <xsl:template name="inlines">
     <xsl:param name="text"/>
-    <xsl:value-of select="$text"/>
+    <xsl:choose>
+      <!-- nothing more, stop here -->
+      <xsl:when test="normalize-space($text)=''"/>
+      <!-- anchor, maybe problematic -->
+      <xsl:when test="starts-with( normalize-space($text), '[') and contains($text, ']')">
+        <xsl:variable name="anchor" select="substring-before(substring-after($text, '['), ']')"/>
+        <xsl:text>[</xsl:text>
+        <a name="{$anchor}" href="#{$anchor}">
+          <xsl:value-of select="$anchor"/>
+        </a>
+        <xsl:text>]</xsl:text>
+        <xsl:call-template name="inlines">
+           <xsl:with-param name="text" select="substring-after($text, ']')"/>
+        </xsl:call-template>
+      </xsl:when>
+      
+      <!-- links in form "clicable phares" <URI> -->
+      <xsl:when test="
+  contains($text, $quot)
+and contains(
+  substring-after(
+    substring-after($text, $quot)
+  , $quot)
+, $gt)
+
+and starts-with(
+  normalize-space(
+    substring-after(
+      substring-after($text, $quot)
+    , $quot)
+  )
+, $lt)
+       ">
+        <xsl:call-template name="inlines">
+          <xsl:with-param name="text" select="
+substring-before($text, $quot)
+           "/>
+        </xsl:call-template>
+        <xsl:variable name="phrase" select="
+  substring-before(
+    substring-after($text, $quot)
+  ,$quot)
+  "/>
+        <xsl:variable name="uri" select="
+substring-before(
+  substring-after(
+    substring-after(
+      substring-after($text, $quot)
+    ,$quot)
+  , $lt)
+, $gt)
+"/>
+        <a>
+          <!-- link resolution provide needed HTML attributes -->
+          <xsl:call-template name="href">
+            <xsl:with-param name="uri" select="$uri"/>
+          </xsl:call-template>
+          <xsl:value-of select="$phrase"/>
+        </a>
+          <xsl:call-template name="inlines">
+            <xsl:with-param name="text" select="
+substring-after(
+  substring-after(
+    substring-after(
+      substring-after($text, $quot)
+    ,$quot)
+  , $lt)
+, $gt)
+               "/>
+            </xsl:call-template>
+          </xsl:when>
+      <!-- links in form <URI> -->
+      <xsl:when test="
+    contains($text, '&lt;') 
+and substring-before(substring-after($text, '&lt;'), $gt) != ''
+and not(contains(substring-before(substring-after($text, '&lt;'), $gt), ' '))
+">
+        <xsl:variable name="uri" select="substring-before(substring-after($text, '&lt;'), '&gt;')"/>
+            <xsl:call-template name="inlines">
+              <xsl:with-param name="text" select="
+substring-before($text, '&lt;')
+              "/>
+            </xsl:call-template>
+            <a href="{$uri}">
+              <xsl:value-of select="$uri"/>
+            </a>
+            <xsl:call-template name="inlines">
+              <xsl:with-param name="text" select="
+substring-after(substring-after($text, '&lt;'), '&gt;')
+            "/>
+            </xsl:call-template>
+      </xsl:when>
+      <!-- absolute link -->
+      <xsl:when test="contains($text, 'http:')">
+        <xsl:variable name="uri" select="substring-before(substring-after($text, 'http:'), ' ')"/>
+        <xsl:call-template name="inlines">
+          <xsl:with-param name="text" select="substring-before($text, 'http:')"/>
+        </xsl:call-template>
+        <a href="{$uri}">
+          <xsl:value-of select="$uri"/>
+        </a>
+        <xsl:text> </xsl:text>
+        <xsl:call-template name="inlines">
+          <xsl:with-param name="text" select="substring-after(substring-after($text, 'http:'), ' ')"/>
+        </xsl:call-template>
+      </xsl:when>
+      <!-- internal link -->
+      <xsl:when test="
+contains($text, '[')
+and contains(substring-after($text, '['), ']')      
+      ">
+        <xsl:variable name="anchor" select="substring-before(substring-after($text, '['), ']')"/>
+        <xsl:call-template name="inlines">
+          <xsl:with-param name="text" select="substring-before($text, '[')"/>
+        </xsl:call-template>
+        <xsl:text>[</xsl:text>
+        <a href="#{$anchor}">
+          <xsl:value-of select="$anchor"/>
+        </a>
+        <xsl:text>]</xsl:text>
+        <xsl:call-template name="inlines">
+          <xsl:with-param name="text" select="substring-after($text, ']')"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$text"/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
   <!-- 
 
@@ -1209,7 +1435,9 @@ default is for XML entities
     </xsl:choose>
   </xsl:template>
   <xsl:variable name="hex" select="'0123456789ABCDEF'"/>
+  <!-- ASCII chars in order -->
   <xsl:variable name="ascii"> !"#$%&amp;'()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~</xsl:variable>
+  <!-- characters in order to translate for URLdecode or MailDecode  -->
   <xsl:variable name="latin1">&#160;&#161;&#162;&#163;&#164;&#165;&#166;&#167;&#168;&#169;&#170;&#171;&#172;&#173;&#174;&#175;&#176;&#177;&#178;&#179;&#180;&#181;&#182;&#183;&#184;&#185;&#186;&#187;&#188;&#189;&#190;&#191;&#192;&#193;&#194;&#195;&#196;&#197;&#198;&#199;&#200;&#201;&#202;&#203;&#204;&#205;&#206;&#207;&#208;&#209;&#210;&#211;&#212;&#213;&#214;&#215;&#216;&#217;&#218;&#219;&#220;&#221;&#222;&#223;&#224;&#225;&#226;&#227;&#228;&#229;&#230;&#231;&#232;&#233;&#234;&#235;&#236;&#237;&#238;&#239;&#240;&#241;&#242;&#243;&#244;&#245;&#246;&#247;&#248;&#249;&#250;&#251;&#252;&#253;&#254;&#255;</xsl:variable>
   <!--
   A template to decode 
@@ -1349,6 +1577,27 @@ a text word wrap
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
+  <!-- Break long values without spaces  -->
+  <xsl:template name="break-string">
+    <!-- the value to break -->
+    <xsl:param name="text"/>
+    <!-- width to break on -->
+    <xsl:param name="width" select="32"/>
 
+    <xsl:choose>
+      <xsl:when test="$text=''"/>
+      <xsl:when test="contains(normalize-space($text), ' ')">
+        <xsl:value-of select="$text"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="substring($text, 1, $width)"/>
+        <xsl:value-of select="' '"/>
+        <xsl:call-template name="break-string">
+          <xsl:with-param name="text" select="substring($text, $width+1)"/>
+          <xsl:with-param name="width" select="$width"/>
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
   
 </xsl:stylesheet>

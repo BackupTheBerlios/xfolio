@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../html/xsl2html.xsl"?>
 <!-- these entities are provide to normalize style names (commpatible CSS, not Java) -->
 <!DOCTYPE xsl:transform [
 	<!ENTITY majs "ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöùúûüýÿþ .()/\">
@@ -38,6 +39,8 @@ let work Eric Bellot if something missing
 	2004-03-09 frederic.glorieux@ajlsm.com
 	key system to restore hierarchy on flat title is replaced by a "apply from to"
 -->
+
+  
 	<!--
 
 only because imports

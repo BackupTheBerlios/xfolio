@@ -1,45 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="xml2html.xsl"?>
+<?xml-stylesheet type="text/xsl" href="../html/xsl2html.xsl"?>
 <!--
-SDX: Documentary System in XML.
-Copyright : (C) 2000, 2001, 2002, 2003, 2004 Ministere de la culture et de la communication (France), AJLSM
-Licence   : http://www.fsf.org/copyleft/gpl.html
 
- history
-	Have been part of SDX distrib
+Copyright
 
- goal
-	 displaying xml source in various format (html, text)
+  (C) 2000, 2001, 2002, 2003, 2004. ADNX <http://adnx.org>
 
- author
-	 frederic.glorieux@ajlsm.com
+Licence 
 
+    "GPL" <http://www.fsf.org/copyleft/gpl.html>
 
- usage :
-	 fast test, apply this to itself, look at that in a xsl browse compliant
-   as a root xsl matching all elements
-   as an import xsl to format some xml
-     with <xsl:apply-templates select="node()" mode="xml:html"/>
-     in this case you need to copy css and js somewhere to link with
+What 
 
- features :
-   DOM compatible hide/show
-   double click to expand all
-   old browser compatible
-   no extra characters to easy copy/paste code
-   html formatting oriented for logical css
-   commented to easier adaptation
-   all xmlns:*="uri" attributes in root node
-   text reformating ( xml entities )
+    This is a "pretty-print" to display xml source 
+    in HTML. Focus is on linking, so that this view
+    could be imported in other formatting transformations 
+    to provide the most documented XML possible.
 
- problems :
-   <![CDATA[ node ]]> can't be shown (processed by xml parser before xsl transformation)
+Who
 
- TODOs
+    * [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com> (documentation dev)
 
- - FIX edit mode
+How
 
- +-->
+    fast test, apply this to itself, look at that in a xsl browse compliant
+    as a root xsl matching all elements
+    as an import xsl to format some xml
+    with <xsl:apply-templates select="node()" mode="xml:html"/>
+    in this case you need to copy css and js somewhere to link with
+
+Features 
+
+    * DOM compatible hide/show
+    * old browser compatible without CSS
+    * no extra characters to easy copy/paste code
+    * html formatting oriented for logical css
+    * text reformating ( xml entities )
+
+Maydo 
+
+    * double click to expand all
+    * xmlns:*="uri" attributes in root node
+
+Issues
+
+    <![CDATA[ node ]]> can't be shown (processed by xml parser before xsl transformation)
+
+ -->
 <xsl:stylesheet version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://www.w3.org/1999/xhtml" exclude-result-prefixes="xsl">
   <!-- 
 text2html.xsl
@@ -74,15 +81,18 @@ namespace documentation URI
       <xsl:if test="substring(namespace-uri(), string-length(namespace-uri())) != '#'">#</xsl:if>
       <xsl:value-of select="local-name()"/>
     </xsl:variable>
-    <xsl:variable name="prefix">
+    <xsl:variable name="class">
       <xsl:choose>
+       <!-- namespace prefix as a CSS class -->
         <xsl:when test="contains(name(), ':')">
           <xsl:value-of select="substring-before(name(), ':')"/>
         </xsl:when>
-        <xsl:otherwise>el</xsl:otherwise>
+        <!-- if it's an attribute -->
+        <xsl:when test="text()">el</xsl:when>
+        <xsl:otherwise>att</xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
-    <b class="{$prefix}">
+    <b class="{$class}">
       <xsl:value-of select="name()"/>
     </b>
   </xsl:template>
@@ -120,7 +130,7 @@ namespace documentation URI
     </a>
   </xsl:template>
   <!-- XSL @match | @select attribute, linked to xpath -->
-  <xsl:template match="@match | @select" mode="xml:name">
+  <xsl:template match="xsl:*/@match | xsl:*/@select | xsl:*/@test" mode="xml:name">
     <a class="xsl" title="XPath content, see W3C documentation" href="http://www.w3.org/TR/xpath#path-abbrev">
       <xsl:value-of select="name()"/>
     </a>
@@ -457,13 +467,13 @@ and not(*)
       <xsl:when test="normalize-space(text()) = '' and *">
         <dl class="xml" id="{$id}">
           <dt class="tag">
-            <a class="click" tabindex="1" href="#{$id}_" onclick="if (window.swap) return swap('{$id}');">
+            <a class="click" tabindex="1" href="#{$id}_" onclick="if (window.swap) return swap('{$id}-');">
               <xsl:text>&lt;</xsl:text>
             </a><xsl:apply-templates select="." mode="xml:name"/>
             <xsl:apply-templates select="@*" mode="xml:html"/>
             <xsl:text>&gt;</xsl:text>
           </dt>
-          <dd class="code" id="{$id}">
+          <dd class="code" id="{$id}-">
   
           <xsl:call-template name="xml:content">
             <xsl:with-param name="mode" select="$mode"/>
@@ -613,26 +623,23 @@ default is for XML entities
     color:Navy; 
     margin-left:2em; 
   }
-  .xml a {
-    text-decoration:none;
-  }
-  .xml a:hover {
-    background:#8080FF;
-    color:#FFFFFF;
-  }
+
   
   /* element names */
-  .tag a:link, .tag a:visited {
+  .tag a:link,
+  .tag a:visited {
     text-decoration:none;
     border:none;
   }
 
   /* classes are provided for namespace prefix */
-  .xsl, a.xsl, a:link.xsl, a:visited.xsl, 
-  .xsl, a.xsl, a:link.xsl, a:visited.xsl {
+  .xsl, 
+  a.xsl, 
+  a:link.xsl, 
+  a:visited.xsl {
     font-family: Verdana, arial, sans-serif; 
-    color:#0000FF;
-    font-weight:bold;
+    color:#666666;
+    font-weight:100;
   }
   a:hover.xsl,
   a:hover.rdf {
@@ -640,8 +647,14 @@ default is for XML entities
     color:white;
   }
 
-  .html, a.html, a:link.html, a:visited.html,
-  .html, a.dc, a:link.dc, a:visited.dc {
+  .html, 
+  a.html, 
+  a:link.html, 
+  a:visited.html,
+  .html, 
+  a.dc, 
+  a:link.dc, 
+  a:visited.dc {
     color:#FF0000;
     font-weight:bold;
   }
@@ -656,7 +669,12 @@ default is for XML entities
   a.el { 
     color:#FF0000; 
     font-weight:900; 
-    font-family: Verdana, arial, sans-serif; 
+    font-family: Verdana, arial, sans-serif;
+    text-decoration:none; 
+  }
+  a:hover.el {
+    background:#8080FF;
+    color:#FFFFFF;
   }
   
   /* attribute names */

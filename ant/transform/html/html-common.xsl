@@ -2,8 +2,9 @@
 <?xml-stylesheet type="text/xsl" href="xsl2html.xsl"?>
 <?js html.js?>
 <!--
-Copyright 2004 ADNX <http://adnx.org>
-[FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com>
+Copyright : 2004, "ADNX" <http://adnx.org>
+Licence   : "GPL" <http://www.fsf.org/copyleft/gpl.html>
+Creator   : [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com>
 
   = WHAT =
 
@@ -27,7 +28,6 @@ version="1.0" xmlns="http://www.w3.org/1999/xhtml">
         <xsl:when test="$document/*/xsl:output/@encoding">
           <xsl:value-of select="$document/*/xsl:output/@encoding"/>
         </xsl:when>
-        <!-- TODO xml processing -->
         <xsl:otherwise>UTF-8</xsl:otherwise>
       </xsl:choose>
     </xsl:param>
@@ -99,6 +99,29 @@ rely on a naming.xsl
         &#160;
       </script>
     </xsl:if>
+  </xsl:template>
+  <!-- template for link resolution -->
+  <xsl:template name="href">
+    <xsl:param name="uri"/>
+    <xsl:choose>
+      <!-- hide mails -->
+      <xsl:when test="contains($uri, '@')">
+        <xsl:attribute name="href">
+        </xsl:attribute>
+        <xsl:attribute name="onclick">
+          <xsl:text>this.href='mailto:</xsl:text>
+          <xsl:value-of select="substring-before($uri, '@')"/>
+          <xsl:text>'+'\x40'+'</xsl:text>
+          <xsl:value-of select="substring-after($uri, '@')"/>
+          <xsl:text>'</xsl:text>
+        </xsl:attribute>
+      </xsl:when>
+      <xsl:otherwise>
+          <xsl:attribute name="href">
+            <xsl:value-of select="$uri"/>
+          </xsl:attribute>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
 
