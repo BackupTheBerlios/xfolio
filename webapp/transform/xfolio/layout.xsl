@@ -29,7 +29,7 @@ Come from an xsl becoming a bit too complex to be simple editable layout.
   <!-- no indent to preserve design -->
   <xsl:output method="xml" indent="no" encoding="UTF-8"/>
   <!-- given by server -->
-  <xsl:param name="skin" select="'/'"/>
+  <xsl:param name="skin"/>
   <!-- lists of available skins as a directory -->
   <xsl:param name="skins" select="/*/skins/*/dir:directory"/>
   <!-- uri of the page, provide by server -->
@@ -214,10 +214,10 @@ Maybe beet
 	</xsl:template>
 	<xsl:template match="content//*[@class='toc']"/>
 	-->
-  <xsl:template match="htm:*[@id='bar']">
+  <xsl:template match="htm:*[@id='navbar']">
     <xsl:copy>
       <xsl:copy-of select="@*"/>
-      <xsl:apply-templates select="/aggregate/dir:navigation" mode="bar"/>
+      <xsl:apply-templates select="/aggregate/dir:navigation" mode="navbar"/>
     </xsl:copy>
   </xsl:template>
   <!-- languages available for this doc -->

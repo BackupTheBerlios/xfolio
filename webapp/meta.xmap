@@ -60,9 +60,7 @@ In Xfolio this one define the flow logic of metadata generation.
           <!-- jpg -->
           <map:when test="{context-attr:xfolio.efolder}{1}.jpg">
             <map:generate type="xmp" src="{context-attr:xfolio.efolder}{1}.jpg"/>
-            <!--
             <map:transform src="transform/meta/xmp2dc.xsl"/>
--->
             <map:serialize type="xml"/>
           </map:when>
           <!-- Docbook -->

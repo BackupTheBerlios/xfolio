@@ -84,6 +84,9 @@ calendar generator (+ transform !!)
       <map:match pattern="**.*">
         <map:read src="{../src}"/>
       </map:match>
+      <map:match pattern="**">
+        <map:read src="{../src}" mime-type="text/plain"/>
+      </map:match>
     </map:resource>
     <!--
 
@@ -104,32 +107,23 @@ links for formats and langs
     -->
     <map:resource name="layout">
       <!-- 2004-07-14:FG change of layout pattern (cut html$) may give bugs -->
-      <map:match type="regexp" pattern="^(.*/)?([^_]*)(_[a-z][a-z])?\.">
+      <map:match pattern="**.html">
         <map:aggregate element="aggregate">
-          <map:part src="cocoon:/skin/default.html" element="template"/>
-          <map:part src="cocoon:/{1}{2}{3}.xhtml" element="content"/>
+          <map:part src="cocoon:/skin/template.html" element="template"/>
+          <map:part src="cocoon:/{1}.xhtml" element="content"/>
           <map:part src="cocoon:/skin/" element="skins"/>
-          <map:part src="cocoon://{1}{2}.nav"/>
+          <map:part src="cocoon://{1}.nav"/>
         </map:aggregate>
-        <map:transform src="transform/xfolio/layout.xsl">
-          <!-- image is able to be resized by this server -->
-          <map:parameter name="resize" value="true"/>
-          <!-- provide the skin folder from which get css and images -->
-          <map:parameter name="skin" value="{request:contextPath}/skin/"/>
-          <!-- say for which file is build this menu to say you are here -->
-          <map:parameter name="this" value="http://{request:serverName}:{request:serverPort}{request:contextPath}/{1}{2}"/>
-          <map:parameter name="uri" value="{context-attr:xfolio.domain}/{1}{2}{3}.html"/>
-          <map:parameter name="language" value="{3}"/>
-          <!-- used to resolve rdf link for images (?better in xhtml?) -->
-          <map:parameter name="context" value="{1}"/>
-          <map:parameter name="branch" value="{1}"/>
-        </map:transform>
-        <!-- Paul Terray - 6 mai 2004 - terray@4dconcept.fr -->
-        <!-- New stylesheet transform, to filter STRABON links -->
-        <map:transform src="transform/xfolio/links.xsl"/>
-        <map:transform type="i18n">
-          <map:parameter name="locale" value="{3}"/>
-        </map:transform>
+        <map:match type="regexp" pattern="^(.*/)?([^_]*)_?([a-z][a-z])?\.html$">
+          <map:transform src="transform/xfolio/layout.xsl">
+            <map:parameter name="lang" value="{3}"/>
+            <!-- skin folder -->
+            <map:parameter name="skin" value="{baselink:SitemapBaseLink}skin/"/>
+          </map:transform>
+          <!-- Paul Terray - 6 mai 2004 - terray@4dconcept.fr -->
+          <!-- New stylesheet transform, to filter STRABON links -->
+          <map:transform src="transform/xfolio/links.xsl"/>
+        </map:match>
         <map:serialize/>
       </map:match>
     </map:resource>
@@ -302,30 +296,30 @@ resize images, reader rewrited to have width and height as max width preserve ra
           <map:parameter name="height" value="{3}"/>
         </map:read>
       </map:match>
-    <map:pipeline type="noncaching">
-      <!--
+      <map:pipeline type="noncaching">
+        <!--
 get navigation information for a file
 
         <map:serialize type="text"/>
 -->
-      <map:match pattern="**.nav">
-        <map:generate type="nav" src="{context-attr:xfolio.efolder}{1}">
-          <map:parameter name="depth" value="10"/>
-          <map:parameter name="exclude" value="^CVS$|^\.|^_|^Thumbs.db|^class-use|^package-frame|^package-summary|^package-tree|^package-use"/>
-        </map:generate>
-        <map:serialize type="xml"/>
-      </map:match>
-      <map:match pattern="**.nav.html">
-        <map:generate type="nav" src="{context-attr:xfolio.efolder}{1}">
-          <map:parameter name="depth" value="10"/>
-          <map:parameter name="exclude" value="^CVS$|^\.|^_|^Thumbs.db|^class-use|^package-frame|^package-summary|^package-tree|^package-use"/>
-        </map:generate>
-        <map:transform src="transform/xfolio/navigation.xsl"> 
+        <map:match pattern="**.nav">
+          <map:generate type="nav" src="{context-attr:xfolio.efolder}{1}">
+            <map:parameter name="depth" value="10"/>
+            <map:parameter name="exclude" value="^CVS$|^\.|^_|^Thumbs.db|^class-use|^package-frame|^package-summary|^package-tree|^package-use"/>
+          </map:generate>
+          <map:serialize type="xml"/>
+        </map:match>
+        <map:match pattern="**.nav.html">
+          <map:generate type="nav" src="{context-attr:xfolio.efolder}{1}">
+            <map:parameter name="depth" value="10"/>
+            <map:parameter name="exclude" value="^CVS$|^\.|^_|^Thumbs.db|^class-use|^package-frame|^package-summary|^package-tree|^package-use"/>
+          </map:generate>
+          <map:transform src="transform/xfolio/navigation.xsl"> 
         
         </map:transform>
-        <map:serialize/>
-      </map:match>
-    </map:pipeline>
+          <map:serialize/>
+        </map:match>
+      </map:pipeline>
       <!--
 MAYDO, an OO generator, = zip serializer
 
@@ -376,6 +370,14 @@ Tricky things may be done for that (ex: ToC ? header...)
               <map:parameter name="pictures" value="{2}.sxw!/"/>
             </map:transform>
             <map:serialize/>
+          </map:match>
+          <!-- text version -->
+          <map:match pattern="**.txt">
+            <map:generate type="xsp" src="script/oo.xsp">
+              <map:parameter name="sxw" value="{context-attr:xfolio.efolder}{1}.sxw"/>
+            </map:generate>
+            <map:transform src="transform/oo/oo2txt.xsl"/>
+            <map:serialize type="text"/>
           </map:match>
           <!-- get a docbook -->
           <map:match type="regexp" pattern="(.*/)?(.*).dbx">
@@ -494,11 +496,11 @@ put it after, some mime-types may result of transformations
 
 don't say **, because of folders
 -->
-      <map:match pattern="**.*">
+      <map:match type="regexp" pattern="^(.*[^\/])$">
         <!-- resources in the content folder -->
-        <map:act type="exists" src="{context-attr:xfolio.efolder}{1}.{2}">
+        <map:act type="exists" src="{context-attr:xfolio.efolder}{1}">
           <map:call resource="static">
-            <map:parameter name="src" value="{context-attr:xfolio.efolder}{../1}.{../2}"/>
+            <map:parameter name="src" value="{context-attr:xfolio.efolder}{../1}"/>
           </map:call>
         </map:act>
       </map:match>

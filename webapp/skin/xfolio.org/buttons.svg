@@ -158,7 +158,8 @@ viewBox="-5 -4 110 111"
 			<polygon points="8,35 92,35 92,65 8,65"/>
 		</symbol>
 		<symbol class="picto" id="home" viewBox="0 0 100 100">
-			<polygon points="0,40 15,40 15,90 40,90 40,50 65,50 65,90 85,90 85,40 100,40 50,0"/>
+      <!-- a door  40,90 40,50 65,50 65,90 -->
+			<polygon points="0,60 20,60 20,90 40,90 40,50 60,50 60,90 80,90 80,60 100,60 50,5"/>
 		</symbol>
 		<symbol class="picto" id="stop" viewBox="0 0 100 100">
 			<rect x="15" y="15" width="70" height="70" stroke-linecap="round" stroke-linejoin="round" stroke="black" stroke-width="1"/>
@@ -282,7 +283,7 @@ viewBox="-5 -4 110 111"
 		<rect class="bg"  fill="Beige" x="1" y="1" width="98" height="98" stroke-linecap="square" stroke-linejoin="round" stroke="none" filter="url(#bump)"/>
 		<rect class="border" filter="url(#ridge)" stroke="green" fill="none" stroke-width="4" x="4" y="4" width="88" height="88" rx="20" ry="20" stroke-linecap="round" stroke-linejoin="round"/>
 		<!-- the #symbol in xlink:href is replaced by xsl -->
-		<use class="symbol" xlink:href="#one"  fill="black" x="10" y="10" width="80" height="80" filter="url(#inset)"/>
+		<use class="symbol" xlink:href="#home"  fill="black" x="10" y="10" width="80" height="80" filter="url(#inset)"/>
 	</g>
 
 	<!--

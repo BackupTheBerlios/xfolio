@@ -196,8 +196,10 @@ h1 {
 q, blockquote, h1 em, em, h1 i, em h1, i h1 { 
 	font-family: Garamond, Melior, Georgia, Times,  serif; 
 }
+/* decide as marker of document title */
 center h1 {
-	font-family:Impact, Tahoma, Verdana, sans-serif;
+    font: italic normal 230% 'Times New Roman', Times, serif;
+	letter-spacing: 0.2em;
 }
 h2 {
 	font-family:"Trebuchet MS", sans-serif; 

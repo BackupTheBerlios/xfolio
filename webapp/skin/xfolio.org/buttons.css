@@ -31,7 +31,7 @@ url("./buttons.svg#ridge") bug with Adobe
 */
     .symbol { fill:#000000; filter:none;}
 	.bg { display:none;} 
-	.border { stroke:blue; display:block; filter:url("buttons.svg#inset");}
+	.border { stroke:#666699; display:block; filter:url("buttons.svg#inset");}
     .over .symbol {fill:#000000;filter:url("buttons.svg#inset");}
 	.over .border { display:none; }
 	.over .bg { display:block; fill:#FFFFCC;filter:url("buttons.svg#bump");}

@@ -110,7 +110,8 @@ This global sitemap only declare components
       <!-- html -->
     <map:serializer logger="sitemap.serializer.html" mime-type="text/html" name="html" pool-grow="4" pool-max="32" pool-min="4" src="org.apache.cocoon.serialization.HTMLSerializer">
     </map:serializer>
-      <map:serializer name="text" mime-type="text/plain" logger="sitemap.serializer.text" src="org.apache.cocoon.serialization.XMLSerializer">
+    <map:serializer logger="sitemap.serializer.text" mime-type="text/plain" name="text" src="org.apache.cocoon.serialization.TextSerializer"/>
+      <map:serializer name="debug" mime-type="text/plain" logger="sitemap.serializer.text" src="org.apache.cocoon.serialization.XMLSerializer">
         <indent>yes</indent>
         <encoding>UTF-8</encoding>
       </map:serializer>
@@ -191,6 +192,7 @@ This global sitemap only declare components
   -->
     <map:actions>
       <map:action name="xsp" pool-grow="2" pool-max="32" pool-min="4" src="org.apache.cocoon.acting.ServerPagesAction" logger="sitemap.action.serverpages"/>
+      <map:action name="copy-source" pool-grow="2" pool-max="32" pool-min="4" src="org.apache.cocoon.acting.CopySourceAction" logger="sitemap.action.copySource"/>
       <map:action name="exists" src="org.apache.cocoon.acting.ResourceExistsAction" logger="sitemap.action.resource-exists"/>
       <map:action name="clear-cache" src="org.apache.cocoon.acting.ClearCacheAction" logger="sitemap.action.clear-cache"/>
       <map:action name="clear-persistent-store" src="org.apache.cocoon.acting.ClearPersistentStoreAction" logger="sitemap.action.clear-persistent-store"/>

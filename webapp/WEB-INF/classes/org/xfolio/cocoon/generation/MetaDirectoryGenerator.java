@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -44,9 +43,11 @@ import org.apache.cocoon.util.NetUtils;
  *     
  *      
  *       
- *        &lt;dir:file modified=&quot;2004-06-30H20:15:26&quot; name=&quot;index_fr.sxw&quot; radical=&quot;index&quot; xml:lang=&quot;fr&quot; extension=&quot;sxw&quot; type=&quot;application/vnd.sun.xml.writer&quot; href=&quot;tests/O1%20Section/index_fr&quot; length=&quot;13236&quot;&gt;
- *        	&lt;!-- included XML metadata answering to URI cocoon:/tests/O1%20Section/index_fr.xfoliodir --&gt;
- *        &lt;/dir:file&gt;
+ *        
+ *         &lt;dir:file modified=&quot;2004-06-30H20:15:26&quot; name=&quot;index_fr.sxw&quot; radical=&quot;index&quot; xml:lang=&quot;fr&quot; extension=&quot;sxw&quot; type=&quot;application/vnd.sun.xml.writer&quot; href=&quot;tests/O1%20Section/index_fr&quot; length=&quot;13236&quot;&gt;
+ *         	&lt;!-- included XML metadata answering to URI cocoon:/tests/O1%20Section/index_fr.xfoliodir --&gt;
+ *         &lt;/dir:file&gt;
+ *         
  *        
  *       
  *      
@@ -75,7 +76,8 @@ import org.apache.cocoon.util.NetUtils;
  * </p>
  * 
  * @author <a href="mailto:frederic.glorieux@ajlsm.com">Glorieux, Frédéric </a>
- * @version CVS $Id: MetaDirectoryGenerator.java,v 1.2 2004/08/23 22:43:19 glorieux Exp $
+ * @version CVS $Id: MetaDirectoryGenerator.java,v 1.2 2004/08/23 22:43:19
+ *          glorieux Exp $
  */
 public class MetaDirectoryGenerator extends DirectoryGenerator {
     /* from org.apache.cocoon.generation.ImageDirectoryGenerator */
@@ -92,6 +94,8 @@ public class MetaDirectoryGenerator extends DirectoryGenerator {
     protected String branch;
     /** the domain to build absolute URIs */
     protected String domain;
+    /** the requested radical */
+    protected String radical;
     /**
      * Disposable
      */
@@ -159,16 +163,19 @@ public class MetaDirectoryGenerator extends DirectoryGenerator {
                             this.domain);
         }
         if (this.isRequestedDirectory) {
-            attributes.addAttribute("", "requested", "requested", "CDATA", "true");
+            attributes.addAttribute("", "requested", "requested", "CDATA",
+                    "true");
             this.isRequestedDirectory = false;
         }
-
         attributes.addAttribute("", "name", "name", "CDATA", path.getName());
         String value;
         value = FileUtils.getRadical(path);
-        if (check(value))
-                attributes.addAttribute("", "radical", "radical", "CDATA",
-                        value);
+        if (check(value)) {
+            attributes.addAttribute("", "radical", "radical", "CDATA", value);
+            if (value.equals(this.radical))
+                    attributes.addAttribute("", "selected", "selected",
+                            "CDATA", "selected");
+        }
         value = FileUtils.getLang(path);
         if (check(value))
                 attributes.addAttribute("http://www.w3.org/XML/1998/namespace",
@@ -183,7 +190,8 @@ public class MetaDirectoryGenerator extends DirectoryGenerator {
                 path.getName());
         if (check(value))
                 attributes.addAttribute("", TYPE, TYPE, "CDATA", value);
-        value = NetUtils.relativize(this.base, path.toURI().normalize().toString());
+        value = NetUtils.relativize(this.base, path.toURI().normalize()
+                .toString());
         attributes.addAttribute("", "href", "href", "CDATA", value);
         attributes.addAttribute("", "modified", "modified", "CDATA",
                 dateFormatter.format(new Date(path.lastModified())));
