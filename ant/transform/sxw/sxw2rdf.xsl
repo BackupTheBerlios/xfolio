@@ -102,8 +102,10 @@ These transformation was extracted from a global oo2html
   <!-- used to resolve links for images (?) -->
   <!-- identifier for doc in all formats -->
   <xsl:param name="path"/>
-  <!-- extensions for which a transformation is expected -->
-  <xsl:param name="formats"/>
+  <!-- extensions for which a transformation is expected
+should be provide by server, but we can guess it's possible to have
+ -->
+  <xsl:param name="formats" select="'html xhtml sxw rdf txt'"/>
   <!-- To generate absolute links -->
   <xsl:param name="server"/>
   <!-- Carriage return, can't understand why but this one works better than the one in sxw2txt.xsl -->
@@ -190,9 +192,11 @@ $office:body/*[generate-id(following-sibling::text:h[1]) = generate-id($next)]
 "/>
       </xsl:otherwise>
     </xsl:choose>
-    <dcterms:tableOfContents>
-      <xsl:apply-templates select="$office:body/text:h" mode="text-toc"/>
-    </dcterms:tableOfContents>
+    <xsl:if test="$office:body/text:h">
+      <dcterms:tableOfContents>
+        <xsl:apply-templates select="$office:body/text:h" mode="text-toc"/>
+      </dcterms:tableOfContents>
+    </xsl:if>
     <!-- relations -->
     <xsl:apply-templates select="$office:body//text:bibliography-mark[not(@text:identifier = following::text:bibliography-mark/@text:identifier)]" mode="dc">
       <xsl:sort select="@text:identifier"/>
@@ -253,9 +257,12 @@ substring( $office:body/text:p[string-length(normalize-space(.)) &gt; 10], 30)
     </title>
     <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/" />
     <link rel="schema.DCTERMS" href="http://purl.org/dc/terms/" />
+    <link href="index.shtml.rdf" rel="meta" />
+
     <xsl:call-template name="hasFormat">
       <xsl:with-param name="mode" select="'html'"/>
     </xsl:call-template>
+    <!-- copy RDF in HTML, and pray for no problem -->
     <script type="application/rdf+xml">
       <xsl:call-template name="rdf"/>
     </script>

@@ -46,36 +46,47 @@ is less easier than a first step to merge them because of the DTD declaration.
 
 
   -->
-<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" 
-xmlns:style="http://openoffice.org/2000/style" 
-xmlns:text="http://openoffice.org/2000/text" 
-xmlns:office="http://openoffice.org/2000/office" 
-xmlns:table="http://openoffice.org/2000/table" 
-xmlns:draw="http://openoffice.org/2000/drawing" 
-xmlns:fo="http://www.w3.org/1999/XSL/Format" 
-xmlns:xlink="http://www.w3.org/1999/xlink" 
-xmlns:dc="http://purl.org/dc/elements/1.1/" 
-xmlns:meta="http://openoffice.org/2000/meta" 
-xmlns:number="http://openoffice.org/2000/datastyle" 
-xmlns:svg="http://www.w3.org/2000/svg" 
-xmlns:chart="http://openoffice.org/2000/chart" xmlns:dr3d="http://openoffice.org/2000/dr3d" xmlns:math="http://www.w3.org/1998/Math/MathML" 
-xmlns:form="http://openoffice.org/2000/form" 
-xmlns:script="http://openoffice.org/2000/script" 
-xmlns:config="http://openoffice.org/2001/config" 
-office:class="text" 
-xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
-xmlns:i18n="http://apache.org/cocoon/i18n/2.1" 
-exclude-result-prefixes="
-office meta  table number dc fo xlink chart math script xsl draw svg dr3d form config text style i18n">
+<xsl:stylesheet version="1.0" 
+  xmlns="http://www.w3.org/1999/xhtml" 
+  xmlns:style="http://openoffice.org/2000/style" 
+  xmlns:text="http://openoffice.org/2000/text" 
+  xmlns:office="http://openoffice.org/2000/office" 
+  xmlns:table="http://openoffice.org/2000/table" 
+  xmlns:draw="http://openoffice.org/2000/drawing" 
+  xmlns:fo="http://www.w3.org/1999/XSL/Format" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:dc="http://purl.org/dc/elements/1.1/" 
+  xmlns:meta="http://openoffice.org/2000/meta" 
+  xmlns:number="http://openoffice.org/2000/datastyle" 
+  xmlns:svg="http://www.w3.org/2000/svg" 
+  xmlns:chart="http://openoffice.org/2000/chart" 
+  xmlns:dr3d="http://openoffice.org/2000/dr3d" 
+  xmlns:math="http://www.w3.org/1998/Math/MathML" 
+  xmlns:form="http://openoffice.org/2000/form" 
+  xmlns:script="http://openoffice.org/2000/script" 
+  xmlns:config="http://openoffice.org/2001/config" 
+  office:class="text" 
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+  xmlns:i18n="http://apache.org/cocoon/i18n/2.1" 
+  exclude-result-prefixes="
+office 
+meta  
+table 
+number 
+dc fo xlink chart math script xsl draw svg dr3d form config text style i18n
+
+">
   <!-- different sxw specific templates -->
   <xsl:import href="sxw-common.xsl"/>
   <!-- to generate the metadatas -->
   <xsl:import href="sxw2rdf.xsl"/>
+  <!-- for the metadatas, say here what should be the possible alternate formats,  -->
+  <xsl:param name="formats" select="'sxw rdf txt'"/>
   <!-- may be indent for xhtml but not html (some layout) -->
   <xsl:output method="xml" indent="yes" omit-xml-declaration="yes" encoding="UTF-8"/>
   <!-- encoding, default is the one specified in xsl:output -->
   <xsl:param name="encoding" select="document('')/*/xsl:output/@encoding"/>
-  <!-- ?? parameter provided by the xhtml xsl pack of sun -->
+  <!-- parameter used to calculate size of image -->
   <xsl:param name="dpi" select="120"/>
   <!-- link to a css file -->
   <xsl:param name="css">
@@ -85,10 +96,8 @@ office meta  table number dc fo xlink chart math script xsl draw svg dr3d form c
       </xsl:when>
     </xsl:choose>
   </xsl:param>
-  <!-- link to a js file -->
+  <!-- maybe used to overide some html utilities for a default script -->
   <xsl:param name="js"/>
-  <!-- validation -->
-  <xsl:param name="validation"/>
   <!-- title numbering -->
   <xsl:param name="numbering" select="true()"/>
   <!-- language from outside -->
@@ -122,16 +131,6 @@ office meta  table number dc fo xlink chart math script xsl draw svg dr3d form c
         <xsl:value-of select="$encoding"/>
       </xsl:attribute>
     </meta>
-    <xsl:text>
-</xsl:text>
-    <xsl:comment> Some default styles, easy to override from imported css</xsl:comment>
-    <style type="text/css">
-	table.img { border:1px solid; }
-	img.oo {clear:both;}
-	p.bibliorecord {text-indent:-4em; margin-left:4em;}
-	.bibnote {margin-left:0; text-indent:0; text-align:justify; font-size:smaller; font-family:sans-serif; }
-
-				</style>
     <xsl:if test="$css">
       <link rel="stylesheet">
         <xsl:attribute name="href">

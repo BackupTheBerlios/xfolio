@@ -1,16 +1,3 @@
-html,body {
-	height: 100%;
-}
-
-
-body {
-  margin:0px;
-  padding:0px;
-  scrollbar-track-color:ButtonFace;
-
-
-}
-
 
 /*
 too dangerous for a not nice IE thing
@@ -20,24 +7,24 @@ body {
 
 */
 
-#dir {
+#explorer {
   font-size:9pt;
   font-family: Verdana, sans-serif;
   white-space:nowrap;
   margin:0px;
   padding:5px;
 }
-#dir a {
+#explorer a {
   text-decoration:none;
   color:#000000;
 }
-#dir a:active,
-#dir a:focus {
+#explorer a:active,
+#explorer a:focus {
   color:white; 
   background:#000080;
   text-decoration:none;
 }
-#dir a:hover {
+#explorer a:hover {
   text-decoration:underline;
 }
 
@@ -58,10 +45,31 @@ li.pdf {
 li.jpg {
   list-style:none inside  url('icons/image.gif') ;
 }
+li.gif {
+  list-style:none inside  url('icons/image.gif') ;
+}
+li.png {
+  list-style:none inside  url('icons/image.gif') ;
+}
+li.xsl {
+  list-style:none inside  url('icons/script.gif') ;
+}
+li.js {
+  list-style:none inside  url('icons/script.gif') ;
+}
+li.css {
+  list-style:none inside  url('icons/script.gif') ;
+}
+li.java {
+  list-style:none inside  url('icons/script.gif') ;
+}
+li.class {
+  list-style:none inside  url('icons/script.gif') ;
+}
 li {
   list-style:none inside  url('icons/file.gif');
 }
-ul.dir {
+ul.explorer {
   margin-top:0px; 
   margin-bottom:0px;
   margin-left:1ex;

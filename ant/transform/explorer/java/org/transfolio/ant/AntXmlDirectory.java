@@ -1,3 +1,6 @@
+package org.transfolio.ant;
+
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -33,14 +36,14 @@ import org.apache.tools.ant.taskdefs.MatchingTask;
 
 /**
  @author frederic.glorieux@xfolio.org
- @version CVS $Id: AntXmlDirectory.java,v 1.1 2004/11/22 13:27:39 glorieux Exp $
+ @version CVS $Id: AntXmlDirectory.java,v 1.2 2004/11/23 02:57:09 glorieux Exp $
 
  = What =
 
 An ant task to generate an XML directory.
 
  */
-public class AntSaxToc extends Task {
+public class AntXmlDirectory extends Task {
 
     /* commodity for SAX generation */
     private char[] c;

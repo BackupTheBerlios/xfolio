@@ -28,17 +28,15 @@ and insert information from an RDF tree.
   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
   exclude-result-prefixes="xsl dc html rdf i18n">
   <!-- to resolve some path -->
-  <xsl:import href="../meta/naming.xsl"/>
+  <xsl:import href="../explorer/path.xsl"/>
   <!-- for navigation views -->
-  <xsl:import href="explorer.xsl"/>
+  <xsl:import href="../explorer/explorer.xsl"/>
   <!-- override an explorer param to send links to a frame -->
   <xsl:param name="target"/>
   <!-- override an explorer param on extension -->
   <xsl:param name="extension" select="'html'"/>
   <!-- extension able to be htmlisable, overide an explorer param -->
   <xsl:param name="htmlizable" select="' sxw '"/>
-  <!-- path of the file (to resolve links and display URI) -->
-  <xsl:param name="path"/>
   <!-- path of the directory theme, 
 where to find template and resolve links of the template
 will be resolved from the path of the document to be relative
@@ -72,12 +70,15 @@ will be resolved from the path of the document to be relative
   </xsl:variable>
   <!-- store the toc -->
   <xsl:variable name="toc" select="document($toc.rdf, .)"/>
-  <!-- get a lang to follow for relative links -->
-  <xsl:param name="lang" select="$toc//resource[contains(@href, $path)]/@xml:lang"/>
+  <!-- should be the metadatas from the resource to be processed -->
+  <xsl:variable name="resource" select="$toc//resource[@href=substring-after($path,'/')]"/>
   <!-- no indent, let original indentation of source (especially for spaces) -->
-  
   <xsl:output method="xml" indent="no" encoding="UTF-8"/>
 
+  <!-- path of the file (to resolve links and display URI) -->
+  <xsl:param name="path"/>
+  <!-- get a lang to follow for relative links -->
+  <xsl:param name="lang" select="$toc//resource[contains(@href, substring-after($path,'/'))]/@xml:lang"/>
   <!-- 
 
   <xsl:value-of select="$path"/>
@@ -259,11 +260,7 @@ bug in IE
       <xsl:apply-templates select="$content/html:html/html:head/node()" mode="content"/>
     </head>
   </xsl:template>
-  <!--
-2004-05-08 FG
-catch css links from content may break layout 
-Maybe beet
-	-->
+  <!-- catch css links from content to avoid breaking of layout -->
   <xsl:template match="html:head/html:link[@rel='stylesheet']" mode="content"/>
   <!-- match the article substitute -->
   <xsl:template match="html:*[@id='article']" mode="template">
@@ -290,8 +287,10 @@ Maybe beet
   <!-- put a toc inside the block from template  -->
   <xsl:template match="html:*[@id='toc']" mode="template">
     <xsl:copy>
-      <xsl:apply-templates select="@*" mode="template"/> 
-      <xsl:apply-templates select="$toc/*"/>
+      <xsl:apply-templates select="@*" mode="template"/>
+        <ul id="explorer">  
+          <xsl:apply-templates select="$toc/rdf:RDF/collection/*"/>
+        </ul>
     </xsl:copy>
   </xsl:template>
   <!-- languages available for this doc -->
@@ -301,7 +300,7 @@ Maybe beet
       <xsl:apply-templates select="/aggregate/rdf:RDF/rdf:Description[1]" mode="langs"/>
     </xsl:copy>
   </xsl:template>
-  <!-- formats of this doc in same language -->
+  <!-- formats of this doc -->
   <xsl:template match="html:*[@id='formats']" mode="template">
     <xsl:copy>
       <xsl:copy-of select="@*"/>

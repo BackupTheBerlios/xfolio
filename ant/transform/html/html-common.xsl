@@ -2,22 +2,28 @@
 <?xml-stylesheet type="text/xsl" href="xsl2html.xsl"?>
 <?js html.js?>
 <!--
-Copyright : 2004, "ADNX" <http://adnx.org>
-Licence   : "GPL" <http://www.fsf.org/copyleft/gpl.html>
-Creator   : [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com>
+Title     : Different tools to generate xhtml.
+Copyright : © 2003, 2004, "ADNX" <http://adnx.org>.
+Licence   : "CeCILL" <http://www.cecill.info/licences/Licence_CeCILL_V1.1-US.html> 
+            ("GPL" <http://www.gnu.org/copyleft/gpl.html> like)
+Creator   : [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com> 
+            ("AJLSM" <http://ajlsm.org>)
 
   = WHAT =
 
-Different templates maybe useful when generating html
+Different templates maybe useful when generating html, like
+ * meta encoding
+ * javascript or css linking
+ * hide email adress
 This sheet have to been imported to take advantage.
 
 
 
 -->
-<xsl:transform 
-xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
-xmlns:html="http://www.w3.org/1999/xhtml"
-version="1.0" xmlns="http://www.w3.org/1999/xhtml" exclude-result-prefixes="xsl html">
+<xsl:transform version="1.0" 
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+  xmlns="http://www.w3.org/1999/xhtml" 
+  exclude-result-prefixes="xsl">
     <!-- avoid indent for xhtml (some layout) -->
     <xsl:output method="xml" indent="no" omit-xml-declaration="yes" encoding="UTF-8"/>
     <!-- load the XSL only one time -->

@@ -33,7 +33,7 @@ import org.apache.tools.ant.taskdefs.MatchingTask;
 
 /**
  @author frederic.glorieux@xfolio.org
- @version CVS $Id: AntSaxToc.java,v 1.1 2004/11/22 11:39:03 glorieux Exp $
+ @version CVS $Id: AntSaxToc.java,v 1.2 2004/11/23 02:57:09 glorieux Exp $
 
  = What =
 
@@ -73,6 +73,21 @@ public class AntSaxToc extends Task {
     public String xsl;
     public void setXsl (String xsl) {
         this.xsl = xsl;
+    }
+    /** a path to find a theme directory for generated html from this xml  */
+    public String theme;
+    public void setTheme (String theme) {
+        this.theme = theme;
+    }
+    /** where to find a relevant css for generated html from this xml  */
+    public String css;
+    public void setCss (String css) {
+        this.css = css;
+    }
+    /** same logic as css for javascript */
+    public String js;
+    public void setJs (String js) {
+        this.js = js;
     }
 
     /** TODO ? an exclude pattern */
@@ -155,6 +170,12 @@ public class AntSaxToc extends Task {
         handler.startDocument();
         if (check(xsl)) 
             handler.processingInstruction("xml-stylesheet", " type=\"text/xsl\" href=\"" + xsl + "\"");
+        if (check(theme)) 
+            handler.processingInstruction("theme", theme);
+        if (check(js)) 
+            handler.processingInstruction("js", js);
+        if (check(css)) 
+            handler.processingInstruction("css", css);
         
         fileToSax(srcDir, handler, this.depth);
         

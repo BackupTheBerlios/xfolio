@@ -13,6 +13,7 @@ TODO, find a way to put this in frame
 */
 
 function explorerInit() {
+  
   if (!document.getElementById) return false; 
   var dir=document.getElementById("dir");
   if (!dir) return false;

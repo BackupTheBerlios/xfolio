@@ -27,15 +27,7 @@ frederic.glorieux@xfolio.org
 
 
 /*
-#banner a {
-	display:block;
-	border:none; 
-	color:inherit; 
-	text-decoration:none;
-	background: url('banner.png');
-	width:468px; 
-	height:60px;
-}
+	Global styles or colors
 */
 
     
@@ -62,70 +54,9 @@ frederic.glorieux@xfolio.org
         color:#000000; 
     }
     
-    kbd { 
-        background-color:#D0DAE0; 
-        color:#000000; 
-    }
-    /* GreyText #C0B899 */
-    /* consider default */
 
 
 
-    /* Preformatting, or code formatting */
-
-    /* a dark blue */
-    code { 
-        color:#3F577E; 
-    } 
-    /* InfoBackground #FCFAE0  */
-    pre {
-        white-space:pre;
-        font-family: Bitstream Vera Serif, "Trebuchet MS", Universal, Arial, sans-serif; 
-    }
-    /* IE5 Mac hack \*/
-    pre {
-        padding-bottom:1.5em;
-        width: 99%;
-        overflow: auto;
-        overflow-y: hidden !important;
-    }
-    /* End IE5 Mac hack */
-
-    pre.code, pre.xml, pre.java {
-        font-family: "Lucida Console", Courier, "MS Courier New", monospace; 
-        padding-left:2em;
-        padding-top:1ex;
-        padding-right:1ex;
-        line-height: 110%;
-        font-size:80%;
-        color:#000000;
-        background-color:#F5F5F0;
-    }
-    pre.code * {
-        background:white;
-    }
-
-    /* A simple code view */
-    
-    div.code-comment {
-        font-family: Bitstream Vera Serif, "Trebuchet MS", Universal, Arial, sans-serif; 
-        background:#FFFFCC;
-        font-weight:bold;
-    }
-    
-    div.code {
-        font-family: Arial, sans-serif; 
-    }
-
-    div.code div.code,
-    div.code div.code-comment {
-        margin-left:5px; 
-        padding-left:20px; 
-        border-left: 1px dotted;
-        margin-top:0px; 
-        margin-bottom:0px; 
-        margin-right:0px; 
-    }
     
     /*
         LINKS
@@ -518,13 +449,8 @@ frederic.glorieux@xfolio.org
         margin-top:1em; 
         margin-bottom:0.5ex;
     }
-    td h1, 
-    td h2, 
-    td h3, 
-    td h4, 
-    td h5, 
-    td h6,
-    th h1,
+
+	th h1,
     th h2,
     th h3,
     th h4,
@@ -544,8 +470,29 @@ frederic.glorieux@xfolio.org
         TEXT
      */
     
-    
-    
+	.abstract {
+		background:#FCFAE0;
+		padding:1em;
+		font-family: Verdana, sans-serif; 
+	}
+	p.first-line-indent {
+		text-indent:2em;
+	}
+	 .marginalia {
+		text-align:right;
+		width:10ex;
+		font-size:80%;
+		float:right;
+		clear:none;
+		right:0;
+		color:#4263B0;
+	}
+    .hanging-indent { 
+		text-indent: -3em; margin-left: 3em; 
+    }
+ 	p.bibliorecord {text-indent:-4em; margin-left:4em;}
+	.bibnote {margin-left:0; text-indent:0; text-align:justify; font-size:smaller; font-family:sans-serif; }
+
     /*
         CONTROLS
      */
@@ -607,6 +554,68 @@ frederic.glorieux@xfolio.org
     
     
     
+    /* 
+	Preformatting, or code formatting 
+	*/
+
+    /* a dark blue */
+    code { 
+        color:#3F577E; 
+    } 
+    /* InfoBackground #FCFAE0  */
+    pre {
+        white-space:pre;
+        font-family: Bitstream Vera Serif, "Trebuchet MS", Universal, Arial, sans-serif; 
+    }
+    /* IE5 Mac hack \*/
+    pre {
+        padding-bottom:1.5em;
+        width: 99%;
+        overflow: auto;
+        overflow-y: hidden !important;
+    }
+    /* End IE5 Mac hack */
+
+    pre.code, pre.xml, pre.java {
+        font-family: "Lucida Console", Courier, "MS Courier New", monospace; 
+        padding-left:2em;
+        padding-top:1ex;
+        padding-right:1ex;
+        line-height: 110%;
+        font-size:80%;
+        color:#000000;
+        background-color:#F5F5F0;
+    }
+    pre.code * {
+        background:white;
+    }
+
+    /* A simple code view */
+    
+    div.code-comment {
+        font-family: Bitstream Vera Serif, "Trebuchet MS", Universal, Arial, sans-serif; 
+        background:#FFFFCC;
+        font-weight:bold;
+    }
+    
+    div.code {
+        font-family: Arial, sans-serif; 
+    }
+
+    div.code div.code,
+    div.code div.code-comment {
+        margin-left:5px; 
+        padding-left:20px; 
+        border-left: 1px dotted;
+        margin-top:0px; 
+        margin-bottom:0px; 
+        margin-right:0px; 
+    }
+    kbd { 
+        background-color:#D0DAE0; 
+        color:#000000; 
+    }
+    /* GreyText #C0B899 */
     
     
     

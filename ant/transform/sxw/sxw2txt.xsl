@@ -2,32 +2,34 @@
 <?xml-stylesheet type="text/xsl" href="../html/xsl2html.xsl"?>
 <!--
 
-(c) 2003, 2004; ADNX <http://adnx.org>
+Title     : Transform OpenOffice.org Writer XML in simple text
+Label     : sxw2txt.xsl
+Copyright : © 2003, 2004, "ADNX" <http://adnx.org>.
+Licence   : "CeCILL" <http://www.cecill.info/licences/Licence_CeCILL_V1.1-US.html> 
+            ("GPL" <http://www.gnu.org/copyleft/gpl.html> like)
+Creator   : [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com> 
+            ("AJLSM" <http://ajlsm.org>)
 
 
- = WHAT =
+ = What =
 
-provide a  text version of an oo XML, 
+provide a  text version of an sxw XML, 
 displayable in a mail, and parsable like a wiki.
 
- = WHO =
-
-[FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com>
-
- = HOW =
+ = How =
 
 Style classes handle in this xsl are first standard openOffice. To
 define specific styles to handle, best is import this xsl. If possible, 
 modify only for better rendering of standard oo.
 
- = CHANGES =
+ = Changes =
 
  * 2004-07-15 [FG] Wrapping
  * 2004-06-11 [FG] Start for text
  * 2003-11-12 [FG] This work is continued, in the xhtml 
  * 2003-02-12 [FG] The original xsl was designed for docbook.
 
- =	BUGS =
+ =	Bugs =
 
 teletype style is not handled
 what to do with placeholder and definition styles ?
@@ -42,12 +44,12 @@ center ?
 What about numerated titles ?
 justify right to left ?
 
- = REFERENCES =
+ = References =
 
-<http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html>
-<http://txt2html.sourceforge.net/>
-<http://www.triptico.com/software/grutatxt.html>
-<http://snipsnap.org/space/snipsnap-help>
+ * <http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html>
+ * <http://txt2html.sourceforge.net/>
+ * <http://www.triptico.com/software/grutatxt.html>
+ * <http://snipsnap.org/space/snipsnap-help>
 
   -->
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:style="http://openoffice.org/2000/style" xmlns:text="http://openoffice.org/2000/text" xmlns:office="http://openoffice.org/2000/office" xmlns:table="http://openoffice.org/2000/table" xmlns:draw="http://openoffice.org/2000/drawing" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="http://openoffice.org/2000/meta" xmlns:number="http://openoffice.org/2000/datastyle" xmlns:svg="http://www.w3.org/2000/svg" xmlns:chart="http://openoffice.org/2000/chart" xmlns:dr3d="http://openoffice.org/2000/dr3d" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="http://openoffice.org/2000/form" xmlns:script="http://openoffice.org/2000/script" xmlns:config="http://openoffice.org/2001/config" office:class="text" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:i18n="http://apache.org/cocoon/i18n/2.1" exclude-result-prefixes="office meta  table number dc fo xlink chart math script xsl draw svg dr3d form config text style i18n">

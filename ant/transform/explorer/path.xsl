@@ -11,7 +11,14 @@ goal:
 
 
 -->
-<xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dcterms="http://purl.org/dc/terms/" exclude-result-prefixes="">
+<xsl:transform   version="1.0" 
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+  xmlns:dc="http://purl.org/dc/elements/1.1/" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:dcterms="http://purl.org/dc/terms/" 
+  xmlns="http://www.w3.org/1999/xhtml" 
+  exclude-result-prefixes="dc xsi dcterms dc rdf">
   <xsl:variable name="mimes" select="document('mimes.xml')"/>
   <!-- list of space separated of file extensions 
 from which generate dcterms:hasFormat declarations -->
@@ -516,7 +523,7 @@ From a param provide by server of other supported export formats,
     <!-- normalize extensions to have always a substring-before ' ' -->
     <xsl:param name="formats" select="concat(normalize-space($formats), ' ')"/>
     <!-- supposed path of the source file -->
-    <xsl:param name="path"/>
+    <xsl:param name="path" select="$path"/>
     <!-- -->
     <xsl:choose>
       <!-- no extensions, break here -->
@@ -541,17 +548,6 @@ From a param provide by server of other supported export formats,
         </xsl:variable>
         <xsl:choose>
           <xsl:when test="$mode='html'">
-            <dcterms:hasFormat dc:format="{$mime}" rdf:resource="{$parent}{$basename}.{$extension}">
-              <!-- what should I do ther ?
-              <xsl:call-template name="lang"/>
-                -->
-              <!-- relation maybe relative to identifier ? -->
-              <xsl:value-of select="$basename"/>
-              <xsl:text>.</xsl:text>
-              <xsl:value-of select="$extension"/>
-            </dcterms:hasFormat>
-          </xsl:when>
-          <xsl:otherwise>
             <link rel="alternate" type="{$mime}">
                <xsl:attribute name="href">
                   <xsl:if test="normalize-space($server) != ''">
@@ -563,10 +559,22 @@ From a param provide by server of other supported export formats,
                   <xsl:value-of select="$extension"/>
                </xsl:attribute>
             </link>
+          </xsl:when>
+          <xsl:otherwise>
+            <dcterms:hasFormat dc:format="{$mime}" rdf:resource="{$parent}{$basename}.{$extension}">
+              <!-- what should I do ther ?
+              <xsl:call-template name="lang"/>
+                -->
+              <!-- relation maybe relative to identifier ? -->
+              <xsl:value-of select="$basename"/>
+              <xsl:text>.</xsl:text>
+              <xsl:value-of select="$extension"/>
+            </dcterms:hasFormat>
           </xsl:otherwise>
         </xsl:choose>
         <xsl:call-template name="hasFormat">
           <xsl:with-param name="formats" select="substring-after($formats, ' ')"/>
+          <xsl:with-param name="mode" select="$mode"/>
         </xsl:call-template>
       </xsl:otherwise>
     </xsl:choose>

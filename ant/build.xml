@@ -1,8 +1,12 @@
 <?xml version="1.0"?>
 <!--
-copyright : (c) 2003, 2004. "ADNX" <http://adnx.org>
-licence   : "LGPL" <http://www.gnu.org/copyleft/lesser.html> 
-creator   : [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com) ("AJLSM" <http://ajlsm.org>)
+Title     : Logic to transform and generate a website from a webfolder
+Label     : transfolio.build
+Copyright : © 2003, 2004, "ADNX" <http://adnx.org>.
+Licence   : "CeCILL" <http://www.cecill.info/licences/Licence_CeCILL_V1.1-US.html> 
+            ("GPL" <http://www.gnu.org/copyleft/gpl.html> like)
+Creator   : [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com) 
+            ("AJLSM" <http://ajlsm.org>)
 
   = What =
 
@@ -42,10 +46,10 @@ Long attention have been paid to dependencies and update.
   <property name="webfolder" location="../docs"/>
   <!-- webfolder is replicated to have absolute path -->
   <property name="src" location="${webfolder}"/>
-  <!-- the skin folder to copy to root site -->
-  <property name="skin" location="skin/xfolio.org"/>
-  <!-- name of generated site by name of the skin folder -->
-  <basename property="site" file="${skin}"/>
+  <!-- the theme folder to copy to root site -->
+  <property name="theme" location="theme/transfolio.org"/>
+  <!-- name of generated site by name of the theme folder -->
+  <basename property="site" file="${theme}"/>
   <!-- the generated website -->
   <property name="website" location="${src}-${site}"/>
   <!-- 
@@ -53,7 +57,7 @@ Long attention have been paid to dependencies and update.
 dev target.
 
 -->
-  <target name="test" depends="init, build"/>
+  <target name="test" depends="init, transform, build, toc, html"/>
   <!--
 init target
 -->
@@ -61,23 +65,13 @@ init target
     <javac srcdir="lib/classes" destdir="lib/classes"/>
     <taskdef name="xjpeg" classname="AntJpegInfo" classpath="lib/classes"/>
     <taskdef name="norm" classname="AntMoveNormalize" classpath="lib/classes"/>
+    <taskdef name="xdir" classname="AntSaxToc" classpath="lib/classes"/>
     <mkdir dir="${website}"/>
-  </target>
-  <!-- 
-
-build target.
-
--->
-  <target name="build" depends="init, normalize, directory">
     <echo>Your source webfolder ${src}</echo>
     <echo>Your target website ${website}</echo>
-    <!-- copy the skin directory -->
-    <copy todir="${website}/skin" preservelastmodified="true">
-      <fileset dir="${skin}"/>
-    </copy>
-    <!-- copy a transform pack -->
-    <copy todir="${website}/xsl" preservelastmodified="true">
-      <fileset dir="transform"/>
+    <!-- copy the theme directory -->
+    <copy todir="${website}/theme" preservelastmodified="true">
+      <fileset dir="${theme}"/>
     </copy>
     <!-- 
 update website from deleted files in src 
@@ -89,7 +83,7 @@ don't work for extensions identical to generated ones
           <include name="**/*.sxw"/>
           <include name="**/*.jpg"/>
           <include name="**/*.zip"/>
-          <exclude name="skin/**"/>
+          <exclude name="theme/**"/>
           <!-- CAUTION ! unverifed pattern for internal sxw images -->
           <exclude name="**/1000*.jpg"/>
           <present present="srconly" targetdir="${src}"/>
@@ -107,20 +101,9 @@ don't work for extensions identical to generated ones
       -->
       <targetfileset dir="${website}">
         <include name="**/*.sxw.xml"/>
-        <exclude name="skin/**"/>
+        <exclude name="theme/**"/>
       </targetfileset>
     </dependset>
-    <!-- sxw : do tasks for files newer in src webfolder than in target website -->
-    <foreach target="sxw" param="file">
-      <path>
-        <fileset dir="${src}">
-          <include name="**/*.sxw"/>
-          <depend targetdir="${website}">
-            <mapper type="glob" from="*.sxw" to="*.sxw.xml"/>
-          </depend>
-        </fileset>
-      </path>
-    </foreach>
     <!-- jpeg date from the source is kept, so the marker is *.xjpeg -->
     <!-- delete all target rdf if something have changed in the engine -->
     <dependset>
@@ -129,14 +112,67 @@ don't work for extensions identical to generated ones
       </srcfileset>
       <targetfileset dir="${website}">
         <include name="**/*.xjpeg"/>
-        <exclude name="skin/**"/>
+        <exclude name="theme/**"/>
       </targetfileset>
     </dependset>
+  </target>
+  <!--
+This target comes after generation of xhtml, rdf, and toc, 
+to generate html with updated navigation. 
+
+TODO, better update logic (for now, there's none)
+update dependencies are
+ - modification in toc.rdf (even if it's only one letter in a title)
+ - modification of template
+ - transformation
+ - source document
+
+-->
+  <target name="html" depends="init, normalize, build, toc">
+    <!-- sxw : do tasks for files newer in src webfolder than in target website -->
+    <foreach target="sxw-html" param="file">
+      <path>
+        <fileset dir="${src}">
+          <include name="**/*.sxw"/>
+          <exclude name="**/_*"/>
+          <exclude name="**/_*/"/>
+<!--
+          <depend targetdir="${website}">
+            <mapper type="glob" from="*.sxw" to="*.sxw.xml"/>
+          </depend>
+-->
+        </fileset>
+      </path>
+    </foreach>
+  
+  </target>
+
+  <!-- 
+
+build target.
+TODO : split that.
+-->
+  <target name="build" depends="init, normalize">
+    <!-- sxw : do tasks for files newer in src webfolder than in target website -->
+    <foreach target="sxw" param="file">
+      <path>
+        <fileset dir="${src}">
+          <include name="**/*.sxw"/>
+          <exclude name="**/_*"/>
+          <exclude name="**/_*/"/>
+          <depend targetdir="${website}">
+            <mapper type="glob" from="*.sxw" to="*.sxw.xml"/>
+          </depend>
+        </fileset>
+      </path>
+    </foreach>
     <!-- jpeg : do tasks for files newer in src webfolder than in target website -->
     <foreach target="jpeg" param="file">
       <path>
         <fileset dir="${src}">
           <include name="**/*.jpg"/>
+          <exclude name="**/_*"/>
+          <exclude name="**/_*/"/>
           <depend targetdir="${website}">
             <mapper type="glob" from="*.jpg" to="*.xjpeg"/>
           </depend>
@@ -152,6 +188,8 @@ CAUTION : update exclude patterns
         <exclude name="**/*.jpg"/>
         <exclude name="**/*.sxw"/>
         <exclude name="**/Thumbs.db"/>
+        <exclude name="**/_*"/>
+        <exclude name="**/_*/"/>
       </fileset>
     </copy>
   </target>
@@ -220,10 +258,33 @@ work on a jpeg file
   <!--
 list files in src
 -->
-  <target name="directory">
+  <target name="toc">
+    <xdir 
+      srcDir="${src}" 
+      destFile="${website}/toc.xml" 
+      languages="fr en ar"
+      formats="sxw jpg" 
+      xsl="transform/explorer/explorer.xsl"
+      js="theme/explorer.js"    
+      css="theme/explorer.css"    
+    />
+
+    <xslt in="${website}/toc.xml" out="${website}/toc.rdf" 
+    style="transform/transfolio/toc2rdf.xsl">
+      <param name="rdfizable" expression=" sxw jpg "/>
+    </xslt>
+
+    <xslt in="${website}/toc.xml" out="${website}/toc.html" 
+    style="transform/explorer/explorer.xsl">
+      <param name="htmlizable" expression=" sxw "/>
+      <param name="extension" expression="xhtml"/>
+      <param name="css" expression="theme/html.css"/>
+      <param name="js" expression="theme/html.js"/>
+    </xslt>
+  <!-- perhaps a good idea for other, but too heavy
     <echo file="${website}/toc.ant">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</echo>
     <echo file="${website}/toc.ant" append="true">
-&lt;?xml-stylesheet type="text/xsl" href="xsl/transfolio/filelist2dir.xsl"?&gt;</echo>
+&lt;?xml-stylesheet type="text/xsl" href="transform/transfolio/filelist2dir.xsl"?&gt;</echo>
     <echo file="${website}/toc.ant" append="true">
 &lt;collection path="${src}" &gt;</echo>
     <for param="file">
@@ -233,7 +294,6 @@ list files in src
         </fileset>
       </path>
       <sequential>
-    <!-- get a relative path -->
         <pathconvert targetos="unix" property="path">
           <path>
             <pathelement location="@{file}"/>
@@ -247,6 +307,8 @@ list files in src
     </for>
     <echo file="${website}/toc.ant" append="true">
 &lt;/collection&gt;</echo>
+
+-->
   </target>
   <!-- 
 
@@ -273,8 +335,8 @@ sxw files, do job "foreach"
       </xmlcatalog>
       <param name="meta.xml" expression="meta.xml"/>
       <param name="styles.xml" expression="styles.xml"/>
-      <param name="xsl" expression="/xsl/sxw/sxw2html.xsl"/>
-      <param name="css" expression="/skin/html.css"/>
+      <param name="xsl" expression="/transform/sxw/sxw2html.xsl"/>
+      <param name="css" expression="/theme/html.css"/>
       <param name="path" expression="${path}.sxw.xml"/>
       <param name="pictures" expression="${basename}/"/>
     </xslt>
@@ -290,13 +352,13 @@ sxw files, do job "foreach"
     <xslt in="${website}${path}.sxw.xml" out="${website}${path}.xhtml" style="transform/sxw/sxw2html.xsl">
       <!-- target path of this transformation, used to resolve links -->
       <param name="path" expression="${path}.xhtml"/>
-      <param name="css" expression="/skin/html.css"/>
+      <param name="css" expression="/theme/html.css"/>
     </xslt>
     <!-- a docbook -->
     <!--
     <xslt in="${website}${path}.sxw.xml" out="${website}${path}.dbx" style="transform/sxw/sxw2dbx.xsl">
       <param name="path" expression="${path}.xhtml"/>
-      <param name="css" expression="/skin/html.css"/>
+      <param name="css" expression="/theme/html.css"/>
     </xslt>
     -->
     <!-- flatten pictures -->
@@ -310,4 +372,71 @@ sxw files, do job "foreach"
     <!-- unzip folder should be deletable -->
     <delete dir="${website}${path}.sxw!"/>
   </target>
+  <!-- 
+sxw, build html version with globale rdf for navigation 
+
+-->
+  <target name="sxw-html">
+     <!-- get a relative path -->
+    <pathconvert targetos="unix" property="path">
+      <path>
+        <pathelement location="${file}"/>
+      </path>
+      <map from="${src}" to=""/>
+      <mapper type="regexp" from="(.*)\.(.*)$$" to="\1"/>
+    </pathconvert>
+    <!-- html with navigation from clean xhtml and global rdf, force it to rewrite navigation -->
+    <xslt
+      force="true" 
+      in="${website}${path}.xhtml" 
+      out="${website}${path}.html" 
+      style="transform/transfolio/html-template.xsl">
+      <!-- target path of this transformation, used to resolve links -->
+      <param name="path" expression="${path}.sxw"/>
+      <!-- theme directory resolved from path where to find "template.xhtml" 
+and it's resources (like CSS or images) -->
+      <param name="theme-path" expression="/theme/"/>
+    </xslt>
+ 
+  </target>
+  <!-- prepare a nice export of the transform pack -->
+  <target name="transform">
+    <mkdir dir="transform/explorer/classes"/>
+    <javac srcdir="transform/explorer/java" destdir="transform/explorer/classes"/>
+    <!-- a test to see if a local task compile is working -->
+    <taskdef name="xdir" classname="org.transfolio.ant.AntXmlDirectory" 
+    classpath="transform/explorer/classes"/>
+    <!-- copy the transform pack (for direct xml view) -->
+    <copy todir="${website}/transform" includeEmptyDirs="false" preservelastmodified="true">
+      <fileset dir="transform" >
+        <exclude name="**/*.java"/>
+        <exclude name="**/*.class"/>
+      </fileset>
+    </copy>
+    <xdir 
+      srcDir="transform" 
+      destFile="${website}/transform/index.xml" 
+      xsl="explorer/explorer.xsl"
+      js="explorer/explorer.js"    
+      css="explorer/explorer.css"    
+      formats="jpg png gif" 
+    />
+    <xdir 
+      srcDir="transform/explorer" 
+      destFile="${website}/transform/explorer/index.xml" 
+      xsl="explorer.xsl"
+      js="explorer.js"    
+      css="explorer.css"    
+      formats="jpg png gif" 
+    />
+    <xslt 
+      in="${website}/transform/explorer/index.xml" 
+      out="${website}/transform/explorer/index.html" 
+      style="transform/explorer/explorer.xsl">
+      <param name="css" expression="explorer.css"/>
+      <param name="js" expression="explorer.js"/>
+    </xslt>
+    
+  </target>
+
 </project>

@@ -10,16 +10,25 @@ set CLASSPATH=
 rem ----- Use Ant shipped with Cocoon. Ignore installed in the system Ant
 set OLD_ANT_HOME=%ANT_HOME%
 set ANT_HOME=.
-echo webfolder=%1
+
+rem ----- process first argument as webfolder or default
+set WEBFOLDER=../docs
+if ""%1""=="""" goto doneWebfolder
+set WEBFOLDER=%1
+:doneWebfolder
+echo webfolder=%WEBFOLDER%
+
+
 echo %ANT_HOME%
-call %ANT_HOME%\bin\ant.bat -Dwebfolder=%1
+call %ANT_HOME%\bin\ant.bat -Dwebfolder=%WEBFOLDER%
 pause
 
 rem ----- Restore ANT_HOME and ANT_OPTS
 set ANT_HOME=%OLD_ANT_HOME%
 set OLD_ANT_HOME=
 
-rem ----- Restore CLASSPATH
+rem ----- Restore CLASSPATH and used avriables
 set CLASSPATH=%OLD_CLASSPATH%
 set OLD_CLASSPATH=
+set WEBFOLDER=
 
