@@ -202,11 +202,17 @@ Properties from meta.xml
     </dc:description>
   </xsl:template>
   <!-- dates -->
-  <xsl:template match="meta:creation-date | dc:date" mode="dc">
-    <dc:created>
+  <xsl:template match="dc:date" mode="dc">
+    <dc:date>
       <xsl:call-template name="lang"/>
       <xsl:value-of select="substring-before(.,'T')"/>
-    </dc:created>
+    </dc:date>
+  </xsl:template>
+  <xsl:template match="meta:creation-date" mode="dc">
+    <dcterms:created>
+      <xsl:call-template name="lang"/>
+      <xsl:value-of select="substring-before(.,'T')"/>
+    </dcterms:created>
   </xsl:template>
   <!-- meta user defined when not empty -->
   <xsl:template match="meta:user-defined[normalize-space(.)='']" mode="dc"/>
@@ -287,10 +293,6 @@ Process document to extract DC properties
       <xsl:when test="($prev != $style) and contains ($style, 'abstract')">
         <dcterms:abstract>
           <xsl:call-template name="lang"/>
-          <xsl:attribute name="xsi:type">
-            <xsl:text>style:</xsl:text>
-            <xsl:value-of select="$style"/>
-          </xsl:attribute>
           <xsl:apply-templates/>
           <!-- TODO sibbling styles
           <xsl:if test="$next = $style">
@@ -496,12 +498,12 @@ TODO:2004-05-11 better integration ?
       <xsl:value-of select="//text:sender-email"/>
     </xsl:if>
   </xsl:template>
-  <!-- give size of a doc in different units, taken from
+  <!--
+give size of a doc in different units, taken from
 		<meta:document-statistic meta:table-count="1" meta:image-count="0" meta:object-count="0" meta:page-count="11" meta:paragraph-count="326" meta:word-count="3405" meta:character-count="23617"/>
 	-->
   <xsl:template match="meta:document-statistic" mode="dc">
-    <dcterms:extent pages="{@meta:page-count}" words="{@meta:word-count}" signs="{@meta:character-count}" images="{@meta:image-count}">
-      <xsl:call-template name="lang"/>
+    <dcterms:extent pages="{@meta:page-count}" words="{@meta:word-count}" signs="{@meta:character-count}" images="{@meta:image-count}" xsi:type="chars">
       <xsl:value-of select="format-number(@meta:character-count, '00000000')"/>
     </dcterms:extent>
   </xsl:template>

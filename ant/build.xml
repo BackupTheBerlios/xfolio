@@ -292,6 +292,13 @@ sxw files, do job "foreach"
       <param name="path" expression="${path}.xhtml"/>
       <param name="css" expression="/skin/html.css"/>
     </xslt>
+    <!-- a docbook -->
+    <!--
+    <xslt in="${website}${path}.sxw.xml" out="${website}${path}.dbx" style="transform/sxw/sxw2dbx.xsl">
+      <param name="path" expression="${path}.xhtml"/>
+      <param name="css" expression="/skin/html.css"/>
+    </xslt>
+    -->
     <!-- flatten pictures -->
     <copy todir="${website}${path}" flatten="true" includeEmptyDirs="false" preservelastmodified="true">
       <fileset dir="${website}${path}.sxw!">

@@ -509,7 +509,11 @@ cut after next lang to have a mololang block, but keep '[' -->
       </xsl:when>
       <!-- here we should have only one lang -->
       <xsl:when test="starts-with(normalize-space($text), '[')">
-        <xsl:variable name="lang" select="substring-before(substring-after($text, '['), ']')"/>
+        <xsl:variable name="lang" select="
+translate(
+  substring-before(substring-after($text, '['), ']')
+  , $majs, $mins)
+"/>
         <dc:title xsi:type="IIM:Title" xml:lang="{$lang}">
           <xsl:value-of select="substring-before(substring-after($text, ']'), $LF)"/>
         </dc:title>
