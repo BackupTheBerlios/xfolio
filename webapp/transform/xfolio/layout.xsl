@@ -21,7 +21,6 @@ Come from an xsl becoming a bit too complex to be simple editable layout.
 
 -->
 <xsl:stylesheet version="1.0" xmlns:dir="http://apache.org/cocoon/directory/2.0" xmlns:htm="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/xhtml" xmlns:i18n="http://apache.org/cocoon/i18n/2.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" exclude-result-prefixes="xsl dir dc htm rdf i18n">
-  
   <!-- to resolve some path -->
   <xsl:import href="naming.xsl"/>
   <!-- to resolve some path -->
@@ -38,6 +37,8 @@ Come from an xsl becoming a bit too complex to be simple editable layout.
   <xsl:param name="resize"/>
   <!-- cocoon context of the uri -->
   <xsl:param name="context"/>
+  <!-- server -->
+  <xsl:param name="server"/>
   <!-- encoding, default is the one specified in xsl:output -->
   <xsl:param name="encoding" select="document('')/*/xsl:output/@encoding"/>
   <!--
@@ -111,14 +112,15 @@ Problems waited because of relative links
         <xsl:with-param name="path" select="@src"/>
       </xsl:call-template>
     </xsl:variable>
+    <!-- TODO may bug in some contexts, test under different contexts -->
     <xsl:variable name="uri">
-      <xsl:text>cocoon:/</xsl:text>
+      <xsl:value-of select="$server"/>
       <xsl:value-of select="$context"/>
       <xsl:value-of select="$parent"/>
       <xsl:value-of select="$radical"/>
       <xsl:text>.rdf</xsl:text>
     </xsl:variable>
-<!--
+    <!--
 javax.xml.transform.TransformerException: Impossible de charger le document demandé : unknown protocol: cocoon
 
 -->
@@ -130,13 +132,20 @@ javax.xml.transform.TransformerException: Impossible de charger le document dema
       <!--
 record available on this image
 rewrite it
+
+width:', substring-after(@src, 'size=') ,'px ;
  -->
       <xsl:when test="$rdf">
         <div class="img">
           <xsl:attribute name="style">
             <xsl:value-of select="
-concat( 'float: ',@align, ' ; clear:', @align,' ; width:', substring-after(@src, 'size=') ,'px ; margin:1ex;')"/>
-<!--
+concat( 'float: ',@align, ' ; clear:', @align,' ; margin:1ex; ')"/>
+            <!-- TODO verify  -->
+            <xsl:if test="@width != ''">
+              <xsl:text> width:</xsl:text>
+              <xsl:value-of select="@width"/>
+            </xsl:if>
+            <!--
             <xsl:choose>
               <xsl:when test="@align = 'left'">; clear:right;</xsl:when>
               <xsl:when test="@align = 'right'">; clear:left;</xsl:when>
@@ -145,11 +154,16 @@ concat( 'float: ',@align, ' ; clear:', @align,' ; width:', substring-after(@src,
           </xsl:attribute>
           <h6>
             <xsl:comment>  - </xsl:comment>
+            <!-- TODO: localize title -->
             <xsl:value-of select="$rdf/*/*/dc:title[1]"/>
           </h6>
+          <small>
+              <xsl:comment>  - </xsl:comment>
+              <xsl:value-of select="$rdf/*/*/dc:creator"/>
+          </small>
           <a href="{$parent}{$radical}.html">
-            <img>
-              <xsl:copy-of select="@*"/>
+            <img width="100%">
+              <xsl:copy-of select="@*[name() != 'width']"/>
               <!-- 
 fast patch to show image without resizing 
 (size defined by div) 
@@ -160,12 +174,7 @@ bug in IE
 -->
             </img>
           </a>
-          <div>
-            <small>
-              <xsl:comment>  - </xsl:comment>
-              <xsl:value-of select="$rdf/*/*/dc:creator"/>
-            </small>
-          </div>
+          <!-- can't understand why, but text here will be under image in IE -->
         </div>
       </xsl:when>
       <!-- strip width % in case of image resized -->
@@ -173,10 +182,12 @@ bug in IE
         <a href="{$parent}{$radical}.html">
           <img>
             <xsl:copy-of select="@*"/>
+            <!--
             <xsl:attribute name="width">
               <xsl:value-of select="substring-after(@src, 'size=')"/>
               <xsl:text>px</xsl:text>
             </xsl:attribute>
+-->
           </img>
         </a>
       </xsl:when>
@@ -202,10 +213,10 @@ Maybe beet
   <xsl:template match="/aggregate/content/*/*[local-name()='head']/*[local-name()='link'][@rel='stylesheet']"/>
   <!-- match the article substitute -->
   <xsl:template match="htm:*[@id='article']">
-  <xsl:copy>
-    <xsl:copy-of select="@*"/>
-    <xsl:apply-templates select="/aggregate/content/*/*[local-name()='body']/node()"/>
-  </xsl:copy>
+    <xsl:copy>
+      <xsl:copy-of select="@*"/>
+      <xsl:apply-templates select="/aggregate/content/*/*[local-name()='body']/node()"/>
+    </xsl:copy>
   </xsl:template>
   <!-- handle possible tocs -->
   <!-- let tocs where authors decide to have
@@ -222,17 +233,17 @@ Maybe beet
   </xsl:template>
   <!-- languages available for this doc -->
   <xsl:template match="htm:*[@id='langs']">
-  <xsl:copy>
-    <xsl:copy-of select="@*"/>
-    <xsl:apply-templates select="/aggregate/rdf:RDF/rdf:Description[1]" mode="langs"/>
-  </xsl:copy>
+    <xsl:copy>
+      <xsl:copy-of select="@*"/>
+      <xsl:apply-templates select="/aggregate/rdf:RDF/rdf:Description[1]" mode="langs"/>
+    </xsl:copy>
   </xsl:template>
   <!-- formats of this doc in same language -->
   <xsl:template match="htm:*[@id='formats']">
-  <xsl:copy>
-    <xsl:copy-of select="@*"/>
-    <xsl:apply-templates select="/aggregate/rdf:RDF/rdf:Description[1]" mode="formats"/>
-  </xsl:copy>
+    <xsl:copy>
+      <xsl:copy-of select="@*"/>
+      <xsl:apply-templates select="/aggregate/rdf:RDF/rdf:Description[1]" mode="formats"/>
+    </xsl:copy>
   </xsl:template>
   <!-- match the clickable uri substitute -->
   <xsl:template match="htm:*[@id='identifier']">
@@ -242,19 +253,19 @@ Maybe beet
   </xsl:template>
   <!-- match a skin selector -->
   <xsl:template match="htm:*[@id='skin']">
-  <xsl:copy>
-    <xsl:copy-of select="@*"/>
-    <form name="skin" action="" method="post" style="display:inline">
-      <select onchange="this.form.submit()" name="skin">
-        <option/>
-        <xsl:for-each select="$skins">
-          <option>
-            <xsl:value-of select="@name"/>
-          </option>
-        </xsl:for-each>
-      </select>
-    </form>
-  </xsl:copy>
+    <xsl:copy>
+      <xsl:copy-of select="@*"/>
+      <form name="skin" action="" method="post" style="display:inline">
+        <select onchange="this.form.submit()" name="skin">
+          <option/>
+          <xsl:for-each select="$skins">
+            <option>
+              <xsl:value-of select="@name"/>
+            </option>
+          </xsl:for-each>
+        </select>
+      </form>
+    </xsl:copy>
   </xsl:template>
   <!-- write a clickable uri 
 2004-04-02 frederic.glorieux@ajlsm.com
@@ -278,7 +289,7 @@ may be interesting to test more.
           </xsl:choose>
         </xsl:variable>
         <a href="/">
-<!--
+          <!--
           <xsl:attribute name="href">
             <xsl:text>http://</xsl:text>
             <xsl:value-of select="$server"/>

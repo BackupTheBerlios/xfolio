@@ -39,8 +39,6 @@ import org.xml.sax.helpers.AttributesImpl;
 [[TableOfContents([3])]]
 
 
-Copyright (C) xfolio.org 
-
 = WHAT =
 
 http://cvs.berlios.de/cgi-bin/viewcvs.cgi/xfolio/webapp/WEB-INF/classes/org/apache/cocoon/generation/XMPjpegGenerator.java
@@ -137,7 +135,7 @@ public class XMPjpegGenerator extends ServiceableGenerator
     protected Source         inputSource;
     protected InputStream    in;
     /**
-     * @version $Revision: 1.2 $
+     * @version $Revision: 1.3 $
      * @author Benoît Mahé (bmahe@w3.org)
      */
     /* Start Of Frame N. */
@@ -268,8 +266,11 @@ public class XMPjpegGenerator extends ServiceableGenerator
             // FG 2004-10-09
             // TODO, better Exception handling in case of guilty image
             catch (JpegException e) {
-                getLogger().error("XMP Generator " + this.inputSource.getURI(),
-                        e);
+                // careful, no XMP is highly possible in a jpeg
+                // don't send too much to the log
+                getLogger().debug("XMP Generator " + this.inputSource.getURI() + " : " + e.getLocalizedMessage());
+                // something nicer should be sent, with at least, the path, and why not
+                // IPTC ? with problems of encoding ?
                 xmp = "<test/>";
             }
             /*

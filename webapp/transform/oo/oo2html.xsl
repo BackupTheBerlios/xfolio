@@ -48,6 +48,8 @@
   <xsl:param name="pictures" select="test"/>
   <!-- title numbering -->
   <xsl:param name="numbering" select="false()"/>
+  <!-- language from outside -->
+  <xsl:param name="lang"/>
   <!-- 
 These variables are used to normalize names of styles
 -->
@@ -70,17 +72,17 @@ These variables are used to normalize names of styles
         </xsl:if>
         <style type="text/css">
 	table.img { border:1px solid; }
+	img.oo {clear:both;}    
+
 				</style>
       </head>
       <!-- default js functions on body if available onload property -->
       <!-- all layout is provide on CSS to keep a completely clean HTML -->
       <body>
-        <!--
-        <xsl:if test="$lang='ar'">
+        <div>
+        <xsl:if test="contains($lang, 'ar')">
           <xsl:attribute name="dir">rtl</xsl:attribute>
         </xsl:if>
-        <xsl:value-of select="$lang"/>
-			-->
         <a name="0">
           <xsl:comment> &#160; </xsl:comment>
         </a>
@@ -91,6 +93,7 @@ These variables are used to normalize names of styles
             <xsl:apply-templates select="//office:body" mode="foot"/>
           </div>
         </xsl:if>
+        </div>
       </body>
     </html>
   </xsl:template>
@@ -1055,20 +1058,27 @@ FG:2004-05-08
 
 		desired size is calculate proportionnaly to the page
 -->
-    <img alt="{svg:desc}" align="{$align}" border="0">
+    <img class="oo" alt="{svg:desc}" align="{$align}" width="{$width}%" border="0">
       <!--
 	If image is not in frame or table, a width attribute could be add
 		width="{$width}%"
 
 to be sure to have enough pixels, a width is set by pixel
 -->
-      <xsl:attribute name="width">
-        <xsl:value-of select="$size"/>
-      </xsl:attribute>
+      <xsl:choose>
+        <xsl:when test="ancestor::table:table-cell">
+          <xsl:attribute name="width">
+            <xsl:value-of select="$size"/>
+            <xsl:text> px</xsl:text>
+          </xsl:attribute>
+        </xsl:when>
+      </xsl:choose>
       <xsl:attribute name="src">
         <xsl:apply-templates select="@xlink:href"/>
+<!--
         <xsl:text>?size=</xsl:text>
         <xsl:value-of select="$size"/>
+-->
       </xsl:attribute>
     </img>
   </xsl:template>

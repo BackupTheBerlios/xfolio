@@ -276,7 +276,7 @@ protected void addPath(File path, int depth) throws SAXException {
             if (depth > 0) {
                 for (int i = 0; i < contents.length; i++) {
                     if (false) ;
-                    else if (!isIncluded(contents[i]) && isExcluded(contents[i]));
+                    else if (!isIncluded(contents[i]) || isExcluded(contents[i]));
                     /*
                     // here recursive insert of toc from this generator
                     // let's bet this pipe is accessible from 

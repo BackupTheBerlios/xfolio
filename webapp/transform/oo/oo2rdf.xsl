@@ -1,42 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-(c) 2003, 2004 xfolio.org, [http://www.ajlsm.com AJLSM], [http://www.strabon.org Strabon] , [http://www.eumedis.net eumedis].
-Licence :  [http://www.apache.org/licenses/LICENSE-2.0 Apache].
+ #         - GNU Lesser General Public License Version 2.1
+ #         - Sun Industry Standards Source License Version 1.1
+ #  Copyright: 2000 by Sun Microsystems, Inc.
+ #  All Rights Reserved.
+ #  The Initial Developer of the Original Code is: Sun Microsystems, Inc.
+
+I'm not sure there's a lot of lines from the original code, but I start on it
+2004-O1-27 
+FG:frederic.glorieux@xfolio.org
 
 
-=WHAT=
-
+goal:
   provide the best set of Dublin Core properties from an Openoffice
   writer document.
 
-=HOW=
+usage:
+  The root template produce an RDF document with the DC properties
+	Single DC properties may be accessed by global xsl:param
+  A template "metas" give an HTML version of this properties.
+  This template may be externalize in a specific rdf2meta ?
 
- * '''Input''' : a quite flat OpenOffice.Writer XML document
- * '''Output''' The root template produce an <rdf:Description> with the DC properties
+history:
+  2004-06-28:FG better linking resolving
+  The metas could be used separated for other usages.
+  These transformation was extracted from a global oo2html
 
-
-=CHANGES=
-
- * 2004-06-28:FG better linking resolving
- * 2004-O1-27:FG creation transformation was extracted from a global oo2html
-
-
-=TODO=
+todo:
   
 	may be used for other target namespace DC compatible
   what about a default properties document ?
 	format in arabic
 
-=BUGS=
-
+bugs:
   seems to bug with xalan under cocoon in creator template
   
-=REFERENCES=
-
+documentation:
 	http://www.w3.org/TR/xhtml2/abstraction.html#dt_MediaDesc
 
 -->
-<xsl:transform version="1.1" xmlns:style="http://openoffice.org/2000/style" xmlns:text="http://openoffice.org/2000/text" xmlns:office="http://openoffice.org/2000/office" xmlns:table="http://openoffice.org/2000/table" xmlns:draw="http://openoffice.org/2000/drawing" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="http://openoffice.org/2000/meta" xmlns:number="http://openoffice.org/2000/datastyle" xmlns:svg="http://www.w3.org/2000/svg" xmlns:chart="http://openoffice.org/2000/chart" xmlns:dr3d="http://openoffice.org/2000/dr3d" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="http://openoffice.org/2000/form" xmlns:script="http://openoffice.org/2000/script" xmlns:config="http://openoffice.org/2001/config" office:class="text" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:dir="http://apache.org/cocoon/directory/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" exclude-result-prefixes="office meta  table number fo xlink chart math script xsl draw svg dr3d form config text style dir">
+<xsl:transform version="1.1" xmlns:style="http://openoffice.org/2000/style" xmlns:text="http://openoffice.org/2000/text" xmlns:office="http://openoffice.org/2000/office" xmlns:table="http://openoffice.org/2000/table" xmlns:draw="http://openoffice.org/2000/drawing" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="http://openoffice.org/2000/meta" xmlns:ooMeta="http://openoffice.org/2000/meta" xmlns:number="http://openoffice.org/2000/datastyle" xmlns:svg="http://www.w3.org/2000/svg" xmlns:chart="http://openoffice.org/2000/chart" xmlns:dr3d="http://openoffice.org/2000/dr3d" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:ooStyleName="http://openoffice.org/2000/style#name" xmlns:form="http://openoffice.org/2000/form" xmlns:script="http://openoffice.org/2000/script" xmlns:config="http://openoffice.org/2001/config" office:class="text" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:dir="http://apache.org/cocoon/directory/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" exclude-result-prefixes="office meta  table number fo xlink chart math script xsl draw svg dr3d form config text style dir">
   <xsl:import href="../xfolio/naming.xsl"/>
   <!-- used to resolve links for images (?) -->
   <!--
@@ -92,40 +95,24 @@ These variables are used to normalize stle names of styles
 
 -->
   <xsl:template match="/">
-    <rdf:Description>
-      <xsl:call-template name="dc:properties"/>
-    </rdf:Description>
+    <rdf:RDF>
+      <rdf:Description>
+        <xsl:call-template name="dc:properties"/>
+      </rdf:Description>
+    </rdf:RDF>
   </xsl:template>
   <!--
 	all possible dc:properties to extract
 -->
   <xsl:template name="dc:properties">
-    <xsl:if test="normalize-space(.//office:meta/dc:title) != ''">
-      <dc:title>
-        <xsl:call-template name="lang"/>
-        <xsl:value-of select="normalize-space(.//office:meta/dc:title)"/>
-      </dc:title>
-    </xsl:if>
+    <!-- better should be done on title -->
     <xsl:variable name="title">
-      <xsl:call-template name="getElementsByStyle">
-        <xsl:with-param name="style" select="'title'"/>
-      </xsl:call-template>
+      <xsl:call-template name="title"/>
     </xsl:variable>
-    <!-- if title style but not with field -->
-    <xsl:if test="normalize-space($title) != '' and not($title/*/text:title)">
+    <xsl:if test="normalize-space($title) != ''">
       <dc:title>
         <xsl:call-template name="lang"/>
         <xsl:value-of select="normalize-space($title)"/>
-      </dc:title>
-    </xsl:if>
-    <xsl:if test="
-normalize-space(.//office:meta/dc:title) = ''
-and normalize-space($title) = ''
-and normalize-space(//text:h) != ''
-">
-      <dc:title>
-        <xsl:call-template name="lang"/>
-      <xsl:value-of select="normalize-space(//text:h)"/>
       </dc:title>
     </xsl:if>
     <!-- dc:creator -->
@@ -137,12 +124,12 @@ and normalize-space(//text:h) != ''
     <xsl:call-template name="description"/>
     <!-- publisher ?? -->
     <!-- dates -->
-    <dc:date xsi:type="created">
+    <dc:date xsi:type="ooMeta:creation-date">
       <!-- lang useful to precise to which version this date is applied -->
       <xsl:call-template name="lang"/>
       <xsl:apply-templates select="//office:meta/meta:creation-date"/>
     </dc:date>
-    <dc:date xsi:type="modified">
+    <dc:date>
       <xsl:call-template name="lang"/>
       <xsl:apply-templates select="//office:meta/dc:date"/>
     </dc:date>
@@ -160,7 +147,7 @@ and normalize-space(//text:h) != ''
     </xsl:if>
     <!-- server give the source uri of this transformation -->
     <xsl:if test="$identifier">
-      <dc:source xsi:type="application/vnd.sun.xml.writer">
+      <dc:source dc:format="application/vnd.sun.xml.writer">
         <xsl:call-template name="lang"/>
         <xsl:value-of select="$identifier"/>
         <xsl:text>.sxw</xsl:text>
@@ -176,7 +163,7 @@ and normalize-space(//text:h) != ''
           <!-- rewrite internal image links -->
           <xsl:when test="contains($path, '#Pictures/')">
             <xsl:value-of select="$identifier"/>
-            <xsl:text>.sxw!/</xsl:text>
+            <xsl:text>.sxw/</xsl:text>
             <xsl:value-of select="substring-after($path, '#')"/>
           </xsl:when>
           <xsl:when test="not(contains($path, 'http://'))">
@@ -191,12 +178,13 @@ and normalize-space(//text:h) != ''
         </xsl:choose>
       </xsl:variable>
       <dc:relation>
-        <xsl:attribute name="xsi:type">
+        <xsl:attribute name="dc:format">
           <xsl:call-template name="getMime">
             <xsl:with-param name="path" select="$link"/>
           </xsl:call-template>
         </xsl:attribute>
         <xsl:call-template name="lang"/>
+        
         <xsl:value-of select="$link"/>
       </dc:relation>
     </xsl:for-each>
@@ -228,7 +216,7 @@ This template normalize a creator string (strip mail or position)
     <xsl:apply-templates/>
   </xsl:template>
   <xsl:template match="meta:keyword">
-    <dc:subject xsi:type="http://openoffice.org/2000/meta#keyword">
+    <dc:subject xsi:type="ooMeta:keyword">
       <xsl:call-template name="lang"/>
       <xsl:apply-templates/>
     </dc:subject>
@@ -360,7 +348,7 @@ creators handled are from style sender and sisgnature
    translate(@text:style-name, $majs, $mins)      = $style
 or @text:style-name      = $style-auto
 ]">
-      <dc:creator xsi:type="signature">
+      <dc:creator xsi:type="ooStyleName:signature">
         <xsl:call-template name="lang"/>
         <!-- copy the first link in creator, what about link type ? -->
         <xsl:copy-of select=".//@xlink:href[1]"/>
@@ -518,7 +506,7 @@ From a param provide by server of other supported export formats,
             <xsl:with-param name="path" select="$identifier"/>
           </xsl:call-template>
         </xsl:variable>
-        <dc:relation xsi:type="{$mime}" rdf:resource="{$name}.{$extension}">
+        <dc:relation dc:format="{$mime}" rdf:resource="{$name}.{$extension}">
           <xsl:call-template name="lang"/>
           <!-- relation maybe relative to identifier ? -->
           <xsl:value-of select="$identifier"/>

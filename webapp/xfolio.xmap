@@ -75,9 +75,18 @@ calendar generator (+ transform !!)
         <map:generate src="{../src}"/>
         <map:serialize type="xml"/>
       </map:match>
+      <map:match pattern="**.rdf">
+        <map:generate src="{../src}"/>
+        <map:serialize type="xml"/>
+      </map:match>
       <map:match pattern="**.svg">
         <map:generate src="{../src}"/>
         <map:serialize type="svg"/>
+      </map:match>
+      <map:match pattern="**.rdf">
+        <map:generate src="{../src}"/>
+        <!-- TODO: configure an rdf serialize with correct mime/type -->
+        <map:serialize type="xml"/>
       </map:match>
       <!-- html from generator ? -->
       <!-- mime-type resolved by servlet -->
@@ -119,6 +128,9 @@ links for formats and langs
             <map:parameter name="lang" value="{3}"/>
             <!-- skin folder -->
             <map:parameter name="skin" value="{baselink:SitemapBaseLink}skin/"/>
+            <!-- is there better than document() to get rdf of an image  ?  -->
+            <!-- TODO, hard coded, should do better !!! -->
+            <map:parameter name="server" value="http://localhost/"/>
           </map:transform>
           <!-- Paul Terray - 6 mai 2004 - terray@4dconcept.fr -->
           <!-- New stylesheet transform, to filter STRABON links -->
@@ -144,13 +156,6 @@ What to do with that ?
       </map:match>
 
 -->
-      <!-- FG: this should be for debug only -->
-      <map:match pattern="status">
-        <map:generate src="script/params.xsp" type="xsp">
-          <map:parameter name="context-attr" value="?{context-attr:xfolio.efolder}?"/>
-        </map:generate>
-        <map:serialize type="xml"/>
-      </map:match>
       <!-- internal resources in the webapp (what about file without extensions ?) -->
       <map:match pattern="**.*">
         <map:act type="exists" src="{1}.{2}">
@@ -233,15 +238,16 @@ very long, why ???
         </map:transform>
         <map:serialize type="svg2png"/>
       </map:match>
-      <map:match type="regexp" pattern="^(.*)buttons/([^_]*)_?(.*)\.svg$">
+      <map:match type="regexp" pattern="^(.*)buttons/([^-_]*)-?([^_]*)_?(.*)\.svg$">
         <map:generate src="cocoon:/{1}buttons.svg"/>
         <map:transform src="transform/svg/buttons.xsl">
           <map:parameter name="mode" value="pipe"/>
           <map:parameter name="symbol" value="{2}"/>
           <map:parameter name="class" value="{3}"/>
-          <map:parameter name="skin" value="../"/>
+          <map:parameter name="size" value="{4}"/>
+          <map:parameter name="skin" value="/{1}"/>
         </map:transform>
-        <map:serialize type="svg"/>
+        <map:serialize type="debug"/>
       </map:match>
       <map:match pattern="**buttons/">
         <map:generate src="cocoon:/{1}buttons.svg"/>
@@ -250,19 +256,6 @@ very long, why ???
         </map:transform>
         <map:serialize/>
       </map:match>
-      <!-- 
-This pipeline should one day transform images with ImageMagick
-for now, it's a redirection to resize jpeg images
-Don't use match on parameter,
-infinite loop, when redirection because the request parameter is kept
-
-      <map:match pattern="**.jpg">
-        <map:act type="serverpages" src="script/image.xsp">
-          <map:read mime-type="image/jpg" src="cocoon:/{../1}_{size}.jpg"/>
-        </map:act>
-      </map:match>
-
--->
       <!-- 
 resize images, reader rewrited to have width and height as max width preserve ratio
 -->
@@ -353,50 +346,41 @@ Tricky things may be done for that (ex: ToC ? header...)
       <map:match pattern="**.*">
         <!-- open office generation, see [http://wiki.apache.org/cocoon/XfolioOpenOfficeGeneration] -->
         <map:act type="exists" src="{context-attr:xfolio.efolder}{1}.sxw">
-          <map:match pattern="**.oo">
-            <map:generate type="xsp" src="script/oo.xsp">
-              <map:parameter name="sxw" value="{context-attr:xfolio.efolder}{1}.sxw"/>
-            </map:generate>
-            <map:serialize type="xml"/>
-          </map:match>
           <!-- xhtml before layout -->
-          <map:match type="regexp" pattern="^(.*/)?(.*)\.xhtml$">
-            <map:generate type="xsp" src="script/oo.xsp">
-              <map:parameter name="sxw" value="{context-attr:xfolio.efolder}{1}{2}.sxw"/>
-            </map:generate>
+          <map:match type="regexp" pattern="^(.*/)?([^_]*)(_[a-z][a-z])?\.xhtml$">
+            <map:generate type="sxw" src="{context-attr:xfolio.efolder}{1}{2}{3}.sxw"/>
             <map:transform src="transform/oo/oo2html.xsl">
               <map:parameter name="css" value="{baselink:SitemapBaseLink}skin/html.css"/>
               <!-- folder from which resolve embeded files -->
-              <map:parameter name="pictures" value="{2}.sxw!/"/>
+              <!-- TODO, better resolving of embed images
+                /media/images/*.jpg?sxw=
+               -->
+              <map:parameter name="pictures" value="{2}{3}.sxw!/"/>
+              <!-- give a language ? -->
+              <map:parameter name="lang" value="{3}"/>
+              
             </map:transform>
             <map:serialize/>
           </map:match>
           <!-- text version -->
           <map:match pattern="**.txt">
-            <map:generate type="xsp" src="script/oo.xsp">
-              <map:parameter name="sxw" value="{context-attr:xfolio.efolder}{1}.sxw"/>
-            </map:generate>
+            <map:generate type="sxw" src="{context-attr:xfolio.efolder}{1}.sxw"/>
             <map:transform src="transform/oo/oo2txt.xsl"/>
             <map:serialize type="text"/>
           </map:match>
           <!-- get a docbook -->
           <map:match type="regexp" pattern="(.*/)?(.*).dbx">
-            <map:generate label="oo" src="cocoon:/{1}{2}.oo"/>
+            <map:generate type="sxw" src="{context-attr:xfolio.efolder}{1}.sxw"/>
             <map:transform src="transform/oo/oo2dbx.xsl">
               <!-- from where to have images, better should be identifier without lang ?? -->
               <map:parameter name="pictures" value="{2}"/>
             </map:transform>
             <map:serialize type="xml"/>
           </map:match>
-          <!-- transform a docbook in fo -->
-          <map:match pattern="**.fo">
-            <map:generate label="oo" src="cocoon:/{1}.dbx"/>
-            <map:transform src="transform/docbook/fo/docbook.xsl"/>
-            <map:serialize type="xml"/>
-          </map:match>
           <!-- transform docbook fo in pdf  -->
           <map:match pattern="**.pdf">
-            <map:generate src="cocoon:/{1}.fo"/>
+            <map:generate type="sxw" src="{context-attr:xfolio.efolder}{1}.sxw"/>
+            <map:transform src="transform/docbook/fo/docbook.xsl"/>
             <map:serialize type="fo2pdf"/>
           </map:match>
           <!-- html -->
@@ -414,7 +398,13 @@ Tricky things may be done for that (ex: ToC ? header...)
             <map:generate type="xmp" src="{context-attr:xfolio.efolder}{1}.jpg"/>
             <map:serialize type="xml"/>
           </map:match>
-          <map:match pattern="**.xhtml">
+           <!-- jpg -->
+          <map:match pattern="**.rdf">
+            <map:generate type="xmp" src="{context-attr:xfolio.efolder}{1}.jpg"/>
+            <map:transform src="transform/meta/xmp2dc.xsl"/>
+            <map:serialize type="xml"/>
+          </map:match>
+         <map:match pattern="**.xhtml">
             <map:generate src="cocoon:/{1}.rdf"/>
             <map:transform src="transform/xfolio/rdf2html.xsl">
               <map:parameter name="from" value="{context-attr:xfolio.domain}/{1}"/>
@@ -558,21 +548,27 @@ TODO: radical requested could be better oriented on available language
 
 careful, don't handle too much things or you will have strange effects
 -->
-      <map:match type="regexp" pattern="^$|^(.*/)$">
-        <map:act type="xsp" src="script/redirect.xsp">
-          <map:parameter name="folder" value="{context-attr:xfolio.efolder}{1}"/>
-          <map:read src="cocoon:/{../1}{radical}.html"/>
+      <map:match pattern="">
+          <map:read src="skin/xfolio.org/frames.html"/>
+      </map:match>
+      <!-- careful, don't handle to much, may cause infinite loop ! 
+TODO, better handling of identifier
+-->
+      <map:match pattern="**">
+        <map:act type="xfolioRedirect">
+          <map:parameter name="file" value="{context-attr:xfolio.efolder}{1}"/>
+          <!-- here we are quite sure that something will answer -->
+          <map:redirect-to uri="cocoon:/{identifier}.html"/>
         </map:act>
       </map:match>
-      <!-- careful, don't handle to much, may cause infinite loop ! -->
+      <!--
       <map:match type="regexp" pattern="^(.*/)?(.*)\.html$">
-        <map:act type="xsp" src="script/redirect.xsp">
-          <map:parameter name="folder" value="{context-attr:xfolio.efolder}{1}"/>
-          <map:parameter name="radical" value="{2}"/>
-          <!-- here we are quite sure that something will answer -->
+        <map:act type="xfolioRedirect">
+          <map:parameter name="file" value="{context-attr:xfolio.efolder}{1}"/>
           <map:redirect-to uri="cocoon:/{../1}{radical}.html"/>
         </map:act>
       </map:match>
+-->
     </map:pipeline>
     <!--
 
@@ -582,9 +578,9 @@ careful, don't handle too much things or you will have strange effects
     -->
     <map:pipeline>
       <!-- if a raw page is searched but not found -->
-      <map:match pattern="**.xhtml">
+      <map:match pattern="**">
         <map:generate src="locale/not-found.xhtml"/>
-        <map:serialize/>
+        <map:serialize type="xhtml"/>
       </map:match>
       <map:handle-errors>
         <map:select type="exception">

@@ -19,6 +19,13 @@ This sitemap is place to test performances of different pipes
 
   <map:pipeline type="profile-caching">
 
+      <!-- to test if SXWGenerator is caching correctly  -->
+      <map:match pattern="sxw">
+        <map:generate type="sxw" src="skin/xfolio.org/template.sxw"/>
+        <map:serialize type="xml"/>
+      </map:match>
+
+
       <map:match pattern="directory-cache">
         <map:generate type="directory" src="{context-attr:xfolio.efolder}{1}">
           <map:parameter name="depth" value="10"/>
@@ -27,22 +34,24 @@ This sitemap is place to test performances of different pipes
         <map:serialize type="text"/>
       </map:match>
 
+
+
   </map:pipeline>
 
 <!-- =========================== Noncacheable ================================= -->
 
   <map:pipeline type="profile-noncaching">
 
-      <map:match pattern="directory">
-        <map:generate type="directory" src="{context-attr:xfolio.efolder}">
+      <map:match pattern="toc">
+        <map:generate type="metadir" src="{context-attr:xfolio.efolder}">
           <map:parameter name="depth" value="10"/>
           <map:parameter name="exclude" value="^CVS$|^\.|^_|^Thumbs.db"/>
         </map:generate>
-        <map:serialize type="text"/>
+        <map:serialize type="debug"/>
       </map:match>
 
-      <map:match pattern="toc">
-        <map:generate type="metadir" src="{context-attr:xfolio.efolder}">
+      <map:match pattern="directory">
+        <map:generate type="directory" src="{context-attr:xfolio.efolder}">
           <map:parameter name="depth" value="10"/>
           <map:parameter name="exclude" value="^CVS$|^\.|^_|^Thumbs.db"/>
         </map:generate>

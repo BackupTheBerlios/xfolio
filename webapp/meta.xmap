@@ -28,27 +28,40 @@ In Xfolio this one define the flow logic of metadata generation.
   <map:pipelines>
     <!-- internal only ? -->
     <map:pipeline type="caching">
+      <!--
+
+ recursive toc  
+
+-->
       <map:match pattern="**toc.meta">
         <map:generate type="metadir" src="{context-attr:xfolio.efolder}{1}">
           <map:parameter name="depth" value="10"/>
           <map:parameter name="exclude" value="^CVS$|^\.|^_|^Thumbs.db|^class-use|^package-frame|^package-summary|^package-tree|^package-use"/>
         </map:generate>
-        <map:serialize type="text"/>
+        <map:serialize type="debug"/>
       </map:match>
+      <!--
+
+ one level directory 
+
+-->
       <map:match pattern="**dir.meta">
         <map:generate type="metadir" src="{context-attr:xfolio.efolder}{1}">
           <map:parameter name="depth" value="1"/>
           <map:parameter name="exclude" value="^CVS$|^\.|^_|^Thumbs.db|^class-use|^package-frame|^package-summary|^package-tree|^package-use"/>
         </map:generate>
-        <map:serialize type="text"/>
+        <map:serialize type="debug"/>
       </map:match>
+      <!-- 
+
+Simple file get meta
+
+ -->
       <map:match pattern="**.meta">
         <map:select type="exists">
           <!-- OpenOffice -->
           <map:when test="{context-attr:xfolio.efolder}{1}.sxw">
-            <map:generate type="xsp" src="script/oo.xsp">
-              <map:parameter name="sxw" value="{context-attr:xfolio.efolder}{1}.sxw"/>
-            </map:generate>
+            <map:generate type="sxw" src="{context-attr:xfolio.efolder}{1}.sxw"/>
             <map:transform src="transform/oo/oo2rdf.xsl">
               <!-- URI of the doc -->
               <map:parameter name="identifier" value="{context-attr:xfolio.domain}/{1}"/>
@@ -72,9 +85,12 @@ In Xfolio this one define the flow logic of metadata generation.
             </map:transform>
             <map:serialize type="xml"/>
           </map:when>
+          <!--
           <map:otherwise>
-            <map:read src="cocoon://skin/default.rdf"/>
+            <map:generate src="cocoon://skin/default.rdf"/>
+            <map:serialize type="xml"/>
           </map:otherwise>
+          -->
         </map:select>
       </map:match>
     </map:pipeline>

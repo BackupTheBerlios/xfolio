@@ -154,6 +154,12 @@ strip unuseful symbols
   </xsl:template>
   <!-- set global size, better should be by CSS 	-->
   <xsl:template match="/svg:svg">
+    <xsl:comment>
+symbol=<xsl:value-of select="$symbol"/>    
+class=<xsl:value-of select="$class"/>    
+skin=<xsl:value-of select="$skin"/>    
+size=<xsl:value-of select="$size"/>    
+    </xsl:comment>
     <xsl:copy>
       <xsl:copy-of select="@*"/>
       <xsl:attribute name="width">
@@ -191,6 +197,7 @@ strip unuseful symbols
   strip comments ?
   -->
   <xsl:template match="comment()"/>
+  <xsl:template match="text()[normalize-space(.)='']"/>
   <!--
 Default, copy all from SVG source
 -->

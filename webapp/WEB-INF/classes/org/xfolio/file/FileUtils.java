@@ -31,6 +31,7 @@ public class FileUtils  {
      * </ul>
      * 
      * So radical is what is left, "radical."
+     * clean a prefix ?
      */
 
     public static String getRadical(File file) {
@@ -51,6 +52,16 @@ public class FileUtils  {
     }
 
     /**
+     * Give a filename without extension
+     */
+    public static String getIndentifier(File file) {
+        String name=file.getName();
+        if (name.lastIndexOf('.') < 1) return name;
+        return name.substring(0, name.lastIndexOf('.'));
+    }
+
+    
+    /**
      * <b>Give lang of a file according to XFolio practices </b> -
      * .*_(??)\.extension, where (??) is an iso language code on 2 chars
      * extend to other locale ?
@@ -62,4 +73,6 @@ public class FileUtils  {
         return name.substring(name.lastIndexOf('_')+1);
     }
 
+    
+    
 }

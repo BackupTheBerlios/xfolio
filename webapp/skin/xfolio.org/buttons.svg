@@ -1,6 +1,8 @@
 <?xml version="1.0" standalone="no"?>
+<!--
 <?xml-stylesheet type="text/css" href="buttons.css" ?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "../../schema/svg/svg11.dtd">
+-->
 <!--
 
 	creation:
@@ -281,7 +283,9 @@ viewBox="-5 -4 110 111"
 	-->
 	<g class="over" id="button">
 		<rect class="bg"  fill="Beige" x="1" y="1" width="98" height="98" stroke-linecap="square" stroke-linejoin="round" stroke="none" filter="url(#bump)"/>
+<!--
 		<rect class="border" filter="url(#ridge)" stroke="green" fill="none" stroke-width="4" x="4" y="4" width="88" height="88" rx="20" ry="20" stroke-linecap="round" stroke-linejoin="round"/>
+-->
 		<!-- the #symbol in xlink:href is replaced by xsl -->
 		<use class="symbol" xlink:href="#home"  fill="black" x="10" y="10" width="80" height="80" filter="url(#inset)"/>
 	</g>

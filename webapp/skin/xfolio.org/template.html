@@ -47,8 +47,9 @@ in menu or with images.
     <!-- default html style -->
 		<link rel="stylesheet" type="text/css" href="html.css" />
 		<link rel="stylesheet" type="text/css" href="layout.css" />
+		<script type="text/javascript" src="html.js"> </script>
   </head>
-  <body>
+  <body onload="if(window.init) init();" onunload="alert(window.parent)" onresize="if (window.fit) fit(80)">
     <div id="navbar">Navbar</div>
     <div id="article">Article</div>
   </body>

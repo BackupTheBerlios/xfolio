@@ -12,6 +12,10 @@ body {
 	margin:0;
 }
 
+img.oo {
+    margin:1ex;
+    position:relative;
+}
 
 #side {
 	position:fixed;
@@ -28,7 +32,7 @@ body {
 #article {
 	padding:1em;
 	padding-left:3em;
-	overflow:auto;
+	/* overflow:auto; */
 }
 
 
@@ -51,16 +55,15 @@ body {
 
 #navbar {
     font-family:Arial, sans-serif;
-	font-size:10pt;
+	font-size:14px;
 	padding:0;
 	padding-left:1em;
 	margin:0;
 	filter: progid:DXImageTransform.Microsoft.Alpha(style=1, opacity=100, finishOpacity=0, startX=0, finishX=0, startY=20, finishY=0);
-	background: #FFCC00 url('back-tonic.png');
+	background: #CCCCFF url('back-tonic.png');
 	color:#293974 ;
 	font-weight:bold;
 	border-bottom:outset 2px;
-	border-top:outset 2px;
 }
 #navbar a {
     text-decoration:none;

@@ -298,7 +298,7 @@ in RDF / XML and gives practical examples.
     <xsl:apply-templates select="rdf:Description[not(dc:*)]"/>
   </xsl:template>
   <!-- default, pass it -->
-  <xsl:template match="rdf:Description | x:xmpmeta | x:xapmeta | rdf:RDF">
+  <xsl:template match="rdf:Description | x:xmpmeta | rdf:RDF">
     <xsl:apply-templates/>
   </xsl:template>
   <!-- no direct output for these elements -->
@@ -322,7 +322,7 @@ an individual.
       <xsl:apply-templates/>
     </dc:contributor>
   </xsl:template>
-<!--
+  <!--
 2:30 Release
 Date
 Not repeatable, eight octets, consisting of numeric characters.
@@ -524,9 +524,9 @@ Contains any necessary copyright notice.
     <xsl:for-each select=".//rdf:li">
       <dc:rights xsi:type="IIM:Copyright">
         <xsl:if test="ancestor::rdf:RDF//xapRights:WebStatement">
-           <xsl:attribute name="rdf:resource">
-             <xsl:apply-templates select="ancestor::rdf:RDF//xapRights:WebStatement/node()"/>
-           </xsl:attribute>
+          <xsl:attribute name="rdf:resource">
+            <xsl:apply-templates select="ancestor::rdf:RDF//xapRights:WebStatement/node()"/>
+          </xsl:attribute>
         </xsl:if>
         <xsl:apply-templates/>
       </dc:rights>
@@ -596,7 +596,12 @@ parsing description text in case of multilingual description
       <!-- here is formatting -->
       <xsl:when test="starts-with($text, '[') and contains($text, ']')">
         <xsl:variable name="lang" select="substring-after(substring-before($text, ']'), '[')"/>
-        <dc:title xsi:type="IIM:Description" xml:lang="{$lang}">
+        <dc:title xsi:type="IIM:Description">
+          <xsl:if test="normalize-space($lang) != ''">
+            <xsl:attribute name="xml:lang">
+              <xsl:value-of select="$lang"/>
+            </xsl:attribute>
+          </xsl:if>
           <xsl:choose>
             <xsl:when test="contains(substring-after($text, ']'), $CR)">
               <xsl:value-of select="normalize-space(substring-before(substring-after($text, ']'), $CR))"/>
@@ -617,7 +622,12 @@ parsing description text in case of multilingual description
           </xsl:when>
           <!-- a description after a title -->
           <xsl:when test="contains($after, concat($CR, '['))">
-            <dc:description xsi:type="IIM:Description" xml:lang="{$lang}">
+            <dc:description xsi:type="IIM:Description">
+              <xsl:if test="normalize-space($lang) != ''">
+                <xsl:attribute name="xml:lang">
+                  <xsl:value-of select="$lang"/>
+                </xsl:attribute>
+              </xsl:if>
               <xsl:value-of select="substring-before($after, concat($CR, '['))"/>
             </dc:description>
             <xsl:call-template name="text">
@@ -627,7 +637,12 @@ parsing description text in case of multilingual description
           </xsl:when>
           <!-- end of field -->
           <xsl:otherwise>
-            <dc:description xsi:type="IIM:Description" xml:lang="{$lang}">
+            <dc:description xsi:type="IIM:Description">
+              <xsl:if test="normalize-space($lang) != ''">
+                <xsl:attribute name="xml:lang">
+                  <xsl:value-of select="$lang"/>
+                </xsl:attribute>
+              </xsl:if>
               <xsl:value-of select="$after"/>
             </dc:description>
           </xsl:otherwise>

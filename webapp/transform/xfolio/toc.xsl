@@ -293,8 +293,8 @@ maybe problems with directories called index ?
     <!-- only directories -->
     <xsl:variable name="welcome" select="'index'"/>
     <xsl:choose>
-      <!-- empty directory -->
-      <xsl:when test="not(dir:*)">
+      <!-- directory witout a file -->
+      <xsl:when test="not(.//dir:file)">
         <!--
         <div>
           <xsl:call-template name="title"/>
@@ -461,9 +461,9 @@ get title
     <xsl:choose>
       <xsl:when test="false()"/>
       <xsl:when test="contains($htmlizable, concat(' ',@extension,' '))">
-        <xsl:value-of select="@base"/>
+        <xsl:value-of select="../@href"/>
         <xsl:value-of select="substring-before(@name, concat('.', @extension))"/>
-        <xsl:text>.xhtml</xsl:text>
+        <xsl:text>.html</xsl:text>
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="@base"/>
