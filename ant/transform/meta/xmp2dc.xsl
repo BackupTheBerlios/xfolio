@@ -276,10 +276,11 @@ in RDF / XML and gives practical examples.
 
 -->
 <xsl:transform version="1.0" xmlns:IIM="http://iptc.org/IIM/" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/" xmlns:pdf="http://ns.adobe.com/pdf/1.3/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:x="adobe:ns:meta/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xap="http://ns.adobe.com/xap/1.0/" xmlns:xapMM="http://ns.adobe.com/xap/1.0/mm/" xmlns:xapRights="http://ns.adobe.com/xap/1.0/rights/" exclude-result-prefixes="photoshop pdf x xap xapMM xapRights">
+  <xsl:output method="xml" encoding="UTF-8" indent="yes"/>
   <!-- bug possible from here (used to format description) -->
   <xsl:variable name="CR" select="'&#xD;'"/>
   <!-- root -->
-  <xsl:template match="/*">
+  <xsl:template match="/">
     <rdf:RDF>
       <rdf:Description>
         <xsl:apply-templates/>
@@ -290,12 +291,12 @@ in RDF / XML and gives practical examples.
 1) the dc:properties
 2) IIM elements mapped to dc
 -->
-  <xsl:template match="x:xmpmeta/rdf:RDF | x:xapmeta">
+  <xsl:template match="x:xmpmeta/rdf:RDF | x:xapmeta/rdf:RDF">
     <xsl:apply-templates select="rdf:Description[dc:*]"/>
     <xsl:apply-templates select="rdf:Description[not(dc:*)]"/>
   </xsl:template>
-  <!-- default, pass it -->
-  <xsl:template match="rdf:Description | x:xmpmeta | rdf:RDF">
+  <!-- default, pass it  -->
+  <xsl:template match="rdf:Description | x:xmpmeta | x:xapmeta | rdf:RDF | /*">
     <xsl:apply-templates/>
   </xsl:template>
   <!-- no direct output for these elements -->

@@ -12,6 +12,7 @@ set OLD_ANT_HOME=%ANT_HOME%
 set ANT_HOME=.
 echo webfolder=%1
 call %ANT_HOME%\bin\ant -Dwebfolder=%1
+pause
 
 rem ----- Restore ANT_HOME and ANT_OPTS
 set ANT_HOME=%OLD_ANT_HOME%

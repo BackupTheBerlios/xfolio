@@ -44,10 +44,12 @@ Long attention have been paid to dependencies and update.
   <property name="webfolder" location="../docs"/>
   <!-- webfolder is replicated to have absolute path -->
   <property name="src" location="${webfolder}"/>
-  <!-- a delelable work folder where to store enough for caching -->
-  <property name="website" location="${src}-website"/>
   <!-- the skin folder to copy to root site -->
   <property name="skin" location="skin/xfolio.org"/>
+  <!-- name of generated site by name of the skin folder -->
+  <basename property="site" file="${skin}"/>
+  <!-- the generated website -->
+  <property name="website" location="${src}-${site}"/>
   <!-- 
 
 dev target.
@@ -60,6 +62,7 @@ init target
   <target name="init">
     <javac srcdir="lib/classes" destdir="lib/classes"/>
     <taskdef name="xjpeg" classname="AntJpegInfo" classpath="lib/classes"/>
+    <taskdef name="norm" classname="AntMoveNormalize" classpath="lib/classes"/>
     <mkdir dir="${website}"/>
   </target>
   <!-- 
@@ -85,7 +88,7 @@ don't work for extensions identical to generated ones
           <include name="**/*.jpg"/>
           <include name="**/*.zip"/>
           <exclude name="skin/**"/>
-          <!-- CAUTION ! unverifed pattern for internal files -->
+          <!-- CAUTION ! unverifed pattern for internal sxw images -->
           <exclude name="**/1000*.jpg"/>
           <present present="srconly" targetdir="${src}"/>
         </fileset>
@@ -154,19 +157,12 @@ CAUTION : update exclude patterns
 Normalize source directory
 -->
   <target name="normalize">
-    <move todir="${src}" preservelastmodified="yes" includeemptydirs="false">
+    <!-- select all files from source not yet copied in website and normalize their name -->
+    <norm todir="${src}" preservelastmodified="yes" includeemptydirs="false">
       <fileset dir="${src}">
-        <include name="**/*.JPG"/>
+        <present present="srconly" targetdir="${website}"/>
       </fileset>
-      <mapper type="glob" from="*.JPG" to="*.jpeg"/>
-    </move>
-    <!-- because of a bug in windows system between case names -->
-    <move todir="${src}" preservelastmodified="yes" includeemptydirs="false">
-      <fileset dir="${src}">
-        <include name="**/*.jpeg"/>
-      </fileset>
-      <mapper type="glob" from="*.jpeg" to="*.jpg"/>
-    </move>
+    </norm>
   </target>
   <!--
 this is only a commodity target during development to see effect of selector
@@ -215,13 +211,12 @@ work on a jpeg file
     <xjpeg srcfile="${website}${path}.jpg"/>
     <!-- a quite nice text version -->
     <xslt in="${website}${path}.xjpeg" out="${website}${path}.rdf" style="transform/meta/xmp2dc.xsl"/>
-    
   </target>
   <!--
 list files in src
 -->
   <target name="directory">
-    <echo file="${website}/toc.ant">&lt;directory&gt;</echo>
+    <echo file="${website}/toc.ant">&lt;directory xml:base="${src}" &gt;</echo>
     <for param="file">
       <path>
         <fileset dir="${src}">
@@ -273,8 +268,12 @@ sxw files, do job "foreach"
       <param name="css" expression="/skin/html.css"/>
     </xslt>
     <!-- flatten pictures -->
-    <copy todir="${website}${path}">
-      <fileset dir="${website}${path}.sxw!/Pictures"/>
+    <copy todir="${website}${path}" flatten="true" includeEmptyDirs="false" preservelastmodified="true">
+      <fileset dir="${website}${path}.sxw!">
+        <exclude name="**/*.xml"/>
+        <exclude name="mimetype"/>
+        <exclude name="layout-cache"/>
+      </fileset>
     </copy>
     <!-- unzip folder should be deletable -->
     <delete dir="${website}${path}.sxw!"/>
