@@ -2,6 +2,7 @@
  * Created on 5 mars 2004 (c) strabon.org GPL frederic.glorieux@ajlsm.com
  */
 package org.xfolio.cocoon.generation;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -80,22 +81,23 @@ import org.apache.cocoon.util.NetUtils;
  *          glorieux Exp $
  */
 public class MetaDirectoryGenerator extends DirectoryGenerator {
+
     /* from org.apache.cocoon.generation.ImageDirectoryGenerator */
-    protected static String WIDTH = "width";
-    protected static String HEIGHT = "height";
-    protected static String COMMENT = "comment";
-    protected static String TYPE = "type";
+    protected static String    WIDTH         = "width";
+    protected static String    HEIGHT        = "height";
+    protected static String    COMMENT       = "comment";
+    protected static String    TYPE          = "type";
     /** A date formatter */
-    protected SimpleDateFormat dateFormatter = new SimpleDateFormat(
-            "yyyy-MM-dd'H'HH:mm:ss");
+    protected SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss");
     /** the base directory from which to work and resolve */
-    protected String base;
+    protected String           base;
     /** the URI dir, relative to sitemap */
-    protected String branch;
+    protected String           branch;
     /** the domain to build absolute URIs */
-    protected String domain;
+    protected String           domain;
     /** the requested radical */
-    protected String radical;
+    protected String           radical;
+
     /**
      * Disposable
      */
@@ -104,6 +106,7 @@ public class MetaDirectoryGenerator extends DirectoryGenerator {
         }
         super.dispose();
     }
+
     /**
      * Set the request parameters. Must be called before the generate method.
      * Extends DirectoryGenerator to set some specific properties
@@ -122,20 +125,17 @@ public class MetaDirectoryGenerator extends DirectoryGenerator {
      * @param par
      *            configuration parameters
      */
-    public void setup(SourceResolver resolver, Map objectModel, String src,
-            Parameters par) throws ProcessingException, SAXException,
-            IOException {
+    public void setup(SourceResolver resolver, Map objectModel, String src, Parameters par) throws ProcessingException,
+            SAXException, IOException {
         super.setup(resolver, objectModel, src, par);
         // base should be a directory from here
         this.base = new File(src).toURI().normalize().toString();
         // this.branch is used to resolve the cocoon:/ uri below
-        this.branch = "/"
-                + ObjectModelHelper.getRequest(objectModel).getSitemapURI();
-        this.branch = this.branch.substring(0, this.branch.lastIndexOf("/"))
-                + "/";
-        this.domain = (String) ObjectModelHelper.getContext(objectModel)
-                .getAttribute("xfolio.domain");
+        this.branch = "/" + ObjectModelHelper.getRequest(objectModel).getSitemapURI();
+        this.branch = this.branch.substring(0, this.branch.lastIndexOf("/")) + "/";
+        this.domain = (String) ObjectModelHelper.getContext(objectModel).getAttribute("xfolio.domain");
     }
+
     /**
      * Extends the <code>setNodeAttributes</code> method from the
      * <code>DirectoryGenerator</code> by adding width, height and comment
@@ -153,18 +153,12 @@ public class MetaDirectoryGenerator extends DirectoryGenerator {
         attributes.clear();
         // write attributes
         if (path.equals(new File(this.base))) {
-            if (check(this.branch))
-                    attributes.addAttribute("", "branch", "branch", "CDATA",
-                            this.branch);
-            attributes.addAttribute("", "generated", "generated", "CDATA",
-                    dateFormatter.format(new Date()));
-            if (check(this.domain))
-                    attributes.addAttribute("", "domain", "domain", "CDATA",
-                            this.domain);
+            if (check(this.branch)) attributes.addAttribute("", "branch", "branch", "CDATA", this.branch);
+            attributes.addAttribute("", "generated", "generated", "CDATA", dateFormatter.format(new Date()));
+            if (check(this.domain)) attributes.addAttribute("", "domain", "domain", "CDATA", this.domain);
         }
         if (this.isRequestedDirectory) {
-            attributes.addAttribute("", "requested", "requested", "CDATA",
-                    "true");
+            attributes.addAttribute("", "requested", "requested", "CDATA", "true");
             this.isRequestedDirectory = false;
         }
         attributes.addAttribute("", "name", "name", "CDATA", path.getName());
@@ -172,61 +166,48 @@ public class MetaDirectoryGenerator extends DirectoryGenerator {
         value = FileUtils.getRadical(path);
         if (check(value)) {
             attributes.addAttribute("", "radical", "radical", "CDATA", value);
-            if (value.equals(this.radical))
-                    attributes.addAttribute("", "selected", "selected",
-                            "CDATA", "selected");
+            if (value.equals(this.radical)) attributes.addAttribute("", "selected", "selected", "CDATA", "selected");
         }
         value = FileUtils.getLang(path);
         if (check(value))
-                attributes.addAttribute("http://www.w3.org/XML/1998/namespace",
-                        "lang", "xml:lang", "CDATA", value);
+                attributes.addAttribute("http://www.w3.org/XML/1998/namespace", "lang", "xml:lang", "CDATA", value);
         value = FileUtils.getExtension(path);
-        if (check(value))
-                attributes.addAttribute("", "extension", "extension", "CDATA",
-                        value);
+        if (check(value)) attributes.addAttribute("", "extension", "extension", "CDATA", value);
         // prefer servlet level to resolve
         // String type = MIMEUtils.getMIMEType(extension);
-        value = ObjectModelHelper.getContext(objectModel).getMimeType(
-                path.getName());
-        if (check(value))
-                attributes.addAttribute("", TYPE, TYPE, "CDATA", value);
-        value = NetUtils.relativize(this.base, path.toURI().normalize()
-                .toString());
+        value = ObjectModelHelper.getContext(objectModel).getMimeType(path.getName());
+        if (check(value)) attributes.addAttribute("", TYPE, TYPE, "CDATA", value);
+        value = NetUtils.relativize(this.base, path.toURI().normalize().toString());
         attributes.addAttribute("", "href", "href", "CDATA", value);
-        attributes.addAttribute("", "modified", "modified", "CDATA",
-                dateFormatter.format(new Date(path.lastModified())));
-        attributes.addAttribute("", "length", "length", "CDATA", ""
-                + path.length());
+        attributes.addAttribute("", "modified", "modified", "CDATA", dateFormatter
+                .format(new Date(path.lastModified())));
+        attributes.addAttribute("", "length", "length", "CDATA", "" + path.length());
         if (path.isDirectory()) { return; }
         String extension = FileUtils.getExtension(path);
-        if ("jpg".equals(extension) || "png".equals(extension))
-                try {
-                    ImageProperties p = ImageUtils.getImageProperties(path);
-                    if (p != null) {
-                        if (getLogger().isDebugEnabled()) {
-                            getLogger().debug(
-                                    String.valueOf(path) + " = "
-                                            + String.valueOf(p));
-                        }
-                        attributes.addAttribute("", WIDTH, WIDTH, "CDATA",
-                                String.valueOf(p.width));
-                        attributes.addAttribute("", HEIGHT, HEIGHT, "CDATA",
-                                String.valueOf(p.height));
-                        // bug on some chars in jpeg comments
-                        /*
-                         * if (p.comment != null) attributes.addAttribute("",
-                         * COMMENT, COMMENT, "CDATA",
-                         * String.valueOf(p.comment));
-                         */
-                    }
-                } catch (FileFormatException e) {
-                    throw new SAXException(e);
-                } catch (FileNotFoundException e) {
-                    throw new SAXException(e);
-                } catch (IOException e) {
-                    throw new SAXException(e);
+        if ("jpg".equals(extension) || "png".equals(extension)) try {
+            ImageProperties p = ImageUtils.getImageProperties(path);
+            if (p != null) {
+                if (getLogger().isDebugEnabled()) {
+                    getLogger().debug(String.valueOf(path) + " = " + String.valueOf(p));
                 }
+                attributes.addAttribute("", WIDTH, WIDTH, "CDATA", String.valueOf(p.width));
+                attributes.addAttribute("", HEIGHT, HEIGHT, "CDATA", String.valueOf(p.height));
+                // bug on some chars in jpeg comments
+                /*
+                 * if (p.comment != null) attributes.addAttribute("",
+                 * COMMENT, COMMENT, "CDATA",
+                 * String.valueOf(p.comment));
+                 */
+            }
+        } catch (FileFormatException e) {
+            throw new SAXException(e);
+        } catch (FileNotFoundException e) {
+            throw new SAXException(e);
+        } catch (IOException e) {
+            throw new SAXException(e);
+        }
     }
+
     /**
      * <b>Extends the startNode() method of the DirectoryGenerator. </b>-
      * 
@@ -252,27 +233,24 @@ public class MetaDirectoryGenerator extends DirectoryGenerator {
             this.validity.addFile(path);
         }
         setNodeAttributes(path);
-        super.contentHandler.startElement(URI, nodeName, PREFIX + ':'
-                + nodeName, attributes);
+        super.contentHandler.startElement(URI, nodeName, PREFIX + ':' + nodeName, attributes);
         try {
             if (path.isFile()) includeMeta(path);
         } catch (IOException e) {
             // do something ?
         }
     }
+
     /**
-     * <p>
-     * Adds a single node to the generated document. If the path is a directory,
-     * and depth is greater than zero, then recursive calls are made to add
-     * nodes for the directory's children.
-     * </p>
-     * 
-     * <p>
-     * Even if depth is zero, directory will nest i18n "welcome" paths to get
-     * minimum meta on it. The recursive call will put all "index" file in the
-     * beginning as meta of a directory.
-     * </p>
-     * 
+
+     Adds a single node to the generated document. If the path is a directory,
+     and depth is greater than zero, then recursive calls are made to add
+     nodes for the directory's children.
+
+     Even if depth is zero, directory will nest i18n "welcome" paths to get
+     minimum meta on it. The recursive call will put all "index" file in the
+     beginning as meta of a directory.
+
      * @param path
      *            the file/directory to process
      * @param depth
@@ -280,14 +258,15 @@ public class MetaDirectoryGenerator extends DirectoryGenerator {
      * @throws SAXException
      *             if an error occurs while constructing nodes
      */
-    protected void addPath(File path, int depth) throws SAXException {
+protected void addPath(File path, int depth) throws SAXException {
         if (!isIncluded(path) || isExcluded(path)) {
             // stop here
         }
         if (path.isFile()) {
             startNode(FILE_NODE_NAME, path);
             endNode(FILE_NODE_NAME);
-        } else if (path.isDirectory()) {
+        } 
+        else if (path.isDirectory()) {
             startNode(DIR_NODE_NAME, path);
             // order the files
             File contents[] = path.listFiles();
@@ -296,7 +275,31 @@ public class MetaDirectoryGenerator extends DirectoryGenerator {
             if (depth < 1) addWelcome(path);
             if (depth > 0) {
                 for (int i = 0; i < contents.length; i++) {
-                    if (isIncluded(contents[i]) && !isExcluded(contents[i])) {
+                    if (false) ;
+                    else if (!isIncluded(contents[i]) && isExcluded(contents[i]));
+                    /*
+                    // here recursive insert of toc from this generator
+                    // let's bet this pipe is accessible from 
+                    // don't forget to add children to the cache key
+                    // problem will be, no stop down
+                    else if (contents[i].isDirectory()) {
+                        String file = contents[i].toURI().normalize().toString();
+                        String uri = NetUtils.relativize(this.base, file) + "toc.meta";
+                        uri = "cocoon:/" + this.branch + uri;
+                        Source rdf = null;
+                        // FIXME will I have some problems of refreshing ?
+                        recursiveAddKey(path, depth);
+                        // System.out.println(this.source + " " + uri);
+                        try {
+            	            rdf = super.resolver.resolveURI(uri);
+                            SourceUtil.toSAX(rdf, new IncludeXMLConsumer(this.contentHandler));
+                        } catch (Exception e) {
+                        // should sent an exception if source not found
+                            throw new SAXException(e);
+                        }
+                    }
+                    */ 
+                    else {
                         addPath(contents[i], depth - 1);
                     }
                 }
@@ -306,6 +309,34 @@ public class MetaDirectoryGenerator extends DirectoryGenerator {
             // what else ?
         }
     }
+
+/**
+
+Adds a file/directory path to cache key.
+
+
+@param path the file/directory to process
+@param depth  how deep to scan the directory
+
+*/
+	public void recursiveAddKey(File path, int depth) {
+	    if (false);
+	    else if (depth < 1);
+        else if (!isIncluded(path) || isExcluded(path));
+        else if (path.isDirectory()) {
+            if (this.validity != null) this.validity.addFile(path);
+            File contents[] = path.listFiles();
+            for (int i = 0; i < contents.length; i++) {
+                if (isIncluded(contents[i]) && !isExcluded(contents[i])) {
+                    recursiveAddKey(contents[i], depth - 1);
+                }
+            }
+        }
+        else {
+            if (this.validity != null) this.validity.addFile(path);
+        }
+	}
+
     public void addWelcome(File path) throws SAXException {
         if (!path.isDirectory()) return;
         File contents[] = path.listFiles();
@@ -324,6 +355,7 @@ public class MetaDirectoryGenerator extends DirectoryGenerator {
             }
         }
     }
+
     /**
      * <b>Include a meta XML file given by sitemap </b>-
      * 
@@ -348,40 +380,29 @@ public class MetaDirectoryGenerator extends DirectoryGenerator {
                 // absolute cocoon link
                 uri = "cocoon:/" + this.branch + uri;
                 rdf = super.resolver.resolveURI(uri);
-                SourceUtil.toSAX(rdf, new IncludeXMLConsumer(
-                        this.contentHandler));
+                SourceUtil.toSAX(rdf, new IncludeXMLConsumer(this.contentHandler));
             } catch (MalformedURLException e) {
                 getLogger().debug(
-                        "xfolioDirectoryGenerator "
-                                + e.getLocalizedMessage()
-                                + " file:"
-                                + path
-                                + " uri:"
-                                + ObjectModelHelper.getRequest(objectModel)
-                                        .getSitemapURI());
+                        "xfolioDirectoryGenerator " + e.getLocalizedMessage() + " file:" + path + " uri:"
+                            + ObjectModelHelper.getRequest(objectModel).getSitemapURI());
             } catch (IOException e) {
                 getLogger().debug(
-                        "xfolioDirectoryGenerator "
-                                + e.getLocalizedMessage()
-                                + " file:"
-                                + path
-                                + " uri:"
-                                + ObjectModelHelper.getRequest(objectModel)
-                                        .getSitemapURI());
+                        "xfolioDirectoryGenerator " + e.getLocalizedMessage() + " file:" + path + " uri:"
+                            + ObjectModelHelper.getRequest(objectModel).getSitemapURI());
             } catch (ProcessingException e) {
                 getLogger().debug(
-                        "xfolioDirectoryGenerator "
-                                + e.getLocalizedMessage()
-                                + " file:"
-                                + path
-                                + " uri:"
-                                + ObjectModelHelper.getRequest(objectModel)
-                                        .getSitemapURI());
+                        "xfolioDirectoryGenerator " + e.getLocalizedMessage() + " file:" + path + " uri:"
+                            + ObjectModelHelper.getRequest(objectModel).getSitemapURI());
+            } catch (Exception e) {
+                getLogger().debug(
+                        "xfolioDirectoryGenerator " + e.getLocalizedMessage() + " file:" + path + " uri:"
+                            + ObjectModelHelper.getRequest(objectModel).getSitemapURI());
             } finally {
                 if (rdf != null) this.resolver.release(rdf);
             }
         }
     }
+
     private boolean check(String s) {
         return (s != null && !"".equals(s));
     }

@@ -152,6 +152,9 @@ public class SXWGenerator extends FileGenerator implements CacheableProcessingCo
             //      from org.apache.cocoon.transformation.XIncludeTransformer
             SourceUtil.toSAX(super.resolver.resolveURI("zip://meta.xml@" + this.inputSource.getURI()),
                     new IncludeXMLConsumer(this.contentHandler));
+            // useful to get size of page from which calculate relative width of an image 
+            SourceUtil.toSAX(super.resolver.resolveURI("zip://styles.xml@" + this.inputSource.getURI()),
+                    new IncludeXMLConsumer(this.contentHandler));
             SourceUtil.toSAX(super.resolver.resolveURI("zip://content.xml@" + this.inputSource.getURI()),
                     new IncludeXMLConsumer(this.contentHandler));
             
