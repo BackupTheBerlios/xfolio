@@ -359,4 +359,42 @@ this code have to be copy/paste for get mime
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
+<!--
+A basename is a filename without extension
+-->
+  <xsl:template name="getBasename">
+    <xsl:param name="path"/>
+    <xsl:choose>
+      <!-- windows filepath -->
+      <xsl:when test="contains($path, '\')">
+        <xsl:call-template name="getBasename">
+          <xsl:with-param name="path" select="translate($path, '\', '/')"/>
+        </xsl:call-template>
+      </xsl:when>
+      <!-- case of a directory, break here -->
+      <xsl:when test="contains($path, '/') and normalize-space(substring-after($path, '/')) =''"/>
+      <!-- not the end of the path -->
+      <xsl:when test="contains($path, '/')">
+        <xsl:call-template name="getBasename">
+          <xsl:with-param name="path" select="substring-after($path, '/')"/>
+        </xsl:call-template>
+      </xsl:when>
+      <!-- no dot, break here -->
+      <xsl:when test="not(contains($path, '.'))">
+        <xsl:value-of select="$path"/>
+      </xsl:when>
+      <!-- hidden file -->
+      <xsl:when test="starts-with($path, '.')">
+        <xsl:value-of select="$path"/>
+      </xsl:when>
+      <!-- more than one dot, let it ? -->
+      <xsl:when test="contains(substring-after($path, '.'), '.')">
+        <xsl:value-of select="$path"/>
+      </xsl:when>
+      <!-- should be a basename -->
+      <xsl:otherwise>
+        <xsl:value-of select="substring-before($path, '.')"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
 </xsl:transform>

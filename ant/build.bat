@@ -1,23 +1,7 @@
 @echo off
-rem  Copyright 1999-2004 The Apache Software Foundation
-rem
-rem  Licensed under the Apache License, Version 2.0 (the "License");
-rem  you may not use this file except in compliance with the License.
-rem  You may obtain a copy of the License at
-rem
-rem      http://www.apache.org/licenses/LICENSE-2.0
-rem
-rem  Unless required by applicable law or agreed to in writing, software
-rem  distributed under the License is distributed on an "AS IS" BASIS,
-rem  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-rem  See the License for the specific language governing permissions and
-rem  limitations under the License.
-rem
-rem ----------------------------------------------------------------------------
-rem build.bat - Win32 Build Script for Apache Cocoon
-rem
-rem $Id: build.bat,v 1.2 2004/11/02 07:42:32 glorieux Exp $
-rem ----------------------------------------------------------------------------
+rem this script start the xfolio-ant with src (the webfolder) as first argument
+rem good idea is to use it as a shorcut where you are working, and drag and drop
+rem your webfolder on it to make it transformed
 
 rem ----- Ignore system CLASSPATH variable
 set OLD_CLASSPATH=%CLASSPATH%
@@ -27,7 +11,7 @@ rem ----- Use Ant shipped with Cocoon. Ignore installed in the system Ant
 set OLD_ANT_HOME=%ANT_HOME%
 set ANT_HOME=.
 echo webfolder=%1
-call %ANT_HOME%\bin\ant -Dsrc=%1
+call %ANT_HOME%\bin\ant -Dwebfolder=%1
 
 rem ----- Restore ANT_HOME and ANT_OPTS
 set ANT_HOME=%OLD_ANT_HOME%

@@ -1,59 +1,167 @@
 <?xml version="1.0"?>
 <!--
-  Copyright 2003-2004 
-  frederic.glorieux@ajlsm.com
 
-2004-04-27
-An ant driver for different tasks
-For now, do nothing.
+Copyright 2003-2004 ADNX <http://adnx.org>
+frederic.glorieux@ajlsm.com
 
-Should compile some classes
+= WHAT =
 
+Build a website from on organized webfolder of OpenOffice writer docs.
+Long attention have been paid to dependencies and update
+
+= TODO =
+
+Depend update on xslt changes.
 
 = REFERENCES =
-http://home.earthlink.net/~russelllear/WebSvcs.html
+
+ * <http://home.earthlink.net/~russelllear/WebSvcs.html>
+ * "Ant depenset" <http://ant.apache.org/manual/CoreTasks/dependset.html>
 
 
 -->
 <project basedir="." default="test" name="xfolio">
   <taskdef resource="net/sf/antcontrib/antlib.xml"/>
   <!-- the webfolder property properties for this build -->
-  <property name="src" location="../docs"/>
+  <property name="webfolder" location="../docs"/>
   <!-- a delelable work folder where to store enough for caching -->
-  <property name="build" location="${src}-work"/>
+  <property name="website" location="${webfolder}-website"/>
   <!-- the target website folder -->
-  <property name="dist" location="${src}-website"/>
+  <property name="dist" location="${webfolder}-dist"/>
+  <!-- the skin folder to copy to root site -->
+  <property name="skin" location="skin/xfolio.org"/>
   <!-- 
 
 dev target.
 
 -->
-  <target name="test" depends="build, dist"/>
+  <target name="test" depends="init, build, directory"/>
+  <!--
+init target
+-->
+  <target name="init">
+    <mkdir dir="${website}"/>
+  </target>
   <!-- 
 
 build target.
 
 -->
   <target name="build">
-    <echo>src=${src}</echo>
-    <echo>build=${build}</echo>
-    <!-- copy sxw files in work -->
-    <copy todir="${build}">
-      <fileset dir="${src}" includes="**/*.sxw"/>
+    <echo>Your source webfolder ${webfolder}</echo>
+    <echo>Your target website ${website}</echo>
+    <!-- copy the skin directory -->
+    <copy todir="${website}/skin">
+      <fileset dir="${skin}"/>
     </copy>
-    <foreach target="OOoWriter" param="file">
-      <fileset dir="${build}" includes="**/*.sxw"/>
+    <foreach target="delete" param="file">
+      <path>
+        <fileset dir="${website}" includes="**/*.sxw">
+          <include name="**/*.sxw"/>
+          <exclude name="skin/*.sxw"/>
+          <present present="srconly" targetdir="${webfolder}"/>
+        </fileset>
+      </path>
     </foreach>
+    <!-- do tasks for sxw files -->
+    <copy todir="${website}">
+      <fileset dir="${webfolder}" includes="**/*.sxw"/>
+    </copy>
+    <foreach target="sxw" param="file">
+      <path>
+        <fileset dir="${website}">
+          <include name="**/*.sxw"/>
+          <exclude name="skin/*.sxw"/>
+          <depend targetdir="${website}">
+            <!-- only for files newer than the directory  -->
+            <mapper type="merge" to="toc.ant"/>
+          </depend>
+        </fileset>
+      </path>
+    </foreach>
+    <!-- jpeg -->
+    <copy todir="${website}">
+      <fileset dir="${webfolder}" includes="**/*.jpg"/>
+    </copy>
+    <foreach target="jpeg" param="file">
+      <path>
+        <!-- TODO better! -->
+        <fileset dir="${website}" includes="**/*.jpg">
+          <depend targetdir="${website}">
+            <!-- only for files newer than the directory  -->
+            <mapper type="merge" to="toc.ant"/>
+          </depend>
+        </fileset>
+      </path>
+    </foreach>
+  </target>
+  <!--
+Delete files from build and dist when deleted from src
+-->
+  <target name="delete">
+    <!-- get a relative path -->
+    <pathconvert targetos="unix" property="path">
+      <path>
+        <pathelement location="${file}"/>
+      </path>
+      <map from="${website}" to=""/>
+      <mapper type="regexp" from="(.*)\.(.*)$$" to="\1"/>
+    </pathconvert>
+    <echo>delete ${path}</echo>
+    <dirname property="build.dir" file="${website}${path}"/>
+    <basename property="build.name" file="${path}"/>
+    <echo>name "${build.name}"</echo>
+    <echo>dir "${build.dir}"</echo>
+    <delete>
+      <fileset dir="${build.dir}">
+        <include name="${build.name}*"/>
+      </fileset>
+    </delete>
+    <!-- MAYDO more generic one day with dirset -->
+    <delete dir="${website}${path}"/>
+  </target>
+  <!--
+work on a jpeg file
+-->
+  <target name="jpeg">
+    <!-- an extract xmp task -->
+  </target>
+  <!--
+list files in src
+-->
+  <target name="directory">
+    <echo file="${website}/toc.ant">&lt;directory&gt;</echo>
+    <for param="file">
+      <path>
+        <fileset dir="${webfolder}">
+          <exclude name="**/Thumbs.db"/>
+        </fileset>
+      </path>
+      <sequential>
+        <echo file="${website}/toc.ant" append="true">
+  &lt;file path="@{file}"/&gt;</echo>
+      </sequential>
+    </for>
+    <echo file="${website}/toc.ant" append="true">
+&lt;/directory&gt;</echo>
   </target>
   <!-- 
 
 sxw files, do job "foreach" in build
 
 -->
-  <target name="OOoWriter">
+  <target name="sxw">
+    <!-- get a relative path -->
+    <pathconvert targetos="unix" property="path">
+      <path>
+        <pathelement location="${file}"/>
+      </path>
+      <map from="${website}" to=""/>
+      <mapper type="regexp" from="(.*)\.(.*)$$" to="\1"/>
+    </pathconvert>
     <unzip src="${file}" dest="${file}!"/>
-    <!-- aggregate OO doc -->
-    <xslt in="${file}!/content.xml" out="${file}.OOo" style="transform/OOo/sxw2sxw.xsl">
+    <!-- aggregate OO doc, force because the  *.xml in sxw are not updated-->
+    <xslt force="true" in="${file}!/content.xml" out="${website}${path}.oo" style="transform/OOo/sxw2sxw.xsl">
       <xmlcatalog>
         <dtd publicId="-//OpenOffice.org//DTD OfficeDocument 1.0//EN" location="schema/dummy.dtd"/>
       </xmlcatalog>
@@ -61,62 +169,21 @@ sxw files, do job "foreach" in build
       <param name="styles.xml" expression="styles.xml"/>
     </xslt>
     <!-- extract meta for an RDF -->
-    <xslt in="${file}.OOo" out="${file}.rdf" style="transform/OOo/sxw2rdf.xsl"/>
-    <!-- a quite nice text version -->
-    <xslt in="${file}.OOo" out="${file}.txt" style="transform/OOo/sxw2txt.xsl"/>
-    <!-- an clean xhtml without navigation -->
-    <xslt in="${file}.OOo" out="${file}.xhtml" style="transform/OOo/sxw2html.xsl">
+    <xslt in="${website}${path}.oo" out="${website}${path}.rdf" style="transform/OOo/sxw2rdf.xsl">
       <param name="path" expression="${file}"/>
     </xslt>
+    <!-- a quite nice text version -->
+    <xslt in="${website}${path}.oo" out="${website}${path}.txt" style="transform/OOo/sxw2txt.xsl"/>
+    <!-- an clean xhtml without navigation -->
+    <xslt in="${website}${path}.oo" out="${website}${path}.xhtml" style="transform/OOo/sxw2html.xsl">
+      <param name="path" expression="${path}"/>
+      <param name="css" expression="/skin/html.css"/>
+    </xslt>
     <!-- flatten pictures -->
-    <copy todir="${file}!">
+    <copy todir="${website}${path}">
       <fileset dir="${file}!/Pictures"/>
     </copy>
-  </target>
-  <!-- 
-
-copy/rename from build to dist
-
--->
-  <target name="dist" depends="build">
-        <mkdir dir="${dist}"/>
-    <echo>dist=${dist}</echo>
-
-    <!-- copy src to dist -->
-    <copy todir="${dist}">
-      <fileset dir="${src}">
-        <exclude name="**/Thumbs.db"/>
-      </fileset>
-    </copy>
-    <!-- rdf - copy-rename from build to dist -->
-    <copy todir="${dist}">
-      <fileset dir="${build}" >
-        <include name="**/*.sxw.rdf"/>
-      </fileset>
-      <mapper type="glob" from="*.sxw.rdf" to="*.rdf"/>
-    </copy>
-    <!-- txt - copy-rename txt files -->
-    <copy todir="${dist}">
-      <fileset dir="${build}" >
-        <include name="**/*.sxw.txt"/>
-      </fileset>
-      <mapper type="glob" from="*.sxw.txt" to="*.txt"/>
-    </copy>
-    <!-- images - copy and rename -->
-    <copy todir="${dist}">
-      <fileset dir="${build}" >
-        <exclude name="**/*.xml"/>
-        <include name="**/*.sxw!/*.*"/>
-      </fileset>
-      <mapper type="regexp" from="^(.*).sxw!(.*)$" to="\1\2"/>    
-    </copy>
-    <!-- copy all sources -->
-    <copy todir="${dist}">
-      <fileset dir="${build}" >
-        <include name="**/*.sxw.xhtml"/>
-      </fileset>
-      <mapper type="glob" from="*.sxw.xhtml" to="*.xhtml"/>
-    </copy>
-  
+    <!-- unzip folder should be deletable -->
+    <delete dir="${file}!"/>
   </target>
 </project>

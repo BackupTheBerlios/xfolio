@@ -40,10 +40,16 @@ index terms ?
   <xsl:param name="encoding" select="document('')/*/xsl:output/@encoding"/>
   <!-- ?? parameter provided by the xhtml xsl pack of sun -->
   <xsl:param name="dpi" select="120"/>
-  <!-- parent URI -->
-  <xsl:param name="context"/>
-  <!-- css link -->
+  <!-- link to a css file -->
   <xsl:param name="css"/>
+  <xsl:param name="css-">
+    <xsl:call-template name="getRelative">
+      <xsl:with-param name="from" select="$path"/>
+      <xsl:with-param name="to" select="$css"/>
+    </xsl:call-template>
+  </xsl:param>
+  <!-- link to a js file -->
+  <xsl:param name="js"/>
   <!-- validation -->
   <xsl:param name="validation"/>
   <!-- title numbering -->
@@ -66,8 +72,8 @@ index terms ?
             <xsl:value-of select="$encoding"/>
           </xsl:attribute>
         </meta>
-        <xsl:if test="$css">
-          <link rel="stylesheet" href="{$css}"/>
+        <xsl:if test="$css-">
+          <link rel="stylesheet" href="{$css-}"/>
         </xsl:if>
         <style type="text/css">
 	table.img { border:1px solid; }

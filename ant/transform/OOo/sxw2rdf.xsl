@@ -340,7 +340,7 @@ Process document to extract DC properties
       <xsl:apply-templates select="." mode="text-foot"/>
     </dc:source>
   </xsl:template>
-  <!-- process bibliographic attributes as attributes -->
+  <!-- process bibliographic attributes as dc:attributes -->
   <xsl:template match="@*" mode="dc"/>
   <xsl:template match="@text:identifier" mode="dc">
     <xsl:attribute name="dc:identifier">
@@ -415,10 +415,10 @@ TODO:2004-05-11 better integration ?
       <xsl:value-of select="//text:sender-email"/>
     </xsl:if>
   </xsl:template>
-  <!-- give size of a doc in different units, tooken from
+  <!-- give size of a doc in different units, taken from
 		<meta:document-statistic meta:table-count="1" meta:image-count="0" meta:object-count="0" meta:page-count="11" meta:paragraph-count="326" meta:word-count="3405" meta:character-count="23617"/>
 	-->
-  <xsl:template match="meta:document-statistic">
+  <xsl:template match="meta:document-statistic" mode="dc">
     <dc:format xsi:type="meta:{local-name()}">
       <xsl:call-template name="lang"/>
       <xsl:value-of select="@meta:page-count"/>

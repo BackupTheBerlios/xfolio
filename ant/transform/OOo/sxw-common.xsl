@@ -16,9 +16,9 @@ Needs a naming.xsl import
   <xsl:import href="naming.xsl"/>
   <!-- a path that could give the caller (? extracted from the doc ?) -->
   <xsl:param name="path"/>
-  <!-- folder where to find pictures -->
+  <!-- folder where to find pictures (could try a radical?) -->
   <xsl:param name="pictures">
-    <xsl:call-template name="getRadical">
+    <xsl:call-template name="getBasename">
       <xsl:with-param name="path" select="$path"/>
     </xsl:call-template>
     <xsl:text>/</xsl:text>
