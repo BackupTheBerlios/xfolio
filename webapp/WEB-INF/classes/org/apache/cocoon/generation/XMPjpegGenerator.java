@@ -119,7 +119,7 @@ public class XMPjpegGenerator extends ServiceableGenerator
     protected Source         inputSource;
     protected InputStream    in;
     /**
-     * @version $Revision: 1.3 $
+     * @version $Revision: 1.1 $
      * @author Benoît Mahé (bmahe@w3.org)
      */
     /* Start Of Frame N. */

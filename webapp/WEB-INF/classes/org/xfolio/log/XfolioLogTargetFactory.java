@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.forrest.log;
+package org.xfolio.log;
 
 import org.apache.avalon.framework.context.Context;
 import org.apache.avalon.framework.context.ContextException;
 import org.apache.avalon.framework.context.DefaultContext;
 import org.apache.cocoon.util.log.CocoonTargetFactory;
-import org.apache.forrest.conf.ForrestConfUtils;
 /**
  * CocoonTargetFactory that uses the project build dir for normal Forrest processing.
  *
  * <p>The syntax of "format" is the same as in <code>CocoonTargetFactory</code>.</p>
  */
-public class ForrestLogTargetFactory
+public class XfolioLogTargetFactory
     extends CocoonTargetFactory {
         
     /**
@@ -37,14 +36,11 @@ public class ForrestLogTargetFactory
         Context currentContext = context;
         
         try {
-            String projectHome = ForrestConfUtils.getProjectHome();
-            if(!projectHome.equals(ForrestConfUtils.defaultHome)){
                 DefaultContext newContext = new DefaultContext(context);
-                newContext.put("context-root",projectHome + "/build/webapp");
+                newContext.put("context-root", "C:\\xfolio\\test\\log");
                 currentContext = newContext;
-            }
         } catch (Exception e) {
-            throw new ContextException("Error getting forrest.home java property.",e);
+            throw new ContextException("Impossible to get and write a log.",e);
         }
         super.contextualize( currentContext );
     }
