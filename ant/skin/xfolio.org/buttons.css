@@ -1,0 +1,40 @@
+/*
+
+	creation:
+		2002
+	modified:
+		2004-04-05
+	creator:
+		frederic.glorieux@ajlsm.com
+	goal:
+		This is a specific stylesheet for svg buttons
+	history:
+		The code was originally embed in an SVG file.
+		It seems easier to edit separately
+		Is a part of the test skin of XFolio
+  rights :
+    (c)ajlsm.com
+    http://www.gnu.org/copyleft/gpl.html
+  TODO:
+    test more, try to define a max from here
+
+
+*/
+
+/*
+Don't work, need to be set directly in the source <svg/> element
+*/
+
+
+/*
+url("./buttons.svg#ridge") bug with Adobe
+*/
+    .symbol { fill:#000000; filter:none;}
+	.bg { display:none;} 
+	.border { stroke:#666699; display:block; filter:url("buttons.svg#inset");}
+    .over .symbol {fill:#000000;filter:url("buttons.svg#inset");}
+	.over .border { display:none; }
+	.over .bg { display:block; fill:#FFFFCC;filter:url("buttons.svg#bump");}
+    .click .bg { display:block;fill:red;}
+    .click .symbol {fill:#FFFFCC;filter:url("buttons.svg#ridge");}
+	.click .border {display:none;}

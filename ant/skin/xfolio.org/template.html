@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+(c) 2003, 2004 xfolio.org, [http://www.ajlsm.com AJLSM], [http://www.strabon.org Strabon] , [http://www.eumedis.net eumedis].
+Licence :  [http://www.apache.org/licenses/LICENSE-2.0 Apache].
+
+= WHAT =
+
+How to display text documents in a more fancy web layout ? The templates !
+Best process could be, tell your designer to produce the HTML page
+he likes, and ask him (or do it) to put tags code where he wants the text and 
+also, different widgets that the engine can provide (navigation, searching
+and so on).
+
+= HOW =
+
+TODO: 
+html or xhtml ?
+a namespace or a matcher like @id ?
+
+= WHO =
+
+
+
+= CHANGES =
+
+2004-02-17
+2004-06-10
+
+frederic.glorieux@ajlsm.com
+
+
+
+	syntax:
+The included parts are expressed in a very simple namespace
+
+	history:
+Come from an xsl becoming a bit too complex to be simple editable layout.
+
+	MAYDO:
+A more configurable taglib, for example to choose which meta to display
+in menu or with images.
+
+-->
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+    <!-- default html style -->
+		<link rel="stylesheet" type="text/css" href="html.css" />
+		<link rel="stylesheet" type="text/css" href="layout.css" />
+		<script type="text/javascript" src="html.js"> </script>
+  </head>
+  <body onload="if(window.init) init();" onunload="//alert(window.parent)" onresize="if (window.fit) fit(80)">
+    <div id="navbar">Navbar</div>
+    <div id="article">Article</div>
+  </body>
+</html>
