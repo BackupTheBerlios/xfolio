@@ -1,3 +1,18 @@
+/*
+ * Copyright 1999-2004 The Apache Software Foundation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.cocoon.generation;
 
 import java.io.ByteArrayOutputStream;
@@ -27,6 +42,8 @@ import org.xml.sax.helpers.AttributesImpl;
 Copyright (C) xfolio.org 
 
 = WHAT =
+
+http://cvs.berlios.de/cgi-bin/viewcvs.cgi/xfolio/webapp/WEB-INF/classes/org/apache/cocoon/generation/XMPjpegGenerator.java
 
 The XMPjpegGenerator extracts [XMP] from a jpeg file. This AdobeTM XML can
 encode metadatas like title, author, description... This schema implements an
@@ -60,9 +77,10 @@ In your sitemap, declare and use the component
 
 Persons in historic order, but not of importance
 
-[FG] Glorieux, Frédéric [AJLSM] Integration of W3C classes as a cocoon generator 
+[FG] FredericGlorieux AJLSM <http://ajlsm.com> for Strabon <http://strabon.org>
+ Integration of W3C classes as a cocoon generator 
 
-[PD] Dittgen, Pierre [PassTech] Refactoring W3C classes 
+[PD] Dittgen, Pierre PassTech <http://pass-tech.fr/> Refactoring W3C classes 
 
 [nwalsh] Walsh, Norman Seems the most active maintener of jpeg metadata classes in his [jpegrdf] project 
 
@@ -72,7 +90,7 @@ Persons in historic order, but not of importance
 
 = REFERENCES =
 
-[xmpJpegGenerator] http://cvs.berlios.de/cgi-bin/viewcvs.cgi/xfolio/webapp/WEB-INF/classes/org/cocoon/generation/ 
+[xmpJpegGenerator] http://cvs.berlios.de/cgi-bin/viewcvs.cgi/xfolio/webapp/WEB-INF/classes/org/apache/cocoon/generation/XMPjpegGenerator.java
 
 [fileGenerator] http://cocoon.apache.org/2.1/apidocs/org/apache/cocoon/generation/FileGenerator.html
 
@@ -119,7 +137,7 @@ public class XMPjpegGenerator extends ServiceableGenerator
     protected Source         inputSource;
     protected InputStream    in;
     /**
-     * @version $Revision: 1.1 $
+     * @version $Revision: 1.2 $
      * @author Benoît Mahé (bmahe@w3.org)
      */
     /* Start Of Frame N. */
