@@ -48,6 +48,7 @@ same logic as css for a js file, but without default value
       <xsl:when test="processing-instruction('js')">
         <xsl:value-of select="processing-instruction('js')"/>
       </xsl:when>
+      <xsl:otherwise>html.js</xsl:otherwise>
     </xsl:choose>
   </xsl:param>
   <!--
