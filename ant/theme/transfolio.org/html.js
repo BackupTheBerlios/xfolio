@@ -65,6 +65,8 @@ Maintain a fixed number of character on the width of the window
 
 // normal pixel height
 var fontSizeNormal=16;
+// mini pixel height
+var fontSizeMini=12;
 var widthDefault=80;
 if ( document.getElementById && !document.all ) var fontSizeNormal=12; // may be mozilla
 
@@ -82,7 +84,7 @@ function fit(ex) {
   if (!ex) var ex=widthDefault;
   // default ratio between ex and em 
   fontSizeFit=Math.floor((width/ex)*1.2);
-  fontSizeFit=(fontSizeFit < 10)?10:fontSizeFit;
+  fontSizeFit=(fontSizeFit < fontSizeMini)?fontSizeMini:fontSizeFit;
   //ratio=Math.round ( fontSizeFit / fontSizeNormal  * 100);
   // set a minimum ratio under which the page may be unreadable
   //ratio=(ratio < 50)?50:ratio;

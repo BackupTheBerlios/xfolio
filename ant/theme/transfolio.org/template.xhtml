@@ -55,7 +55,7 @@ in menu or with images.
 		<!-- script to fit char size to window size -->
 		<script type="text/javascript" src="html.js"> </script>
   </head>
-  <body onload="if(window.init) init(); " onresize="if (window.fit) fit(80)">
+  <body onload="if(window.init) init(60); " onresize="if (window.fit) fit(60)">
     <table id="bar" width="100%" cellpadding="2" cellspacing="0" border="0">
       <tr>
 <td>&#160;&#160;&#160;&#160;</td>
@@ -65,7 +65,14 @@ in menu or with images.
 <td valign="bottom"><a href="up" class="but"><img src="icons/up.gif"  alt="^" border="0"/></a></td>
 <td valign="bottom"><a href="next" class="but"><img src="icons/next.gif" alt="&gt;" border="0"/></a></td>
 -->
-<td width="100%" valign="bottom" align="right"> transfolio.org &#160; </td>
+<!-- put inside a clicable link for the resource -->
+<!--
+<td id="path" nowrap="nowrap">Path</td>
+-->
+<!-- put inside a select for alternate formats -->
+<td>Formats&#160;</td>
+<td id="formats">??</td>
+<td width="100%" valign="bottom" align="right"> <a href="http://transfolio.org/">transfolio.org</a> &#160; </td>
       </tr>
     </table>
     <table width="100%" cellpadding="5">
