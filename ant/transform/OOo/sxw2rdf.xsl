@@ -47,24 +47,23 @@ http://www.w3.org/TR/xhtml2/abstraction.html#dt_MediaDesc
 
 -->
 <xsl:transform version="1.1" xmlns:style="http://openoffice.org/2000/style" xmlns:text="http://openoffice.org/2000/text" xmlns:office="http://openoffice.org/2000/office" xmlns:table="http://openoffice.org/2000/table" xmlns:draw="http://openoffice.org/2000/drawing" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="http://openoffice.org/2000/meta" xmlns:number="http://openoffice.org/2000/datastyle" xmlns:svg="http://www.w3.org/2000/svg" xmlns:chart="http://openoffice.org/2000/chart" xmlns:dr3d="http://openoffice.org/2000/dr3d" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="http://openoffice.org/2000/form" xmlns:script="http://openoffice.org/2000/script" xmlns:config="http://openoffice.org/2001/config" office:class="text" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" exclude-result-prefixes="office table number fo xlink chart math script xsl draw svg dr3d form config">
-  <!--
-  <xsl:import href="../xfolio/naming.xsl"/>
-  <xsl:import href="oo2html.xsl"/>
--->
   <!-- naming util on filenames -->
-  <xsl:import href="naming.xsl"/>
+  <xsl:import href="sxw-common.xsl"/>
+  <xsl:import href="sxw2txt.xsl"/>
   <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
   <!-- maydo, get an RDF template for absent properties -->
   <xsl:param name="template.rdf"/>
   <xsl:variable name="office:meta" select=".//office:meta"/>
   <xsl:variable name="office:automatic-styles" select=".//office:automatic-styles"/>
   <xsl:variable name="office:body" select=".//office:body"/>
-  <xsl:variable name="template"/>
   <!-- used to resolve links for images (?) -->
   <!-- identifier for doc in all formats -->
-  <xsl:param name="identifier"/>
+  <xsl:param name="path"/>
   <!-- extensions from which a transformation is expected -->
   <xsl:param name="extensions"/>
+  <!-- Carriage return, can't understand why but this one works better than the one in sxw2txt.xsl -->
+  <xsl:param name="CR">&#160;
+</xsl:param>
   <!-- 
 FG:2004-06-10
 
@@ -79,9 +78,9 @@ FG:2004-06-10
 
 	-->
   <xsl:param name="language">
-    <xsl:if test="$identifier">
+    <xsl:if test="$path">
       <xsl:call-template name="getLang">
-        <xsl:with-param name="path" select="$identifier"/>
+        <xsl:with-param name="path" select="$path"/>
       </xsl:call-template>
     </xsl:if>
   </xsl:param>
@@ -96,19 +95,6 @@ FG:2004-06-10
       </xsl:otherwise>
     </xsl:choose>
   </xsl:param>
-  <xsl:param name="publisher"/>
-  <xsl:param name="copyright"/>
-  <!-- in case of more precise typing -->
-  <xsl:param name="type" select="'text'"/>
-  <!-- 
-These variables are used to normalize style names of styles
--->
-  <xsl:variable name="majs" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöùúûüýÿþ .()/\?'"/>
-  <xsl:variable name="mins" select="'abcdefghijklmnopqrstuvwxyzaaaaaaaeeeeiiiidnooooouuuuybbaaaaaaaceeeeiiiionooooouuuuyyb------'"/>
-  <!--
-
-
--->
   <xsl:template match="/">
     <xsl:call-template name="rdf"/>
   </xsl:template>
@@ -130,7 +116,7 @@ Properties are ordered in this template
   <xsl:template name="dc:properties">
     <!-- process properties from meta form (office:meta) more significant than in doc -->
     <!-- first title, get the one one from meta (to be a short title) -->
-    <xsl:apply-templates select="$office:meta/dc:title"  mode="dc"/>
+    <xsl:apply-templates select="$office:meta/dc:title" mode="dc"/>
     <xsl:apply-templates select="$office:meta/dc:subject" mode="dc"/>
     <xsl:apply-templates select="$office:meta/meta:keywords" mode="dc"/>
     <xsl:apply-templates select="$office:meta/meta:user-defined" mode="dc"/>
@@ -151,21 +137,17 @@ $office:body/*[generate-id(following-sibling::text:h[1]) = generate-id($next)]
       </xsl:otherwise>
     </xsl:choose>
     <dc:description xsi:type="text:table-of-content">
-      <xsl:apply-templates select="$office:body//text:h" mode="text"/>
+      <xsl:apply-templates select="$office:body/text:h" mode="text-toc"/>
     </dc:description>
     <!-- relations -->
-    <xsl:apply-templates select="$office:body//text:bibliography-mark" mode="dc"/>
+    <xsl:apply-templates select="$office:body//text:bibliography-mark[not(@text:identifier = following::text:bibliography-mark/@text:identifier)]" mode="dc">
+      <xsl:sort select="@text:identifier"/>
+    </xsl:apply-templates>
     <xsl:apply-templates select="$office:body//draw:image" mode="dc"/>
     <!-- dates -->
     <xsl:apply-templates select="$office:meta/dc:date" mode="dc"/>
     <xsl:apply-templates select="$office:meta/meta:creation-date" mode="dc"/>
-    <!-- server give an identifier for the doc, common to each lang and format -->
-    <xsl:if test="$identifier">
-      <dc:identifier>
-        <xsl:call-template name="lang"/>
-        <xsl:value-of select="$identifier"/>
-      </dc:identifier>
-    </xsl:if>
+    <!-- TODO identifier -->
     <!-- mime/type  -->
     <dc:format xsi:type="dcterms:IMT">application/vnd.sun.xml.writer</dc:format>
     <!-- format as size -->
@@ -215,21 +197,20 @@ Properties from meta.xml
     </dc:description>
   </xsl:template>
   <!-- dates -->
-  <xsl:template match="meta:creation-date | dc:date"  mode="dc">
+  <xsl:template match="meta:creation-date | dc:date" mode="dc">
     <dc:date xsi:type="meta:{local-name()}">
       <xsl:call-template name="lang"/>
       <xsl:value-of select="substring-before(.,'T')"/>
     </dc:date>
   </xsl:template>
   <!-- meta user defined when not empty -->
-  <xsl:template match="meta:user-defined[normalize-space(.)='']"  mode="dc"/>
-  <xsl:template match="meta:user-defined[not(contains(@meta:name, 'Info'))]"  mode="dc">
-  
+  <xsl:template match="meta:user-defined[normalize-space(.)='']" mode="dc"/>
+  <xsl:template match="meta:user-defined[not(contains(@meta:name, 'Info'))]" mode="dc">
     <xsl:element name="{translate(@meta:name, $majs, $mins)}">
       <xsl:value-of select="."/>
     </xsl:element>
   </xsl:template>
-  <xsl:template match="meta:user-defined"  mode="dc">
+  <xsl:template match="meta:user-defined" mode="dc">
     <xsl:choose>
       <xsl:when test="starts-with(., 'location:')">
         <dc:coverage xsi:type="gns:ufi">
@@ -321,23 +302,7 @@ Process document to extract DC properties
   <xsl:template match="draw:image" mode="dc">
     <xsl:variable name="path" select="@xlink:href"/>
     <xsl:variable name="link">
-      <xsl:choose>
-        <!-- rewrite internal image links -->
-        <xsl:when test="contains($path, '#Pictures/')">
-          <xsl:value-of select="$identifier"/>
-          <xsl:text>.sxw/</xsl:text>
-          <xsl:value-of select="substring-after($path, '#')"/>
-        </xsl:when>
-        <xsl:when test="not(contains($path, 'http://'))">
-          <xsl:call-template name="getParent">
-            <xsl:with-param name="path" select="$identifier"/>
-          </xsl:call-template>
-          <xsl:value-of select="$path"/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="$path"/>
-        </xsl:otherwise>
-      </xsl:choose>
+      <xsl:apply-templates select="@xlink:href"/>
     </xsl:variable>
     <dc:relation>
       <xsl:attribute name="dc:format">
@@ -368,89 +333,53 @@ Process document to extract DC properties
   </xsl:template>
   -->
   <!-- links TODO ! -->
-  
   <!--  bibliography  -->
   <xsl:template match="text:bibliography-mark" mode="dc">
     <dc:source xsi:type="text:bibliography-mark">
-      <xsl:apply-templates select="@*" mode="att"/>
+      <xsl:apply-templates select="@*" mode="dc"/>
       <xsl:apply-templates select="." mode="text"/>
     </dc:source>
   </xsl:template>
-  <!-- process bibliographic attributes as pure text -->
-  <xsl:template match="text:bibliography-mark" mode="text">
-    <xsl:apply-templates select="@text:identifier" mode="text"/>
-    <xsl:apply-templates select="@text:author" mode="text"/>
-    <xsl:apply-templates select="@text:title" mode="text"/>
-    <xsl:apply-templates select="@text:year" mode="text"/>
-    <xsl:apply-templates select="@text:publisher" mode="text"/>
-    <xsl:apply-templates select="@text:url" mode="text"/>
-  </xsl:template>
-  <xsl:template match="@*" mode="text"/>
-  <xsl:template match="@text:identifier" mode="text">
-    <xsl:text>[</xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
-    <xsl:text>] </xsl:text>
-  </xsl:template>
-  <xsl:template match="@text:author" mode="text">
-    <xsl:value-of select="normalize-space(.)"/>
-    <xsl:text>. </xsl:text>
-  </xsl:template>
-  <xsl:template match="@text:title" mode="text">
-    <xsl:text>"</xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
-    <xsl:text>" </xsl:text>
-  </xsl:template>
-  <xsl:template match="@text:year" mode="text">
-    <xsl:value-of select="normalize-space(.)"/>
-    <xsl:text>, </xsl:text>
-  </xsl:template>
-  <xsl:template match="@text:publisher" mode="text">
-    <xsl:value-of select="normalize-space(.)"/>
-    <xsl:text>. </xsl:text>
-  </xsl:template>
-  <xsl:template match="@text:url" mode="text">
-    <xsl:text>&lt;</xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
-    <xsl:text>&gt; </xsl:text>
-  </xsl:template>
   <!-- process bibliographic attributes as attributes -->
-  <xsl:template match="@*" mode="att"/>
-  <xsl:template match="@text:identifier" mode="att">
+  <xsl:template match="@*" mode="dc"/>
+  <xsl:template match="@text:identifier" mode="dc">
     <xsl:attribute name="dc:identifier">
       <xsl:value-of select="normalize-space(.)"/>
     </xsl:attribute>
   </xsl:template>
-  <xsl:template match="@text:isbn" mode="att">
+  <!-- better than the author identifier ?
+  <xsl:template match="@text:isbn" mode="dc">
     <xsl:attribute name="dc:identifier">
       <xsl:value-of select="normalize-space(.)"/>
     </xsl:attribute>
   </xsl:template>
-  <xsl:template match="@text:title" mode="att">
+-->
+  <xsl:template match="@text:title" mode="dc">
     <xsl:attribute name="dc:title">
       <xsl:value-of select="normalize-space(.)"/>
     </xsl:attribute>
   </xsl:template>
-  <xsl:template match="@text:author" mode="att">
+  <xsl:template match="@text:author" mode="dc">
     <xsl:attribute name="dc:creator">
       <xsl:value-of select="normalize-space(.)"/>
     </xsl:attribute>
   </xsl:template>
-  <xsl:template match="@text:publisher" mode="att">
+  <xsl:template match="@text:publisher" mode="dc">
     <xsl:attribute name="dc:publisher">
       <xsl:value-of select="normalize-space(.)"/>
     </xsl:attribute>
   </xsl:template>
-  <xsl:template match="@text:year" mode="att">
+  <xsl:template match="@text:year" mode="dc">
     <xsl:attribute name="dc:date">
       <xsl:value-of select="normalize-space(.)"/>
     </xsl:attribute>
   </xsl:template>
-  <xsl:template match="@text:url" mode="att">
+  <xsl:template match="@text:url" mode="dc">
     <xsl:attribute name="rdf:resource">
       <xsl:value-of select="normalize-space(.)"/>
     </xsl:attribute>
   </xsl:template>
-  <xsl:template match="@text:note" mode="att">
+  <xsl:template match="@text:note" mode="dc">
     <xsl:attribute name="dc:description">
       <xsl:value-of select="normalize-space(.)"/>
     </xsl:attribute>
@@ -548,66 +477,6 @@ From a param provide by server of other supported export formats,
 Formatting of values
 
        ============================== -->
-  <xsl:template match="text:h" mode="text">
-    <xsl:text>
-</xsl:text>
-    <xsl:value-of select="substring('                         ', 1, number(@text:level) * 2)"/>
-    <xsl:variable name="number">
-      <xsl:apply-templates select="." mode="number"/>
-    </xsl:variable>
-    <xsl:value-of select="$number"/>
-    <xsl:text>. </xsl:text>
-    <xsl:value-of select="."/>
-  </xsl:template>
-    <!-- get title number for anchor and links 
-recursive numbering
--->
-  <xsl:template match="text:h" name="count-h" mode="number">
-    <xsl:param name="level" select="1"/>
-    <xsl:param name="number"/>
-    <!--
-Really tricky to find the good counter with no hierarchy.
-count all brothers 
-
-  $start    ) try to get the parent title (if not you are at level 1)
-  $position ) find a property easy to compare from outside, count of brothers before (position)
-  $count    ) count brother title before to same level, but after start
--->
-    <xsl:variable name="start" select="
-    
-preceding-sibling::text:h[@text:level=($level - 1)][normalize-space(.)!=''][1]
-"/>
-    <xsl:variable name="position" select="count($start/preceding-sibling::*)+1"/>
-    <xsl:variable name="count">
-      <xsl:choose>
-        <xsl:when test="$start">
-          <xsl:value-of select="count(preceding-sibling::text:h[normalize-space(.)!=''][@text:level=$level and count(preceding-sibling::*) +1 &gt;$position])
-    "/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="count(preceding-sibling::text:h[@text:level=$level][normalize-space(.)!=''])
-    "/>
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:variable>
-    <xsl:choose>
-      <xsl:when test="@text:level = $level">
-        <xsl:value-of select="$count + 1"/>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:variable name="parent" select="preceding-sibling::text:h[@text:level = $level][normalize-space(.)!=''][1]"/>
-        <a tabindex="-1" href="#{$number}{$count}" title="{$parent}">
-          <xsl:value-of select="$count"/>
-        </a>
-        <xsl:text>.</xsl:text>
-        <xsl:call-template name="count-h">
-          <xsl:with-param name="level" select="$level+1"/>
-          <xsl:with-param name="number" select="concat($number, $count, '.')"/>
-        </xsl:call-template>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-
   <!-- call this from an element you presume to contain a persname value -->
   <xsl:template name="persname">
     <!-- copy the first link in creator -->
@@ -649,17 +518,6 @@ preceding-sibling::text:h[@text:level=($level - 1)][normalize-space(.)!=''][1]
     <xsl:apply-templates select="@xlink:href" mode="text"/>
     <xsl:text>&gt;</xsl:text>
   </xsl:template>
-  <!-- some link rewriting, should do better -->
-  <xsl:template match="@xlink:href" mode="text">
-    <xsl:choose>
-      <xsl:when test="starts-with(., 'mailto:') and contains(., '?')">
-        <xsl:value-of select="substring-after(substring-before(., '?'), 'mailto:')"/>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:value-of select="."/>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
   <!--
 A centralized template to add @xml:lang attribute
 -->
@@ -670,63 +528,4 @@ A centralized template to add @xml:lang attribute
       </xsl:attribute>
     </xsl:if>
   </xsl:template>
-  <!--
-
-	get a semantic style name 
-	 - CSS compatible (no space, all min) 
-	 - from automatic styles 
-
--->
-  <xsl:template match="@text:style-name | @draw:style-name | @draw:text-style-name | @table:style-name">
-    <xsl:variable name="current" select="."/>
-    <xsl:choose>
-      <xsl:when test="
-//office:automatic-styles/style:style[@style:name = $current]
-">
-        <!-- can't understand why but sometimes there's a confusion 
-				between automatic styles with footer, same for header, fast patch here -->
-        <xsl:value-of select="
-translate(//office:automatic-styles/style:style[@style:name = $current][@style:parent-style-name!='Header'][@style:parent-style-name!='Footer']/@style:parent-style-name
-, $majs, $mins)
-"/>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:value-of select="translate($current , $majs, $mins)"/>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-  <!-- snippets to include
-  <xsl:template match="tests" xmlns:date="xalan://java.util.Date" xmlns:encoder="xalan://java.net.URLEncoder"
-     <xsl:value-of select="encoder:encode(string(test))"/>
-     <xsl:value-of select="date:new()" />
-  </xsl:template>
-  -->
-  <!-- default, keep meta section in normal processing -->
-  <!-- try to catch paragraphs for meta, matching is complex
-  because of lots of possible template implementation -->
-  <!--
-  <xsl:template match="text:section[@text:name='meta']"/>
-  <xsl:template match="text:section[@text:name='meta']/*"/>
-
-  <xsl:template match="text:p[@text:style-name='meta' 
-  or .//*[@text:name='dc'] 
-  or .//*[@text:name='dc'] 
-  or .//*[@text:style-name='lang'] 
-  or .//*[@text:name='lang']
-  or .//*[@text:name='content' or @text:style-name='content' or @text:description='content']
-  ]">
-    <meta name="{normalize-space(.//*[@text:name='dc' or @text:style-name='dc'])}" lang="{normalize-space(.//*[@text:name='lang' or @text:style-name='lang'])}" scheme="{normalize-space(.//*[@text:name='scheme' or @text:style-name='scheme'])}">
-      <xsl:attribute name="content">
-        <xsl:variable name="content">
-          <xsl:apply-templates select="
-.//text:modification-date | .//text:creation-date | .//text:file-name
-| 
-.//*[@text:name='content' or @text:style-name='content' or @text:description='content']
-          "/>
-        </xsl:variable>
-        <xsl:value-of select="normalize-space($content)"/>
-      </xsl:attribute>
-    </meta>
-  </xsl:template>
--->
 </xsl:transform>
