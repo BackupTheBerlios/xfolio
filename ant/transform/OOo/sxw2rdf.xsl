@@ -337,7 +337,7 @@ Process document to extract DC properties
   <xsl:template match="text:bibliography-mark" mode="dc">
     <dc:source xsi:type="text:bibliography-mark">
       <xsl:apply-templates select="@*" mode="dc"/>
-      <xsl:apply-templates select="." mode="text"/>
+      <xsl:apply-templates select="." mode="text-foot"/>
     </dc:source>
   </xsl:template>
   <!-- process bibliographic attributes as attributes -->

@@ -50,6 +50,8 @@ justify right to left ?
 
   -->
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:style="http://openoffice.org/2000/style" xmlns:text="http://openoffice.org/2000/text" xmlns:office="http://openoffice.org/2000/office" xmlns:table="http://openoffice.org/2000/table" xmlns:draw="http://openoffice.org/2000/drawing" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="http://openoffice.org/2000/meta" xmlns:number="http://openoffice.org/2000/datastyle" xmlns:svg="http://www.w3.org/2000/svg" xmlns:chart="http://openoffice.org/2000/chart" xmlns:dr3d="http://openoffice.org/2000/dr3d" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="http://openoffice.org/2000/form" xmlns:script="http://openoffice.org/2000/script" xmlns:config="http://openoffice.org/2001/config" office:class="text" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:i18n="http://apache.org/cocoon/i18n/2.1" exclude-result-prefixes="office meta  table number dc fo xlink chart math script xsl draw svg dr3d form config text style i18n">
+  <!-- to get some centralized resolutions (styleNames, links) -->
+  <xsl:import href="sxw-common.xsl"/>
   <!-- text version -->
   <xsl:output encoding="UTF-8" method="text"/>
   <!-- Carriage return -->
@@ -78,18 +80,24 @@ These variables are used to normalize names of styles
   <xsl:template match="/">
     <root>
       <xsl:apply-templates select="$office:body" mode="text"/>
-      <xsl:if test=".//text:footnote">
+      <!-- foot refernces -->
+      <xsl:if test="$office:body//text:footnote or $office:body//text:bibliography-mark">
         <xsl:value-of select="$CR"/>
         <xsl:value-of select="$CR"/>
         <xsl:value-of select="substring($hr, 1,$width)"/>
         <xsl:value-of select="$CR"/>
-        <xsl:apply-templates select="$office:body" mode="text-foot"/>
+        <xsl:apply-templates select="$office:body//text:footnote" mode="text-foot"/>
+        <xsl:value-of select="$CR"/>
+        <xsl:value-of select="$CR"/>
+        <xsl:apply-templates select="$office:body//text:bibliography-mark[not(@text:identifier = following::text:bibliography-mark/@text:identifier)]" mode="text-foot">
+          <xsl:sort select="@text:identifier"/>
+        </xsl:apply-templates>
       </xsl:if>
     </root>
   </xsl:template>
   <!-- stop elements -->
-  <xsl:template match="text:h[normalize-space(.)='']" mode="text"/>
-  <xsl:template match="text:bibliography-source" mode="text"/>
+  <xsl:template match="text:h[normalize-space(.)='']" mode="text"/>  
+  <xsl:template match="text:bibliography | text:bibliography-source" mode="text"/>
   <xsl:template match="office:script" mode="text"/>
   <xsl:template match="office:settings" mode="text"/>
   <xsl:template match="office:font-decls" mode="text"/>
@@ -115,13 +123,66 @@ These variables are used to normalize names of styles
   <xsl:template match="text:section | office:body" mode="text">
     <xsl:apply-templates mode="text"/>
   </xsl:template>
-  <!-- process a table of contents only if requested in the source 
+  <!-- 
 
-Should 
+process a table of contents only if requested in the source 
 
 	-->
   <xsl:template match="text:table-of-content" mode="text">
-    <!-- what to do ? -->
+    <xsl:apply-templates select="$office:body/text:h" mode="text-toc"/>
+  </xsl:template>
+  <xsl:template match="text:h" mode="text-toc">
+    <xsl:value-of select="$CR"/>
+    <xsl:value-of select="substring('                         ', 1, number(@text:level) * 2)"/>
+    <xsl:apply-templates select="." mode="text-number"/>
+    <xsl:text> </xsl:text>
+    <xsl:value-of select="."/>
+  </xsl:template>
+  <!-- get title number for anchor and links 
+recursive numbering
+-->
+  <xsl:template match="text:h" name="count-h" mode="text-number">
+    <xsl:param name="level" select="1"/>
+    <xsl:param name="number"/>
+    <!--
+Really tricky to find the good counter with no hierarchy.
+count all brothers 
+
+  $start    ) try to get the parent title (if not you are at level 1)
+  $position ) find a property easy to compare from outside, count of brothers before (position)
+  $count    ) count brother title before to same level, but after start
+-->
+    <xsl:variable name="start" select="
+    
+preceding-sibling::text:h[@text:level=($level - 1)][normalize-space(.)!=''][1]
+"/>
+    <xsl:variable name="position" select="count($start/preceding-sibling::*)+1"/>
+    <xsl:variable name="count">
+      <xsl:choose>
+        <xsl:when test="$start">
+          <xsl:value-of select="count(preceding-sibling::text:h[normalize-space(.)!=''][@text:level=$level and count(preceding-sibling::*) +1 &gt;$position])
+    "/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="count(preceding-sibling::text:h[@text:level=$level][normalize-space(.)!=''])
+    "/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:choose>
+      <xsl:when test="@text:level = $level">
+        <xsl:value-of select="$count + 1"/>
+        <xsl:text>.</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$count"/>
+        <xsl:text>.</xsl:text>
+        <xsl:call-template name="count-h">
+          <xsl:with-param name="level" select="$level+1"/>
+          <xsl:with-param name="number" select="concat($number, $count, '.')"/>
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
   <!--
 	sectionning
@@ -174,7 +235,7 @@ Should
         <xsl:call-template name="wrap">
           <xsl:with-param name="text" select="$text"/>
         </xsl:call-template>
-          <xsl:value-of select="$CR"/>
+        <xsl:value-of select="$CR"/>
       </xsl:when>
       <xsl:when test="$style='first-line-indent'">
         <xsl:value-of select="$CR"/>
@@ -371,7 +432,6 @@ handle inline, and give an html form to each default style
         <xsl:apply-templates mode="text"/>
         <xsl:text>''</xsl:text>
       </xsl:when>
-      <!-- Change Made By Kevin Fowlks (fowlks@msu.edu) June 16th, 2003 -->
       <xsl:when test="$style='citation'">
         <xsl:text>''</xsl:text>
         <xsl:apply-templates mode="text"/>
@@ -481,112 +541,6 @@ and $props/style:properties/@fo:font-style='italic'">
   </xsl:template>
   <!--
 
-	get a semantic style name 
-	 - CSS compatible (no space, all min) 
-	 - from automatic styles 
-
--->
-  <xsl:template match="@text:style-name | @draw:style-name | @draw:text-style-name | @table:style-name">
-    <xsl:variable name="current" select="."/>
-    <xsl:choose>
-      <xsl:when test="$office:automatic-styles/style:style[@style:name = $current]">
-        <!-- can't understand why but sometimes there's a confusion 
-				between automatic styles with footer, fast patch here -->
-        <xsl:value-of select="
-translate($office:automatic-styles/style:style[@style:name = $current][@style:parent-style-name!='Footer']/@style:parent-style-name
-, $majs, $mins)
-"/>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:value-of select="translate($current , $majs, $mins)"/>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-  <!--
-	 links - may be to handle for redirections 
--->
-  <xsl:template match="text:a | draw:a" name="a" mode="text">
-    <xsl:choose>
-      <xsl:when test="contains(normalize-space(.), ' ')">
-        <xsl:text>"</xsl:text>
-        <xsl:value-of select="normalize-space(.)"/>
-        <xsl:text>"</xsl:text>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:apply-templates mode="text"/>
-      </xsl:otherwise>
-    </xsl:choose>
-    <xsl:text> &lt;</xsl:text>
-    <xsl:apply-templates select="@xlink:href | @href"/>
-    <xsl:text>&gt;</xsl:text>
-  </xsl:template>
-  <!-- global redirection of links -->
-  <xsl:template match="@xlink:href | @href">
-    <xsl:choose>
-      <xsl:when test="false()"/>
-      <xsl:when test="not(contains(.,'//')) and contains(., '.sxw')">
-        <xsl:value-of select="concat(substring-before(., '.sxw'), '.html')"/>
-        <xsl:value-of select="substring-after(., '.sxw')"/>
-      </xsl:when>
-      <xsl:when test="not(contains(.,'//')) and contains(., '.doc')">
-        <xsl:value-of select="concat(substring-before(., '.doc'), '.html')"/>
-        <xsl:value-of select="substring-after(., '.sxw')"/>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:value-of select="."/>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-  <!-- get title number for anchor and links 
-recursive numbering
--->
-  <xsl:template match="text:h" name="count-h" mode="number">
-    <xsl:param name="level" select="1"/>
-    <xsl:param name="number"/>
-    <!--
-Really tricky to find the good counter with no hierarchy.
-count all brothers 
-
-  $start    ) try to get the parent title (if not you are at level 1)
-  $position ) find a property easy to compare from outside, count of brothers before (position)
-  $count    ) count brother title before to same level, but after start
--->
-    <xsl:variable name="start" select="
-    
-preceding-sibling::text:h[@text:level=($level - 1)][normalize-space(.)!=''][1]
-"/>
-    <xsl:variable name="position" select="count($start/preceding-sibling::*)+1"/>
-    <xsl:variable name="count">
-      <xsl:choose>
-        <xsl:when test="$start">
-          <xsl:value-of select="count(preceding-sibling::text:h[normalize-space(.)!=''][@text:level=$level and count(preceding-sibling::*) +1 &gt;$position])
-    "/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="count(preceding-sibling::text:h[@text:level=$level][normalize-space(.)!=''])
-    "/>
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:variable>
-    <xsl:choose>
-      <xsl:when test="@text:level = $level">
-        <xsl:value-of select="$count + 1"/>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:variable name="parent" select="preceding-sibling::text:h[@text:level = $level][normalize-space(.)!=''][1]"/>
-        <a tabindex="-1" href="#{$number}{$count}" title="{$parent}">
-          <xsl:value-of select="$count"/>
-        </a>
-        <xsl:text>.</xsl:text>
-        <xsl:call-template name="count-h">
-          <xsl:with-param name="level" select="$level+1"/>
-          <xsl:with-param name="number" select="concat($number, $count, '.')"/>
-        </xsl:call-template>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-  <!--
-
  Notes
 
 
@@ -663,6 +617,53 @@ What should I do there ?
 -->
   </xsl:template>
   <!--
+bibliography
+  -->
+  <!-- process bibliographic attributes as pure text -->
+  <xsl:template match="text:bibliography-mark" mode="text-foot">
+    <xsl:variable name="text">
+      <xsl:apply-templates select="@text:identifier" mode="text"/>
+      <xsl:apply-templates select="@text:author" mode="text"/>
+      <xsl:apply-templates select="@text:title" mode="text"/>
+      <xsl:apply-templates select="@text:year" mode="text"/>
+      <xsl:apply-templates select="@text:publisher" mode="text"/>
+      <xsl:apply-templates select="@text:url" mode="text"/>
+    </xsl:variable>
+    <xsl:call-template name="wrap">
+        <xsl:with-param name="text" select="$text"/>
+        <xsl:with-param name="indent" select="4"/>
+        <xsl:with-param name="first-line" select="-4"/>
+    </xsl:call-template>
+  </xsl:template>
+  <xsl:template match="@*" mode="text"/>
+  <xsl:template match="@text:identifier" mode="text">
+    <xsl:text>[</xsl:text>
+    <xsl:value-of select="normalize-space(.)"/>
+    <xsl:text>] </xsl:text>
+  </xsl:template>
+  <xsl:template match="@text:author" mode="text">
+    <xsl:value-of select="normalize-space(.)"/>
+    <xsl:text>. </xsl:text>
+  </xsl:template>
+  <xsl:template match="@text:title" mode="text">
+    <xsl:text>"</xsl:text>
+    <xsl:value-of select="normalize-space(.)"/>
+    <xsl:text>" </xsl:text>
+  </xsl:template>
+  <xsl:template match="@text:year" mode="text">
+    <xsl:value-of select="normalize-space(.)"/>
+    <xsl:text>, </xsl:text>
+  </xsl:template>
+  <xsl:template match="@text:publisher" mode="text">
+    <xsl:value-of select="normalize-space(.)"/>
+    <xsl:text>. </xsl:text>
+  </xsl:template>
+  <xsl:template match="@text:url" mode="text">
+    <xsl:text>&lt;</xsl:text>
+    <xsl:value-of select="normalize-space(.)"/>
+    <xsl:text>&gt; </xsl:text>
+  </xsl:template>
+  <!--
 
 a text word wrap
 
@@ -685,7 +686,7 @@ a text word wrap
       <!-- write a line on a break space, or last line -->
       <xsl:when test="
 (string-length($text) &lt;= $i) or (substring($text, $i, 1) = ' ') or (not(contains($text, ' ')))">
-<!--
+        <!--
         <xsl:choose>
           <xsl:when test="number($first-line)">
             <xsl:value-of select="substring($spaces, 1, $first-line)"/>
@@ -695,7 +696,7 @@ a text word wrap
           </xsl:when>
         </xsl:choose>
 -->
-            <xsl:value-of select="substring($spaces, 1, $first-line + $indent)"/>
+        <xsl:value-of select="substring($spaces, 1, $first-line + $indent)"/>
         <!-- right or center align ? -->
         <xsl:value-of select="substring($text, 1, $i)"/>
         <xsl:value-of select="$CR"/>
