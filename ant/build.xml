@@ -2,32 +2,50 @@
 <!--
 
 Copyright 2003-2004 ADNX <http://adnx.org>
-frederic.glorieux@ajlsm.com
 
-= WHAT =
+  = WHAT =
 
-Build a website from on organized webfolder of OpenOffice writer docs.
-Long attention have been paid to dependencies and update
+Build a website from on organized webfolder of OpenOffice writer docs
+and gallery of images.
+Long attention have been paid to dependencies and update.
 
-= TODO =
+  = WHO =
 
-Depend update on xslt changes.
+[FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com>
 
-= REFERENCES =
+  = FEATURES =
 
+ * update only what is needed
+ * renaming of bad extensions 
+
+  = MAYDO =
+
+ * Depend update on xslt changes.
+ * rename files to ASCII (issue on depends !)
+ * delete empty dirs in website
+
+
+  = REFERENCES =
+
+
+ * [conditions] <http://ant.apache.org/manual/CoreTasks/conditions.html>
+ * [depend]  <http://ant.apache.org/manual/OptionalTasks/depend.html>
+ * [mapper]  <http://ant.apache.org/manual/CoreTypes/mapper.html>
+ * [selectors] <http://ant.apache.org/manual/CoreTypes/selectors.html>
+ * [antcontrib] <http://ant-contrib.sourceforge.net/tasks/index.html>
  * <http://home.earthlink.net/~russelllear/WebSvcs.html>
- * "Ant depenset" <http://ant.apache.org/manual/CoreTasks/dependset.html>
+
 
 
 -->
 <project basedir="." default="test" name="xfolio">
   <taskdef resource="net/sf/antcontrib/antlib.xml"/>
-  <!-- the webfolder property properties for this build -->
+  <!-- the webfolder parameter from the user -->
   <property name="webfolder" location="../docs"/>
+  <!-- webfolder is replicated to have absolute path -->
+  <property name="src" location="${webfolder}"/>
   <!-- a delelable work folder where to store enough for caching -->
-  <property name="website" location="${webfolder}-website"/>
-  <!-- the target website folder -->
-  <property name="dist" location="${webfolder}-dist"/>
+  <property name="website" location="${src}-website"/>
   <!-- the skin folder to copy to root site -->
   <property name="skin" location="skin/xfolio.org"/>
   <!-- 
@@ -47,53 +65,100 @@ init target
 build target.
 
 -->
-  <target name="build">
-    <echo>Your source webfolder ${webfolder}</echo>
+  <target name="build" depends="normalize">
+    <echo>Your source webfolder ${src}</echo>
     <echo>Your target website ${website}</echo>
     <!-- copy the skin directory -->
-    <copy todir="${website}/skin">
+    <copy todir="${website}/skin" preservelastmodified="true">
       <fileset dir="${skin}"/>
     </copy>
+    <!-- 
+update website from deleted files in src 
+don't work for extensions identical to generated ones
+-->
     <foreach target="delete" param="file">
-      <path>
-        <fileset dir="${website}" includes="**/*.sxw">
-          <include name="**/*.sxw"/>
-          <exclude name="skin/*.sxw"/>
-          <present present="srconly" targetdir="${webfolder}"/>
-        </fileset>
-      </path>
-    </foreach>
-    <!-- do tasks for sxw files -->
-    <copy todir="${website}">
-      <fileset dir="${webfolder}" includes="**/*.sxw"/>
-    </copy>
-    <foreach target="sxw" param="file">
       <path>
         <fileset dir="${website}">
           <include name="**/*.sxw"/>
-          <exclude name="skin/*.sxw"/>
+          <include name="**/*.jpg"/>
+          <include name="**/*.zip"/>
+          <exclude name="skin/**"/>
+          <!-- CAUTION ! unverifed pattern for internal files -->
+          <exclude name="**/1000*.jpg"/>
+          <present present="srconly" targetdir="${src}"/>
+        </fileset>
+      </path>
+    </foreach>
+    <!-- date from the source sxw is kept, so the marker is *.oo -->
+    <!-- delete all target oo if something have changed in the engine -->
+    <dependset>
+      <srcfileset dir="transform/OOo">
+        <include name="**/*"/>
+      </srcfileset>
+      <!-- good idea ?
+      <srcfilelist dir="${basedir}" files="build.xml"/>
+      -->
+      <targetfileset dir="${website}">
+        <include name="**/*.oo"/>
+        <exclude name="skin/**"/>
+      </targetfileset>
+    </dependset>
+    <!-- sxw : do tasks for files newer in src webfolder than in target website -->
+    <foreach target="sxw" param="file">
+      <path>
+        <fileset dir="${src}">
+          <include name="**/*.sxw"/>
           <depend targetdir="${website}">
-            <!-- only for files newer than the directory  -->
-            <mapper type="merge" to="toc.ant"/>
+            <mapper type="glob" from="*.sxw" to="*.oo"/>
           </depend>
         </fileset>
       </path>
     </foreach>
-    <!-- jpeg -->
-    <copy todir="${website}">
-      <fileset dir="${webfolder}" includes="**/*.jpg"/>
-    </copy>
+    <!-- jpeg : do tasks for files newer in src webfolder than in target website -->
     <foreach target="jpeg" param="file">
       <path>
-        <!-- TODO better! -->
-        <fileset dir="${website}" includes="**/*.jpg">
-          <depend targetdir="${website}">
-            <!-- only for files newer than the directory  -->
-            <mapper type="merge" to="toc.ant"/>
-          </depend>
+        <fileset dir="${src}">
+          <include name="**/*.jpg"/>
+          <depend targetdir="${website}"/>
         </fileset>
       </path>
     </foreach>
+    <!-- 
+copy resources from src which are not handled upper 
+CAUTION : update exclude patterns
+-->
+    <copy includeEmptyDirs="false" preservelastmodified="true" todir="${website}">
+      <fileset dir="${src}">
+        <exclude name="**/*.jpg"/>
+        <exclude name="**/*.sxw"/>
+        <exclude name="**/Thumbs.db"/>
+      </fileset>
+    </copy>
+  </target>
+  <!--
+Normalize source directory
+-->
+  <target name="normalize">
+    <move todir="${src}" preservelastmodified="yes" includeemptydirs="false">
+      <fileset dir="${src}">
+        <include name="**/*.JPG"/>
+      </fileset>
+      <mapper type="glob" from="*.JPG" to="*.jpeg"/>
+    </move>
+    <!-- because of a bug in windows system between case names -->
+    <move todir="${src}" preservelastmodified="yes" includeemptydirs="false">
+      <fileset dir="${src}">
+        <include name="**/*.jpeg"/>
+      </fileset>
+      <mapper type="glob" from="*.jpeg" to="*.jpg"/>
+    </move>
+  </target>
+  <!--
+this is only a commodity target during development to see effect of selector
+in foreach
+  -->
+  <target name="see">
+    <echo>see ${file}</echo>
   </target>
   <!--
 Delete files from build and dist when deleted from src
@@ -124,7 +189,16 @@ Delete files from build and dist when deleted from src
 work on a jpeg file
 -->
   <target name="jpeg">
-    <!-- an extract xmp task -->
+    <!-- get a relative path -->
+    <pathconvert targetos="unix" property="path">
+      <path>
+        <pathelement location="${file}"/>
+      </path>
+      <map from="${src}" to=""/>
+      <mapper type="regexp" from="(.*)\.(.*)$$" to="\1"/>
+    </pathconvert>
+    <echo>process "${path}"</echo>
+    <copy file="${file}" tofile="${website}${path}.jpg" preservelastmodified="true"/>
   </target>
   <!--
 list files in src
@@ -133,7 +207,7 @@ list files in src
     <echo file="${website}/toc.ant">&lt;directory&gt;</echo>
     <for param="file">
       <path>
-        <fileset dir="${webfolder}">
+        <fileset dir="${src}">
           <exclude name="**/Thumbs.db"/>
         </fileset>
       </path>
@@ -147,7 +221,7 @@ list files in src
   </target>
   <!-- 
 
-sxw files, do job "foreach" in build
+sxw files, do job "foreach"
 
 -->
   <target name="sxw">
@@ -156,12 +230,14 @@ sxw files, do job "foreach" in build
       <path>
         <pathelement location="${file}"/>
       </path>
-      <map from="${website}" to=""/>
+      <map from="${src}" to=""/>
       <mapper type="regexp" from="(.*)\.(.*)$$" to="\1"/>
     </pathconvert>
-    <unzip src="${file}" dest="${file}!"/>
+    <echo>process "${path}"</echo>
+    <copy file="${file}" tofile="${website}${path}.sxw" preservelastmodified="true"/>
+    <unzip src="${website}${path}.sxw" dest="${website}${path}.sxw!"/>
     <!-- aggregate OO doc, force because the  *.xml in sxw are not updated-->
-    <xslt force="true" in="${file}!/content.xml" out="${website}${path}.oo" style="transform/OOo/sxw2sxw.xsl">
+    <xslt force="true" in="${website}${path}.sxw!/content.xml" out="${website}${path}.oo" style="transform/OOo/sxw2sxw.xsl">
       <xmlcatalog>
         <dtd publicId="-//OpenOffice.org//DTD OfficeDocument 1.0//EN" location="schema/dummy.dtd"/>
       </xmlcatalog>
@@ -181,9 +257,9 @@ sxw files, do job "foreach" in build
     </xslt>
     <!-- flatten pictures -->
     <copy todir="${website}${path}">
-      <fileset dir="${file}!/Pictures"/>
+      <fileset dir="${website}${path}.sxw!/Pictures"/>
     </copy>
     <!-- unzip folder should be deletable -->
-    <delete dir="${file}!"/>
+    <delete dir="${website}${path}.sxw!"/>
   </target>
 </project>
