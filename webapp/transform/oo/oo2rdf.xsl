@@ -100,15 +100,30 @@ These variables are used to normalize stle names of styles
 	all possible dc:properties to extract
 -->
   <xsl:template name="dc:properties">
-    <!-- better should be done on title -->
+    <xsl:if test="normalize-space(.//office:meta/dc:title) != ''">
+      <dc:title>
+        <xsl:call-template name="lang"/>
+        <xsl:value-of select="normalize-space(.//office:meta/dc:title)"/>
+      </dc:title>
+    </xsl:if>
     <xsl:variable name="title">
-      <xsl:call-template name="title"/>
+      <xsl:call-template name="getElementsByStyle">
+        <xsl:with-param name="style" select="'title'"/>
+      </xsl:call-template>
     </xsl:variable>
-    <xsl:if test="normalize-space($title) != ''">
+    <!-- if title style but not with field -->
+    <xsl:if test="normalize-space($title) != '' and not($title/*/text:title)">
       <dc:title>
         <xsl:call-template name="lang"/>
         <xsl:value-of select="normalize-space($title)"/>
       </dc:title>
+    </xsl:if>
+    <xsl:if test="
+normalize-space(.//office:meta/dc:title) = ''
+and normalize-space($title) = ''
+and normalize-space(//text:h) != ''
+">
+      <xsl:value-of select="normalize-space(//text:h)"/>
     </xsl:if>
     <!-- dc:creator -->
     <xsl:call-template name="creators"/>
@@ -179,7 +194,6 @@ These variables are used to normalize stle names of styles
           </xsl:call-template>
         </xsl:attribute>
         <xsl:call-template name="lang"/>
-        
         <xsl:value-of select="$link"/>
       </dc:relation>
     </xsl:for-each>

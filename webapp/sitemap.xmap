@@ -49,6 +49,7 @@ This global sitemap only declare components
     -->
       <map:generator name="metadir" label="content" logger="sitemap.generator.xfoliodir" src="org.xfolio.cocoon.generation.MetaDirectoryGenerator"/>
       <map:generator name="xmp" label="content" logger="sitemap.generator.xmp" src="org.xfolio.cocoon.generation.XMPjpgGenerator"/>
+      <map:generator name="nav" label="content" logger="sitemap.generator.nav" src="org.xfolio.cocoon.generation.MetaFileGenerator"/>
     </map:generators>
     <!--
 

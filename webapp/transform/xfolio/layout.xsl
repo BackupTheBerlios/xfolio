@@ -22,10 +22,10 @@ Come from an xsl becoming a bit too complex to be simple editable layout.
 -->
 <xsl:stylesheet version="1.0" xmlns:dir="http://apache.org/cocoon/directory/2.0" xmlns:htm="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/xhtml" xmlns:i18n="http://apache.org/cocoon/i18n/2.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" exclude-result-prefixes="xsl dir dc htm rdf i18n">
   
-  <!-- to provide info on the file -->
-  <xsl:import href="rdf2html.xsl"/>
   <!-- to resolve some path -->
   <xsl:import href="naming.xsl"/>
+  <!-- to resolve some path -->
+  <xsl:import href="navigation.xsl"/>
   <!-- no indent to preserve design -->
   <xsl:output method="xml" indent="no" encoding="UTF-8"/>
   <!-- given by server -->
@@ -43,10 +43,7 @@ Come from an xsl becoming a bit too complex to be simple editable layout.
   <!--
 
 	 handle root node 
-
--->
-  <xsl:template match="/aggregate">
-    <!-- the input provide by the sitemap should be in the form
+   the input provide by the sitemap should be in the form
   <aggregate>
     <template>
       <html>
@@ -61,6 +58,10 @@ Come from an xsl becoming a bit too complex to be simple editable layout.
 		</menu>
   </aggregate>
 -->
+  <xsl:template match="/">
+    <xsl:apply-templates select="/aggregate/template"/>
+  </xsl:template>
+  <xsl:template match="/aggregate">
     <xsl:apply-templates select="template"/>
   </xsl:template>
   <xsl:template match="template">
@@ -206,12 +207,6 @@ Maybe beet
     <xsl:apply-templates select="/aggregate/content/*/*[local-name()='body']/node()"/>
   </xsl:copy>
   </xsl:template>
-  <!-- match the menu substitute -->
-  <xsl:template match="foo:menu">
-    <a href="../">^</a>
-    <!-- should be handled by rdf2html.xsl -->
-    <xsl:apply-templates select="/aggregate/menu/node()" mode="menu"/>
-  </xsl:template>
   <!-- handle possible tocs -->
   <!-- let tocs where authors decide to have
 	<xsl:template match="foo:toc">
@@ -219,6 +214,12 @@ Maybe beet
 	</xsl:template>
 	<xsl:template match="content//*[@class='toc']"/>
 	-->
+  <xsl:template match="htm:*[@id='bar']">
+    <xsl:copy>
+      <xsl:copy-of select="@*"/>
+      <xsl:apply-templates select="/aggregate/dir:navigation" mode="bar"/>
+    </xsl:copy>
+  </xsl:template>
   <!-- languages available for this doc -->
   <xsl:template match="htm:*[@id='langs']">
   <xsl:copy>

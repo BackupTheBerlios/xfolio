@@ -109,7 +109,7 @@ links for formats and langs
           <map:part src="cocoon:/skin/default.html" element="template"/>
           <map:part src="cocoon:/{1}{2}{3}.xhtml" element="content"/>
           <map:part src="cocoon:/skin/" element="skins"/>
-          <map:part src="cocoon://{1}dir.meta" element="menu"/>
+          <map:part src="cocoon://{1}{2}.nav"/>
         </map:aggregate>
         <map:transform src="transform/xfolio/layout.xsl">
           <!-- image is able to be resized by this server -->
@@ -252,7 +252,7 @@ very long, why ???
       <map:match pattern="**buttons/">
         <map:generate src="cocoon:/{1}buttons.svg"/>
         <map:transform src="transform/svg/buttons.xsl">
-          <map:parameter name="mode" value="index"/>          
+          <map:parameter name="mode" value="index"/>
         </map:transform>
         <map:serialize/>
       </map:match>
@@ -302,6 +302,30 @@ resize images, reader rewrited to have width and height as max width preserve ra
           <map:parameter name="height" value="{3}"/>
         </map:read>
       </map:match>
+    <map:pipeline type="noncaching">
+      <!--
+get navigation information for a file
+
+        <map:serialize type="text"/>
+-->
+      <map:match pattern="**.nav">
+        <map:generate type="nav" src="{context-attr:xfolio.efolder}{1}">
+          <map:parameter name="depth" value="10"/>
+          <map:parameter name="exclude" value="^CVS$|^\.|^_|^Thumbs.db|^class-use|^package-frame|^package-summary|^package-tree|^package-use"/>
+        </map:generate>
+        <map:serialize type="xml"/>
+      </map:match>
+      <map:match pattern="**.nav.html">
+        <map:generate type="nav" src="{context-attr:xfolio.efolder}{1}">
+          <map:parameter name="depth" value="10"/>
+          <map:parameter name="exclude" value="^CVS$|^\.|^_|^Thumbs.db|^class-use|^package-frame|^package-summary|^package-tree|^package-use"/>
+        </map:generate>
+        <map:transform src="transform/xfolio/navigation.xsl"> 
+        
+        </map:transform>
+        <map:serialize/>
+      </map:match>
+    </map:pipeline>
       <!--
 MAYDO, an OO generator, = zip serializer
 
@@ -322,31 +346,6 @@ Tricky things may be done for that (ex: ToC ? header...)
        </html>
      </zip:entry>
    </zip:archive:zip>
-
--->
-      <!--
-FG:2004-06-15
-transform dir.rdf produced upper in a pretty html view (default mode of the xsl)
-
-xhtml is handle after by the layout resource (better could be done ?)
-
-parameters
-  language
-Language to choose from multilingual fields
-  resize
-Allow thumbnail display
-  from
-domain+branch, used to reduce absolute URI to relative
-
-      <map:match pattern="^(.*/)?dir(_[a-z][a-z])?\.xhtml$" type="regexp">
-        <map:generate src="cocoon:/{1}dir.rdf"/>
-        <map:transform src="transform/xfolio/rdf2html.xsl">
-          <map:parameter name="language" value="{2}"/>
-          <map:parameter name="resize" value="true"/>
-          <map:parameter name="from" value="{context-attr:xfolio.domain}/{1}"/>
-        </map:transform>
-        <map:serialize/>
-      </map:match>
 
 -->
     </map:pipeline>
@@ -528,23 +527,23 @@ your domain for a persistant identifier
 path of the dir requested, relative to here (or the root of efolder)
 
 -->
-        <map:match pattern="^(.*/)?toc_?(..)?\.xhtml$" type="regexp">
-          <map:generate type="metadir" src="{context-attr:xfolio.efolder}{1}">
-            <map:parameter name="depth" value="10"/>
-            <map:parameter name="exclude" value="^CVS$|^\.|^_|^Thumbs.db|^class-use|^package-frame|^package-summary|^package-tree|^package-use"/>
-          </map:generate>
-          <map:transform src="transform/xfolio/toc.xsl">
-            <map:parameter name="skin" value="{baselink:SitemapBaseLink}skin/"/>
-            <map:parameter name="lang" value="{2}"/>
-            <map:parameter name="target" value="article"/>
-            <map:parameter name="htmlizable" value=" dbx sxw jpg "/>
-            <map:parameter name="langDefault" value="fr"/>
-          </map:transform>
+      <map:match pattern="^(.*/)?toc_?(..)?\.xhtml$" type="regexp">
+        <map:generate type="metadir" src="{context-attr:xfolio.efolder}{1}">
+          <map:parameter name="depth" value="10"/>
+          <map:parameter name="exclude" value="^CVS$|^\.|^_|^Thumbs.db|^class-use|^package-frame|^package-summary|^package-tree|^package-use"/>
+        </map:generate>
+        <map:transform src="transform/xfolio/toc.xsl">
+          <map:parameter name="skin" value="{baselink:SitemapBaseLink}skin/"/>
+          <map:parameter name="lang" value="{2}"/>
+          <map:parameter name="target" value="article"/>
+          <map:parameter name="htmlizable" value=" dbx sxw jpg "/>
+          <map:parameter name="langDefault" value="fr"/>
+        </map:transform>
         <map:transform type="i18n">
           <map:parameter name="locale" value="{2}"/>
         </map:transform>
-          <map:serialize type="html"/>
-        </map:match>
+        <map:serialize type="html"/>
+      </map:match>
     </map:pipeline>
     <!--
 =====================================

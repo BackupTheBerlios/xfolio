@@ -41,12 +41,41 @@ This sitemap is place to test performances of different pipes
         <map:serialize type="text"/>
       </map:match>
 
-      <map:match pattern="metadir">
+      <map:match pattern="toc">
         <map:generate type="metadir" src="{context-attr:xfolio.efolder}">
           <map:parameter name="depth" value="10"/>
           <map:parameter name="exclude" value="^CVS$|^\.|^_|^Thumbs.db"/>
         </map:generate>
         <map:serialize type="text"/>
+      </map:match>
+
+      <map:match pattern="toc.html">
+        <map:generate type="metadir" src="{context-attr:xfolio.efolder}">
+          <map:parameter name="depth" value="10"/>
+          <map:parameter name="exclude" value="^CVS$|^\.|^_|^Thumbs.db"/>
+        </map:generate>
+        <map:transform src="transform/xfolio/toc.xsl">
+          <map:parameter name="skin" value="{baselink:SitemapBaseLink}skin/"/>
+          <map:parameter name="lang" value="{2}"/>
+          <map:parameter name="target" value="article"/>
+          <map:parameter name="htmlizable" value=" dbx sxw jpg "/>
+          <map:parameter name="langDefault" value="fr"/>
+        </map:transform>
+        <map:transform type="i18n">
+          <map:parameter name="locale" value="{2}"/>
+        </map:transform>
+        <map:serialize type="html"/>
+      </map:match>
+
+      <map:match pattern="**.nav.html">
+        <map:generate type="nav" src="{context-attr:xfolio.efolder}{1}">
+          <map:parameter name="depth" value="10"/>
+          <map:parameter name="exclude" value="^CVS$|^\.|^_|^Thumbs.db|^class-use|^package-frame|^package-summary|^package-tree|^package-use"/>
+        </map:generate>
+        <map:transform src="transform/xfolio/navigation.xsl"> 
+          <map:parameter name="lang" value="es"/>
+        </map:transform>
+        <map:serialize/>
       </map:match>
 
 

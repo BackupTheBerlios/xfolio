@@ -34,7 +34,7 @@ Everything.
   <!-- lang requested -->
   <xsl:param name="lang"/>
   <!-- default language -->
-  <xsl:param name="langDefault"/>
+  <xsl:param name="langDefault" select="'en'"/>
   <!-- for "you are here highlight" -->
   <xsl:param name="radicalHere"/>
   <!-- skin, a folder where to find resources -->
