@@ -9,6 +9,31 @@
 Provide a flat Dublin Record from Adobe.XMP XML
 Special handling of multilingual description
 
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:IIM="http://iptc.org/IIM/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <rdf:Description>
+    <dc:creator xsi:type="IIM:Author">Kalayan, Haroutune (Ingénieur civil)</dc:creator>
+    <dc:title xsi:type="IIM:Title">FAQRA - Eglise d'époque byzantine</dc:title>
+    <dc:title xsi:type="IIM:Description" xml:lang="fr">Vue de la nef centrale de l'église bordée par ses deux rangées de colonnes.</dc:title>
+    <dc:title xsi:type="IIM:Description" xml:lang="ar">مشهد لجناح الكنيسة المركزي المحاط بصفي الأعمدة, وذلك خلال حملة التنقيب (1962-1964)</dc:title>
+    <dc:title xsi:type="IIM:Description" xml:lang="en">View of the chief nave of the church, bordered by its two rows of columns.</dc:title>
+    <dc:rights xsi:type="IIM:Copyright" rdf:resource="http://creativecommons.org/licenses/by-nc-sa/2.0/">©1962. Direction Générale des Antiquités.Liban</dc:rights>
+    <dc:subject xsi:type="IIM:Keywords">1962</dc:subject>
+    <dc:subject xsi:type="IIM:Keywords">Archéologie</dc:subject>
+    <dc:subject xsi:type="IIM:Keywords">Architecture</dc:subject>
+    <dc:subject xsi:type="IIM:Keywords">Colonne</dc:subject>
+    <dc:subject xsi:type="IIM:Keywords">Eglise</dc:subject>
+    <dc:subject xsi:type="IIM:Keywords">Fakra</dc:subject>
+    <dc:subject xsi:type="IIM:Keywords">Faqra</dc:subject>
+    <dc:subject xsi:type="IIM:Keywords">Kalayan, Haroutune</dc:subject>
+    <dc:subject xsi:type="IIM:Keywords">Nef</dc:subject>
+    <dc:subject xsi:type="IIM:Keywords">Période byzantine</dc:subject>
+    <dc:subject xsi:type="IIM:Keywords">Restauration</dc:subject>
+    <dc:coverage xsi:type="iptc">FAQRA (LIBAN, KESROUAN)</dc:coverage>
+    <dc:date xsi:type="IIM:ReleaseDate">2003-12-15</dc:date>
+    <dc:contributor xsi:type="IIM:CaptionWriter">S.D., H.K-J. Equipe Strabon</dc:contributor>
+  </rdf:Description>
+</rdf:RDF>
+
 = WHO =
 
 * [[FG]] Glorieux, Frédéric <frederic.glorieux@xfolio.org>
@@ -17,6 +42,7 @@ Special handling of multilingual description
 = HOW =
 multilingual description are formatted as
 
+{{{
 default 
 description
 
@@ -26,6 +52,7 @@ multiline
 
 [other lang] title in another lang
 description in this lang...
+}}}
 
 = TODO =
 
@@ -37,12 +64,22 @@ description in this lang...
   </rdf:Bag>
 </xapBJ:JobRef>
 
+  <exif:ColorSpace>1</exif:ColorSpace>
+  <exif:PixelXDimension>400</exif:PixelXDimension>
+  <exif:PixelYDimension>300</exif:PixelYDimension>
+  <photoshop:History/>
+  <tiff:Orientation>1</tiff:Orientation>
+  <tiff:XResolution>72/1</tiff:XResolution>
+  <tiff:YResolution>72/1</tiff:YResolution>
+  <tiff:ResolutionUnit>2</tiff:ResolutionUnit>
+
 
 = CHANGES =
 
-* 2004-10-08:[FG] Licence URI (<xapRights:WebStatement/>)
-* 2004-10-08:[FG] more precise "IIM:" namespace
-* 2004-10-08:[FG] multilingual descriptions, bug corrected
+* 2004-10-08:[FG] a bug with photoshop XMP
+* 2004-10-07:[FG] Licence URI (<xapRights:WebStatement/>)
+* 2004-10-06:[FG] more precise "IIM:" namespace
+* 2004-10-05:[FG] multilingual descriptions, bug corrected
 * 2004-09   :[FG] creation
 
 
@@ -57,7 +94,7 @@ description in this lang...
   <!-- bug possible from here (used to format description) -->
   <xsl:variable name="CR" select="'&#xD;'"/>
   <!-- root -->
-  <xsl:template match="/x:xmpmeta | /x:xapmeta">
+  <xsl:template match="/*">
     <rdf:RDF>
       <rdf:Description>
         <xsl:apply-templates/>
@@ -66,14 +103,14 @@ description in this lang...
   </xsl:template>
   <!-- order the record, output only dc:property 
 1) the dc:properties
-2) iptc elements mapped to dc
+2) IIM elements mapped to dc
 -->
   <xsl:template match="x:xmpmeta/rdf:RDF | x:xapmeta">
     <xsl:apply-templates select="rdf:Description[dc:*]"/>
     <xsl:apply-templates select="rdf:Description[not(dc:*)]"/>
   </xsl:template>
   <!-- default, pass it -->
-  <xsl:template match="rdf:Description | x:xmpmeta | x:xapmeta">
+  <xsl:template match="rdf:Description | x:xmpmeta | x:xapmeta | rdf:RDF">
     <xsl:apply-templates/>
   </xsl:template>
   <!-- no direct output for these elements -->
