@@ -11,6 +11,8 @@ import java.io.StringReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
@@ -47,7 +49,24 @@ Do a fileset ?
 
  */
 public class AntJpegInfo extends MatchingTask {
-
+    
+    public static String XSI="xsi";
+    public static String XSI_URI = "http://www.w3.org/2001/XMLSchema-instance";
+    public static String DC="dc";
+    public static String DC_URI ="http://purl.org/dc/elements/1.1/";
+    public static String DCTERMS="dcterms";
+    public static String DCTERMS_URI="http://purl.org/dc/terms/";
+    public static String FORMAT="format";
+    public static String EXTENT="extent";
+    public static String TYPE="type";
+    public static String IDENTIFIER="identifier";
+    public static String TITLE="title";
+    /* name of the root element */
+    public static String ROOT="jpeginfo";
+    /* commodity for SAX generation */
+    private char[] c;
+    private AttributesImpl atts;
+    
 	/*
 	Ant specific
 	*/
@@ -89,33 +108,6 @@ public class AntJpegInfo extends MatchingTask {
                	return;
             }
 			saxDoc(destFile);
-			/* 
-			// it works but badly, should be SAX
-			xml="<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-			xml+="<jpeginfo ";
-			xml+= "\n    file=\"" + new String(srcFile.getCanonicalPath().getBytes("UTF-8")) +"\" ";
-			// works but not relevant
-			// File file;
-			// file=getPrevImage(srcFile);
-			// if (file != null) xml+= "\n    prev=\"" + file +"\" ";
-			// file=getNextImage(srcFile);
-			// if (file != null) xml+= "\n    next=\"" + file +"\" ";
-			xml+= ">\n";
-
-			// FG 2004-10-09
-			// TODO, better Exception handling in case of guilty image
-			catch (JpegException e) {
-				// careful, no XMP is highly possible in a jpeg
-				// don't send too much to the log
-				log("No XMP in "+srcFile);
-				log(e.getLocalizedMessage());
-			}
-
-			xml+="\n</jpeginfo>";
-
-			FileOutputStream out=new FileOutputStream(destFile);
-			out.write(xml.getBytes());
-			*/
 			log (""+ destFile );
 		}
 		catch (TransformerConfigurationException e) {
@@ -139,7 +131,7 @@ public class AntJpegInfo extends MatchingTask {
      * @throws TransformerConfigurationException*/
     public void saxDoc(File destination) throws SAXException, IOException, 
     TransformerConfigurationException, ParserConfigurationException {
-        // Pour créer des transformateurs
+        // create transformers
         SAXTransformerFactory transformer = null;
         if (transformer == null) transformer = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
         if (destination == null) throw new BuildException("No file provide for SAXdoc");
@@ -148,20 +140,52 @@ public class AntJpegInfo extends MatchingTask {
         handler.getTransformer().setOutputProperty(OutputKeys.ENCODING, "UTF-8");
         handler.getTransformer().setOutputProperty(OutputKeys.INDENT, "yes");
         handler.getTransformer().setOutputProperty(OutputKeys.METHOD, "xml");
-        // Le résultat est dans le fichier...
-        Result result = new StreamResult(destination);
+        Result result = new StreamResult();
+        // write result in a file
+        // do it like that to avoid some escaping characters from I don't know where
+        result.setSystemId(destination.getCanonicalPath());
         handler.setResult(result);
 
 
-        // On crée le document
+        // Open document
         handler.startDocument();
-        AttributesImpl atts;
+        handler.startPrefixMapping(DC, DC_URI);
+        handler.startPrefixMapping(XSI, XSI_URI);
+        handler.startPrefixMapping(DCTERMS, DCTERMS_URI);
+        
         atts= new AttributesImpl();
         atts.addAttribute("", "file", "file", "CDATA", "" + srcFile);
-        handler.startElement("", "jpeginfo", "jpeginfo", atts);
+        handler.startElement("", ROOT, ROOT, atts);
+        atts= new AttributesImpl();
+        atts.addAttribute(XSI_URI, 
+                TYPE, XSI + ":" + TYPE, "CDATA", "dcterms:IMT");
+        
+        handler.startElement(DC_URI, FORMAT, DC+':'+FORMAT, atts);
+        c="image/jpeg".toCharArray();
+        handler.characters(c, 0, c.length);
+        handler.endElement(DC_URI, FORMAT, DC+':'+FORMAT);
+
         // try to add XMP inside a root element to assure something
+        includeXMP(handler);
+        // provide filename as possible title, after the ones in XMP
+        atts= new AttributesImpl();
+        atts.addAttribute(XSI_URI, 
+                TYPE, XSI + ":" + TYPE, "CDATA", "filename");
+        handler.startElement(DC_URI, TITLE, DC + ":" + TITLE, atts);
+        c=getBasename(destination).toCharArray();
+        handler.characters(c, 0, c.length);
+        handler.endElement(DC_URI, TITLE, DC + ":" + TITLE);
+
+        handler.endElement("", ROOT, ROOT);
+        
+        handler.endPrefixMapping(DCTERMS);
+        handler.endPrefixMapping(DC);
+        handler.endPrefixMapping(XSI);
+        handler.endDocument();
+    }
+
+    public void includeXMP(ContentHandler handler) throws SAXException, IOException, ParserConfigurationException {
         try {
-            // parse image
             scanHeaders();
             atts= new AttributesImpl();
             atts.addAttribute("", "length", "length", "CDATA", "" + srcFile.length());
@@ -169,35 +193,36 @@ public class AntJpegInfo extends MatchingTask {
             atts.addAttribute("", "height", "height", "height", "" + height);
             atts.addAttribute("", "compression", "compression", "CDATA", "" + compression);
             atts.addAttribute("", "colors", "colors", "CDATA", "" + (int)Math.pow(2, bitsPerPixel));
-            handler.startElement("http://purl.org/dc/elements/1.1/", "format", "dc:format", atts);
-            handler.endElement("http://purl.org/dc/elements/1.1/", "format", "dc:format");
-            
+            atts.addAttribute(XSI_URI, TYPE, XSI + ":" + TYPE, "CDATA", "pixels");
+            handler.startElement(DCTERMS_URI, EXTENT, DCTERMS+':'+EXTENT, atts);
+            NumberFormat formatter = new DecimalFormat("00000000");
+            String size=formatter.format(width * height);
+            c=size.toCharArray();
+            handler.characters(c, 0, c.length);
+            handler.endElement(DCTERMS_URI, EXTENT, DCTERMS+':'+EXTENT);
+
             /*Create a SAX Parser Factory*/
-            SAXParserFactory parseFactory = SAXParserFactory.newInstance();
-            /*Obtain a SAX Parser */
-            SAXParser saxParser;
-            saxParser = parseFactory.newSAXParser();
-            /*XML Reader is the interface for reading an XML document using callbacks*/
-            XMLReader xmlReader = saxParser.getXMLReader();
-            IncludeHandler includer=new IncludeHandler(handler);
-            includer.setIgnoreEmptyCharacters(true);
-            xmlReader.setContentHandler(includer);
-            String xmp = this.getXMP();
-            xmlReader.parse(new InputSource(new StringReader(xmp)));
-        }
-		catch (JpegException e) {
+	        SAXParserFactory parseFactory = SAXParserFactory.newInstance();
+	        /*Obtain a SAX Parser */
+	        SAXParser saxParser;
+	        saxParser = parseFactory.newSAXParser();
+	        /*XML Reader is the interface for reading an XML document using callbacks*/
+	        XMLReader xmlReader = saxParser.getXMLReader();
+	        IncludeHandler includer=new IncludeHandler(handler);
+	        includer.setIgnoreEmptyCharacters(true);
+	        xmlReader.setContentHandler(includer);
+	        String xmp = this.getXMP();
+	        xmlReader.parse(new InputSource(new StringReader(xmp)));
+        } catch (JpegException e) {
 			// careful, no XMP is highly possible in a jpeg
 			// don't send too much to the log
 			log("No XMP in "+srcFile);
 			log(e.getLocalizedMessage());
 		}
-        handler.endElement("", "jpeginfo", "jpeginfo");
-        handler.endDocument();
     }
 
-
     /**
-     * <b>Give lang of a file according to XFolio practices </b> -
+     * <b>Give lang of a file according to TransFolio practices </b> -
      * .*_(??)\.extension, where (??) is an iso language code on 2 chars
      * extend to other locale ?
      */

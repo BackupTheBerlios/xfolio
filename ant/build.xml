@@ -1,35 +1,29 @@
 <?xml version="1.0"?>
 <!--
+copyright : (c) 2003, 2004. "ADNX" <http://adnx.org>
+licence   : "LGPL" <http://www.gnu.org/copyleft/lesser.html> 
+creator   : [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com) ("AJLSM" <http://ajlsm.org>)
 
-Copyright 2003-2004 ADNX <http://adnx.org>
-
-  = WHAT =
+  = What =
 
 Build a website from an organized webfolder of OpenOffice writer docs
 and gallery of images.
 Long attention have been paid to dependencies and update.
 
-  = WHO =
-
-[FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com>
-
-  = FEATURES =
+  = Features =
 
  * update only what is needed (depend on source documents or transform engine)
  * normalize source documents filenames (JPG > jpg)
  * extract infos from jpg (especially xmp) as a SAX generator
  * link generated XML with a transformation 
 
-  = CHANGES =
+  = Changes =
 
  * 2004-11-05 [FG] for browser compatibility reason, sxw xml is named sxw.xml
  * 2004-11-01 [FG] creation
  
 
-  = MAYDO =
-
-
-  = REFERENCES =
+  = References =
 
 
  * [conditions] <http://ant.apache.org/manual/CoreTasks/conditions.html>
@@ -218,26 +212,41 @@ work on a jpeg file
     <copy file="${file}" tofile="${website}${path}.jpg" preservelastmodified="true"/>
     <xjpeg srcfile="${website}${path}.jpg"/>
     <!-- a quite nice text version -->
-    <xslt in="${website}${path}.xjpeg" out="${website}${path}.rdf" style="transform/meta/xmp2dc.xsl"/>
+    <xslt in="${website}${path}.xjpeg" out="${website}${path}.rdf" style="transform/meta/xmp2dc.xsl">
+      <param name="path" expression="${path}"/>
+      <param name="formats" expression=" jpg html rdf "/>
+    </xslt>
   </target>
   <!--
 list files in src
 -->
   <target name="directory">
-    <echo file="${website}/toc.ant">&lt;directory xml:base="${src}" &gt;</echo>
+    <echo file="${website}/toc.ant">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</echo>
+    <echo file="${website}/toc.ant" append="true">
+&lt;?xml-stylesheet type="text/xsl" href="xsl/transfolio/filelist2dir.xsl"?&gt;</echo>
+    <echo file="${website}/toc.ant" append="true">
+&lt;collection path="${src}" &gt;</echo>
     <for param="file">
       <path>
-        <fileset dir="${src}">
+        <fileset dir="${src}/..">
           <exclude name="**/Thumbs.db"/>
         </fileset>
       </path>
       <sequential>
+    <!-- get a relative path -->
+        <pathconvert targetos="unix" property="path">
+          <path>
+            <pathelement location="@{file}"/>
+          </path>
+          <map from="${src}" to=""/>
+          <mapper type="regexp" from="(.*)\.(.*)$$" to="\1"/>
+        </pathconvert>
         <echo file="${website}/toc.ant" append="true">
-  &lt;file path="@{file}"/&gt;</echo>
+  &lt;resource path="@{file}"/&gt;</echo>
       </sequential>
     </for>
     <echo file="${website}/toc.ant" append="true">
-&lt;/directory&gt;</echo>
+&lt;/collection&gt;</echo>
   </target>
   <!-- 
 
@@ -271,7 +280,9 @@ sxw files, do job "foreach"
     </xslt>
     <!-- extract meta for an RDF -->
     <xslt in="${website}${path}.sxw.xml" out="${website}${path}.rdf" style="transform/sxw/sxw2rdf.xsl">
-      <param name="path" expression="${file}"/>
+      <param name="path" expression="${path}"/>
+      <!-- other extensions for which a transformation is expected -->
+      <param name="formats" expression=" sxw html txt rdf "/>
     </xslt>
     <!-- a quite nice text version -->
     <xslt in="${website}${path}.sxw.xml" out="${website}${path}.txt" style="transform/sxw/sxw2txt.xsl"/>

@@ -5,7 +5,6 @@ copyright : (c) 2003, 2004. "ADNX" <http://adnx.org>
 licence   : "LGPL" <http://www.gnu.org/copyleft/lesser.html> 
 creator   : [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com) ("AJLSM" <http://ajlsm.org>)
 
-
  = What =
 
 provide the best set of Dublin Core properties possible from an OpenOffice.org
@@ -25,25 +24,31 @@ This template may be externalize in a specific rdf2meta ?
 
  = Changes =
 
+ * 2004-11-17 [FG] introduction of dcterms
  * 2004-06-28 [FG] better linking resolving
 The metas could be used separated for other usages.
 These transformation was extracted from a global oo2html
  * 2004-O1-27 [FG]  creation from an OOo2html.xsl
 
 
- = Ideas =  
+ = Ideas/tasks =  
 
-may be used for other target namespace DC compatible
-what about a default properties document ?
-format in arabic
-
+ * dc:rights, dcterms:licence, dcterms:rightsHolder
+ * an RDF-DC template with default value
+ * dcterms:alternative << Title abbreviations as well as translations >>
+ * dcterms:audience, dcterms:educationLevel (from style)
+ * dcterms:bibliographicCitation (format a biblio citation from extracted properties)
+ * dcterms:*date* (from styles, for thesis ?)
 
  = References =  
 
- * http://www.w3.org/TR/xhtml2/abstraction.html#dt_MediaDesc
+ * DCMI Metadata Terms. "DCMI Usage Board" <dc-usage@jiscmail.ac.uk>. 
+   "The Dublin Core Metadata Initiative" <http://dublincore.org/>.
+   <http://dublincore.org/documents/dcmi-terms/>
+ * <http://www.w3.org/TR/xhtml2/abstraction.html#dt_MediaDesc>
 
 -->
-<xsl:transform version="1.1" xmlns:style="http://openoffice.org/2000/style" xmlns:text="http://openoffice.org/2000/text" xmlns:office="http://openoffice.org/2000/office" xmlns:table="http://openoffice.org/2000/table" xmlns:draw="http://openoffice.org/2000/drawing" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="http://openoffice.org/2000/meta" xmlns:number="http://openoffice.org/2000/datastyle" xmlns:svg="http://www.w3.org/2000/svg" xmlns:chart="http://openoffice.org/2000/chart" xmlns:dr3d="http://openoffice.org/2000/dr3d" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="http://openoffice.org/2000/form" xmlns:script="http://openoffice.org/2000/script" xmlns:config="http://openoffice.org/2001/config" office:class="text" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" exclude-result-prefixes="office table number fo xlink chart math script xsl draw svg dr3d form config">
+<xsl:transform version="1.1" xmlns:style="http://openoffice.org/2000/style" xmlns:text="http://openoffice.org/2000/text" xmlns:office="http://openoffice.org/2000/office" xmlns:table="http://openoffice.org/2000/table" xmlns:draw="http://openoffice.org/2000/drawing" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="http://openoffice.org/2000/meta" xmlns:number="http://openoffice.org/2000/datastyle" xmlns:svg="http://www.w3.org/2000/svg" xmlns:chart="http://openoffice.org/2000/chart" xmlns:dr3d="http://openoffice.org/2000/dr3d" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="http://openoffice.org/2000/form" xmlns:script="http://openoffice.org/2000/script" xmlns:config="http://openoffice.org/2001/config" office:class="text" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" exclude-result-prefixes="office table number fo xlink chart math script xsl draw svg dr3d form config">
   <!-- naming util on filenames -->
   <xsl:import href="sxw-common.xsl"/>
   <xsl:import href="sxw2txt.xsl"/>
@@ -56,8 +61,8 @@ format in arabic
   <!-- used to resolve links for images (?) -->
   <!-- identifier for doc in all formats -->
   <xsl:param name="path"/>
-  <!-- extensions from which a transformation is expected -->
-  <xsl:param name="extensions"/>
+  <!-- extensions for which a transformation is expected -->
+  <xsl:param name="formats"/>
   <!-- Carriage return, can't understand why but this one works better than the one in sxw2txt.xsl -->
   <xsl:param name="CR">&#160;
 </xsl:param>
@@ -97,8 +102,7 @@ FG:2004-06-10
   </xsl:template>
   <xsl:template name="rdf">
     <rdf:RDF>
-      <!-- TODO @about -->
-      <rdf:Description>
+      <rdf:Description rdf:about="{$path}">
         <xsl:call-template name="dc:properties"/>
       </rdf:Description>
     </rdf:RDF>
@@ -133,9 +137,9 @@ $office:body/*[generate-id(following-sibling::text:h[1]) = generate-id($next)]
 "/>
       </xsl:otherwise>
     </xsl:choose>
-    <dc:description xsi:type="text:table-of-content">
+    <dcterms:tableOfContents>
       <xsl:apply-templates select="$office:body/text:h" mode="text-toc"/>
-    </dc:description>
+    </dcterms:tableOfContents>
     <!-- relations -->
     <xsl:apply-templates select="$office:body//text:bibliography-mark[not(@text:identifier = following::text:bibliography-mark/@text:identifier)]" mode="dc">
       <xsl:sort select="@text:identifier"/>
@@ -148,10 +152,11 @@ $office:body/*[generate-id(following-sibling::text:h[1]) = generate-id($next)]
     <xsl:apply-templates select="$office:meta/dc:date" mode="dc"/>
     <xsl:apply-templates select="$office:meta/meta:creation-date" mode="dc"/>
     <!-- TODO identifier -->
+    <xsl:call-template name="hasFormat"/>
     <!-- mime/type  -->
     <dc:format xsi:type="dcterms:IMT">application/vnd.sun.xml.writer</dc:format>
     <!-- format as size -->
-    <xsl:apply-templates select="meta:document-statistic" mode="dc"/>
+    <xsl:apply-templates select="$office:meta/meta:document-statistic" mode="dc"/>
     <!-- copyright -->
     <!--
       <dc:rights>
@@ -191,17 +196,17 @@ Properties from meta.xml
   </xsl:template>
   <!-- description from meta form -->
   <xsl:template match="dc:description" mode="dc">
-    <dc:description xsi:type="meta:description">
+    <dc:description>
       <xsl:call-template name="lang"/>
       <xsl:apply-templates/>
     </dc:description>
   </xsl:template>
   <!-- dates -->
   <xsl:template match="meta:creation-date | dc:date" mode="dc">
-    <dc:date xsi:type="meta:{local-name()}">
+    <dc:created>
       <xsl:call-template name="lang"/>
       <xsl:value-of select="substring-before(.,'T')"/>
-    </dc:date>
+    </dc:created>
   </xsl:template>
   <!-- meta user defined when not empty -->
   <xsl:template match="meta:user-defined[normalize-space(.)='']" mode="dc"/>
@@ -279,8 +284,8 @@ Process document to extract DC properties
         </dc:contributor>
       </xsl:when>
       <!-- TODO handle case of sibling style -->
-      <xsl:when test="($prev != $style) and (contains ($style, 'description') or contains ($style, 'abstract'))">
-        <dc:description>
+      <xsl:when test="($prev != $style) and contains ($style, 'abstract')">
+        <dcterms:abstract>
           <xsl:call-template name="lang"/>
           <xsl:attribute name="xsi:type">
             <xsl:text>style:</xsl:text>
@@ -292,6 +297,17 @@ Process document to extract DC properties
             <xsl:apply-templates select="following-sibling::*[1]" mode="level2"/>
           </xsl:if>
           -->
+        </dcterms:abstract>
+      </xsl:when>
+      <!-- TODO handle case of sibling style -->
+      <xsl:when test="($prev != $style) and contains($style, 'description')">
+        <dc:description>
+          <xsl:call-template name="lang"/>
+          <xsl:attribute name="xsi:type">
+            <xsl:text>style:</xsl:text>
+            <xsl:value-of select="$style"/>
+          </xsl:attribute>
+          <xsl:apply-templates/>
         </dc:description>
       </xsl:when>
       <!-- do nothing -->
@@ -382,10 +398,10 @@ Process document to extract DC properties
   <!-- links TODO ! -->
   <!--  bibliography  -->
   <xsl:template match="text:bibliography-mark" mode="dc">
-    <dc:source xsi:type="text:bibliography-mark">
+    <dcterms:references xsi:type="text:bibliography-mark">
       <xsl:apply-templates select="@*" mode="dc"/>
       <xsl:apply-templates select="." mode="text-foot"/>
-    </dc:source>
+    </dcterms:references>
   </xsl:template>
   <!-- process bibliographic attributes as dc:attributes -->
   <xsl:template match="@*" mode="dc"/>
@@ -466,58 +482,10 @@ TODO:2004-05-11 better integration ?
 		<meta:document-statistic meta:table-count="1" meta:image-count="0" meta:object-count="0" meta:page-count="11" meta:paragraph-count="326" meta:word-count="3405" meta:character-count="23617"/>
 	-->
   <xsl:template match="meta:document-statistic" mode="dc">
-    <dc:format xsi:type="meta:{local-name()}">
+    <dcterms:extent pages="{@meta:page-count}" words="{@meta:word-count}" signs="{@meta:character-count}" images="{@meta:image-count}">
       <xsl:call-template name="lang"/>
-      <xsl:value-of select="@meta:page-count"/>
-      <xsl:text> pages : </xsl:text>
-      <xsl:value-of select="@meta:word-count"/>
-      <xsl:text> words, </xsl:text>
-      <xsl:value-of select="@meta:character-count"/>
-      <xsl:text> signs, </xsl:text>
-      <xsl:value-of select="@meta:image-count"/>
-      <xsl:text> images </xsl:text>
-    </dc:format>
-  </xsl:template>
-  <!--
-FG:2004-06-08
-add relations to other formats
-
-From a param provide by server of other supported export formats,
-<dc:relation/> elements are generated
--->
-  <xsl:template name="formats">
-    <!-- normalize extensions to have always a substring-before ' ' -->
-    <xsl:param name="extensions" select="concat(normalize-space($extensions), ' ')"/>
-    <xsl:choose>
-      <!-- no path, break here -->
-      <xsl:when test="normalize-space($identifier) =''"/>
-      <!-- no extensions, break here -->
-      <xsl:when test="normalize-space($extensions) =''"/>
-      <!-- more than one extension -->
-      <xsl:otherwise>
-        <xsl:variable name="extension" select="substring-before($extensions, ' ')"/>
-        <xsl:variable name="mime">
-          <xsl:call-template name="getMime">
-            <xsl:with-param name="path" select="$extension"/>
-          </xsl:call-template>
-        </xsl:variable>
-        <xsl:variable name="name">
-          <xsl:call-template name="getName">
-            <xsl:with-param name="path" select="$identifier"/>
-          </xsl:call-template>
-        </xsl:variable>
-        <dc:relation dc:format="{$mime}" rdf:resource="{$name}.{$extension}">
-          <xsl:call-template name="lang"/>
-          <!-- relation maybe relative to identifier ? -->
-          <xsl:value-of select="$identifier"/>
-          <xsl:text>.</xsl:text>
-          <xsl:value-of select="$extension"/>
-        </dc:relation>
-        <xsl:call-template name="formats">
-          <xsl:with-param name="extensions" select="substring-after($extensions, ' ')"/>
-        </xsl:call-template>
-      </xsl:otherwise>
-    </xsl:choose>
+      <xsl:value-of select="format-number(@meta:character-count, '00000000')"/>
+    </dcterms:extent>
   </xsl:template>
   <!-- ==============================
 

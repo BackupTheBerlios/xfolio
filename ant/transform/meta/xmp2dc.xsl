@@ -2,10 +2,11 @@
 <?xml-stylesheet type="text/xsl" href="../html/xsl2html.xsl"?>
 <!--
 
+Copyright : (c) 2003, 2004, "ADNX" <http://adnx.org>
+Licence   : "GPL" <http://www.fsf.org/copyleft/gpl.html>
+Creator   : [FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com>
 
-(c) 2003, 2004; ADNX <http://adnx.org>
-
-= WHAT =
+= What =
 
 http://cvs.berlios.de/cgi-bin/viewcvs.cgi/xfolio/webapp/transform/meta/xmp2dc.xsl
 
@@ -29,14 +30,8 @@ it's also nice to have the term "arbre", or "baum".
 A very simple text rule is supported, precised in the HOW section. 
 This transformation have been tested on some hundred of jpeg images.
 
-= WHO =
 
-[FG] FredericGlorieux (AJLSM) http://www.ajlsm.com
-
-[PT] Terray, Paul (4Dconcept) http://www.4dconcept.fr/
-
-
-= OUTPUT =
+= Output =
 
 {{{
 <rdf:RDF 
@@ -74,7 +69,7 @@ This transformation have been tested on some hundred of jpeg images.
 }}}
 
 
-= HOW =
+= How =
 
 Multilingual description are formatted in the description field like that
 
@@ -90,28 +85,6 @@ multiline
 description in this lang...
 }}}
 
-= TODO =
-
-isolate country somewhere ?
-
-{{{
-<xapBJ:JobRef>
-	<rdf:Bag>
-    <rdf:li rdf:parseType="Resource">
-      <stJob:name>Project Blue Square</stJob:name>
-    </rdf:li>
-  </rdf:Bag>
-</xapBJ:JobRef>
-
-<exif:ColorSpace>1</exif:ColorSpace>
-<exif:PixelXDimension>400</exif:PixelXDimension>
-<exif:PixelYDimension>300</exif:PixelYDimension>
-<photoshop:History/>
-<tiff:Orientation>1</tiff:Orientation>
-<tiff:XResolution>72/1</tiff:XResolution>
-<tiff:YResolution>72/1</tiff:YResolution>
-<tiff:ResolutionUnit>2</tiff:ResolutionUnit>
-}}}
 
 = CHANGES =
 
@@ -180,19 +153,26 @@ http://dublincore.org/documents/dcq-rdf-xml/
 This document describes how qualified Dublin Core metadata can be encoded 
 in RDF / XML and gives practical examples. 
 
-[AJLSM] Arvers, Jean-Luc; Sévigny, Martin "Solution pour le document numérique" http://ajlsm.com
+[AJLSM] Arvers, Jean-Luc; Sévigny, Martin 
+"Solution pour le document numérique" <http://ajlsm.com>
 
 -->
-<xsl:transform version="1.0" xmlns:IIM="http://iptc.org/IIM/" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/" xmlns:pdf="http://ns.adobe.com/pdf/1.3/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:x="adobe:ns:meta/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xap="http://ns.adobe.com/xap/1.0/" xmlns:xapMM="http://ns.adobe.com/xap/1.0/mm/" xmlns:xapRights="http://ns.adobe.com/xap/1.0/rights/" exclude-result-prefixes="photoshop pdf x xap xapMM xapRights">
+<xsl:transform version="1.0" xmlns:IIM="http://iptc.org/IIM/" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/" xmlns:pdf="http://ns.adobe.com/pdf/1.3/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:x="adobe:ns:meta/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xap="http://ns.adobe.com/xap/1.0/" xmlns:xapMM="http://ns.adobe.com/xap/1.0/mm/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xapRights="http://ns.adobe.com/xap/1.0/rights/" exclude-result-prefixes="photoshop pdf x xap xapMM xapRights">
+  <!-- file naming utilities, especially for the "hasFormat" template -->
+  <xsl:import href="naming.xsl"/>
   <xsl:output method="xml" encoding="UTF-8" indent="yes"/>
-  <!-- bug possible from here (used to format description) -->
+  <!-- the path of the file as identifier  -->
+  <xsl:param name="path"/>
+  <!-- extensions from which an alternative format is waited -->
+  <xsl:param name="formats"/>
   <xsl:variable name="CR" select="'&#xD;'"/>
-  <xsl:param name="LF" select="'&#10;'"/>
+  <xsl:variable name="LF" select="'&#10;'"/>
   <!-- root -->
   <xsl:template match="/">
     <rdf:RDF>
-      <rdf:Description>
+      <rdf:Description rdf:about="{$path}">
         <xsl:apply-templates/>
+        <xsl:call-template name="hasFormat"/>
       </rdf:Description>
     </rdf:RDF>
   </xsl:template>
@@ -221,7 +201,20 @@ Default handles
   </xsl:template>
   <!-- no direct output for these elements -->
   <xsl:template match="photoshop:City|photoshop:Country|photoshop:State|photoshop:AuthorsPosition
-  | rdf:Description[not(*)] | rdf:Description[xap:* | xapMM:*] | xapRights:*"/>
+  | rdf:Description[not(*)] | rdf:Description[xap:* | xapMM:*] | xapRights:*">
+    <!--
+TODO
+    {{{
+    <xapBJ:JobRef>
+      <rdf:Bag>
+        <rdf:li rdf:parseType="Resource">
+          <stJob:name>Project Blue Square</stJob:name>
+        </rdf:li>
+      </rdf:Bag>
+    </xapBJ:JobRef>
+    }}}
+    -->
+  </xsl:template>
   <!-- 
 2-115 Source :
   Not repeatable, maximum of 32 octets, consisting of graphic
@@ -330,6 +323,7 @@ Examples:
         <xsl:choose>
           <xsl:when test="photoshop:City">
             <xsl:apply-templates select="photoshop:City/node()"/>
+            <!-- TODO : isolate country in an attribute ? Code ? -->
             <xsl:if test="photoshop:State|photoshop:Country">
               <xsl:text> (</xsl:text>
               <xsl:apply-templates select="photoshop:Country/node()"/>
@@ -635,90 +629,4 @@ rdf:about="uuid:677e475e-f67e-11d8-b1aa-d5ccd9677e7a">
 <?xpacket end='w'?>
   </xsl:template>
   
-
-<!--
-old buggy version of the template, with less experience of text processing in XSL
-
-  <xsl:template name="text" match="dc:description//text()">
-    <xsl:param name="text" select="."/>
-    <xsl:param name="max" select="5"/>
-    <xsl:choose>
-      <xsl:when test="$max = 0"/>
-      <xsl:when test="normalize-space($text)=''"/>
-      <xsl:when test="substring-before($text, '[') != '' and normalize-space(substring-before($text, '[')) = ''">
-        <xsl:call-template name="text">
-          <xsl:with-param name="text" select="substring-after($text, substring-before($text, '['))"/>
-          <xsl:with-param name="max" select="$max - 1"/>
-        </xsl:call-template>
-      </xsl:when>
-      <xsl:when test="starts-with($text, '[') and contains($text, ']')">
-        <xsl:variable name="lang" select="substring-after(substring-before($text, ']'), '[')"/>
-        <dc:title xsi:type="IIM:Description">
-          <xsl:if test="normalize-space($lang) != ''">
-            <xsl:attribute name="xml:lang">
-              <xsl:value-of select="$lang"/>
-            </xsl:attribute>
-          </xsl:if>
-          <xsl:choose>
-            <xsl:when test="contains(substring-after($text, ']'), $LF)">
-              <xsl:value-of select="normalize-space(substring-before(substring-after($text, ']'), $CR))"/>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:value-of select="normalize-space(substring-after($text, ']'))"/>
-            </xsl:otherwise>
-          </xsl:choose>
-        </dc:title>
-        <xsl:variable name="after" select="substring-after(substring-after($text, ']'), $CR)"/>
-        <xsl:choose>
-          <xsl:when test="contains($after, '[') or true()">
-            <xsl:call-template name="text">
-              <xsl:with-param name="text" select="concat('[', substring-after($after, '['))"/>
-              <xsl:with-param name="max" select="$max - 1"/>
-            </xsl:call-template>
-          </xsl:when>
-          <xsl:when test="contains($after, concat($CR, '['))">
-            <dc:description xsi:type="IIM:Description">
-              <xsl:if test="normalize-space($lang) != ''">
-                <xsl:attribute name="xml:lang">
-                  <xsl:value-of select="$lang"/>
-                </xsl:attribute>
-              </xsl:if>
-              <xsl:value-of select="substring-before($after, concat($CR, '['))"/>
-            </dc:description>
-            <xsl:call-template name="text">
-              <xsl:with-param name="text" select="concat('[', substring-after($after, '['))"/>
-              <xsl:with-param name="max" select="$max - 1"/>
-            </xsl:call-template>
-          </xsl:when>
-          <xsl:otherwise>
-            <dc:description xsi:type="IIM:Description">
-              <xsl:if test="normalize-space($lang) != ''">
-                <xsl:attribute name="xml:lang">
-                  <xsl:value-of select="$lang"/>
-                </xsl:attribute>
-              </xsl:if>
-              <xsl:value-of select="$after"/>
-            </dc:description>
-          </xsl:otherwise>
-        </xsl:choose>
-      </xsl:when>
-      <xsl:when test="contains($text, '[')">
-        <xsl:if test="normalize-space(substring-before($text, '['))!=''">
-          <dc:description xsi:type="IIM:Description">
-            <xsl:value-of select="substring-before($text, '[')"/>
-          </dc:description>
-        </xsl:if>
-        <xsl:call-template name="text">
-          <xsl:with-param name="text" select="concat('[', substring-after($text, '['))"/>
-          <xsl:with-param name="max" select="$max - 1"/>
-        </xsl:call-template>
-      </xsl:when>
-      <xsl:otherwise>
-        <dc:description xsi:type="IIM:Description">
-          <xsl:value-of select="."/>
-        </dc:description>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
--->
 </xsl:transform>
