@@ -8,12 +8,50 @@ publisher:ADNX <http://adnx.org>
 goal:
   centralize naming policy of files to be shared by RDF ans RSS
 
+
+
 -->
 <xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dcterms="http://purl.org/dc/terms/" exclude-result-prefixes="">
   <xsl:variable name="mimes" select="document('mimes.xml')"/>
   <!-- list of space separated of file extensions 
 from which generate dcterms:hasFormat declarations -->
   <xsl:param name="formats"/>
+    <!--
+Normalize path
+ * '\' > '/'
+ * heho/coucou/beuh/../../bouh > heho/bouh
+ * TODO ? toto//tata 
+Careful, not a lot of tests, may bug in lots of cases.
+-->
+  <xsl:template name="normalizePath">
+    <!-- The supposed absolute path from which resolve -->
+    <xsl:param name="path"/>
+    <xsl:choose>
+      <xsl:when test="contains($path, '\')">
+        <xsl:call-template name="normalizePath">
+          <xsl:with-param name="path" select="translate($path, '\', '/')"/>
+        </xsl:call-template>
+      </xsl:when>
+      <!-- there's a go up '../', and there's a parent to strip -->
+      <xsl:when test="
+contains(
+  substring-before($path, '/../')
+, '/')
+">
+        <xsl:call-template name="normalizePath">
+          <xsl:with-param name="path">
+            <xsl:call-template name="getParent">
+              <xsl:with-param name="path" select="substring-before($path, '/../')"/>
+            </xsl:call-template>
+            <xsl:value-of select="substring-after($path, '/../')"/>
+          </xsl:with-param>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$path"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
   <!--
 from 2 path, http://, or /
 
@@ -471,12 +509,17 @@ From a param provide by server of other supported export formats,
             <xsl:with-param name="path" select="$path"/>
           </xsl:call-template>
         </xsl:variable>
-        <dcterms:hasFormat dc:format="{$mime}" rdf:resource="{$name}.{$extension}">
+        <xsl:variable name="parent">
+          <xsl:call-template name="getParent">
+            <xsl:with-param name="path" select="$path"/>
+          </xsl:call-template>
+        </xsl:variable>
+        <dcterms:hasFormat dc:format="{$mime}" rdf:resource="{$parent}{$name}.{$extension}">
           <!-- what should I do ther ?
           <xsl:call-template name="lang"/>
             -->
           <!-- relation maybe relative to identifier ? -->
-          <xsl:value-of select="$path"/>
+          <xsl:value-of select="$name"/>
           <xsl:text>.</xsl:text>
           <xsl:value-of select="$extension"/>
         </dcterms:hasFormat>

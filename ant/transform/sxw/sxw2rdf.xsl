@@ -314,9 +314,11 @@ Process document to extract DC properties
       <xsl:otherwise/>
     </xsl:choose>
   </xsl:template>
-  <!-- images -->
+  <!-- 
+ images 
+ref: <http://www.w3.org/TR/rdf-primer/#example36>
+-->
   <xsl:template match="draw:image" mode="dc">
-    <xsl:variable name="path" select="@xlink:href"/>
     <xsl:variable name="link">
       <xsl:apply-templates select="@xlink:href"/>
     </xsl:variable>
@@ -326,7 +328,23 @@ Process document to extract DC properties
           <xsl:with-param name="path" select="$link"/>
         </xsl:call-template>
       </xsl:attribute>
-      <xsl:call-template name="lang"/>
+      <xsl:attribute name="rdf:resource">
+        <xsl:choose>
+          <xsl:when test="starts-with($link, 'http://')">
+            <xsl:value-of select="$link"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:call-template name="normalizePath">
+              <xsl:with-param name="path">
+                <xsl:call-template name="getParent">
+                  <xsl:with-param name="path" select="$path"/>
+                </xsl:call-template>
+                <xsl:value-of select="$link"/>
+              </xsl:with-param>
+            </xsl:call-template>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:attribute>
       <xsl:value-of select="$link"/>
     </dc:relation>
   </xsl:template>
