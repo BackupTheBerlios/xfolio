@@ -22,6 +22,13 @@ TODO wash port :
     <xsl:param name="to"/>
     <!-- loop only if start is common -->
     <xsl:choose>
+      <!-- windows filepath -->
+      <xsl:when test="contains($from, '\') or contains($to, '\')">
+        <xsl:call-template name="getRelative">
+          <xsl:with-param name="from" select="translate($from, '\', '/')"/>
+          <xsl:with-param name="to" select="translate($to, '\', '/')"/>
+        </xsl:call-template>
+      </xsl:when>
       <xsl:when test="starts-with($from, '/') and starts-with($to, '/')">
         <xsl:call-template name="_getRelative">
           <xsl:with-param name="from" select="substring-after($from, '/')"/>
@@ -176,6 +183,12 @@ support only filenames in form {radical}_{lang}(_{country}?).{extension}
   <xsl:template name="getLang">
     <xsl:param name="path"/>
     <xsl:choose>
+      <!-- windows filepath -->
+      <xsl:when test="contains($path, '\')">
+        <xsl:call-template name="getLang">
+          <xsl:with-param name="path" select="translate($path, '\', '/')"/>
+        </xsl:call-template>
+      </xsl:when>
       <!-- no lang -->
       <xsl:when test="not(contains($path, '_'))"/>
       <!-- case of a directory, break here -->
@@ -215,6 +228,12 @@ Bug in xalan ?
   <xsl:template name="getName">
     <xsl:param name="path" select="'no name'"/>
     <xsl:choose>
+      <!-- windows filepath -->
+      <xsl:when test="contains($path, '\')">
+        <xsl:call-template name="getName">
+          <xsl:with-param name="path" select="translate($path, '\', '/')"/>
+        </xsl:call-template>
+      </xsl:when>
       <xsl:when test="contains($path, '/') = false()">
         <xsl:value-of select="$path"/>
       </xsl:when>
@@ -227,14 +246,19 @@ Bug in xalan ?
           <xsl:with-param name="path" select="substring-after($path, '/')"/>
         </xsl:call-template>
       </xsl:when>
-      <xsl:otherwise>
-                        </xsl:otherwise>
+      <xsl:otherwise/>
     </xsl:choose>
   </xsl:template>
   <!-- give parent of a path -->
   <xsl:template name="getParent">
     <xsl:param name="path"/>
     <xsl:choose>
+      <!-- windows filepath -->
+      <xsl:when test="contains($path, '\')">
+        <xsl:call-template name="getParent">
+          <xsl:with-param name="path" select="translate($path, '\', '/')"/>
+        </xsl:call-template>
+      </xsl:when>
       <xsl:when test="contains($path, '/') and substring-after($path, '/')!=''">
         <xsl:value-of select="substring-before($path, '/')"/>
         <xsl:text>/</xsl:text>
@@ -253,6 +277,12 @@ need the extension logic
   <xsl:template name="getMime">
     <xsl:param name="path"/>
     <xsl:choose>
+      <!-- windows filepath -->
+      <xsl:when test="contains($path, '\')">
+        <xsl:call-template name="getMime">
+          <xsl:with-param name="path" select="translate($path, '\', '/')"/>
+        </xsl:call-template>
+      </xsl:when>
       <!-- direct extension ? -->
       <xsl:when test="not (contains($path, '/') or contains($path, '/') or contains($path, '.') or string-length($path) &gt; 4)">
         <xsl:value-of select="$mimes/*/*[@extension=$path]/@mime-type"/>
@@ -295,6 +325,12 @@ this code have to be copy/paste for get mime
   <xsl:template name="getExtension">
     <xsl:param name="path"/>
     <xsl:choose>
+      <!-- windows filepath -->
+      <xsl:when test="contains($path, '\')">
+        <xsl:call-template name="getExtension">
+          <xsl:with-param name="path" select="translate($path, '\', '/')"/>
+        </xsl:call-template>
+      </xsl:when>
       <!-- case of a directory, break here -->
       <xsl:when test="contains($path, '/') and normalize-space(substring-after($path, '/')) =''"/>
       <!-- not the end of the path -->
