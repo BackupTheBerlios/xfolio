@@ -96,6 +96,11 @@ Licence   : http://www.fsf.org/copyleft/gpl.html
       Pierrick Brihaye <pierrick.brihaye@culture.gouv.fr>
     Subject: Re: Serveurs MSH et CR =?ISO-8859-1?Q?r=E9union_tech?=
 
+.. Trailing spaces
+
+    !This title is not linked to the second
+    
+    === even if they are "trailing spaces" ===
 
 
 . TODO
@@ -105,6 +110,7 @@ Licence   : http://www.fsf.org/copyleft/gpl.html
   A simple blocks with different *emphase*, especially the
   classical _like underline_. Links policy will focus first on
   "Active text" <URI>. 
+
 
 .. Simple tables
 
@@ -168,11 +174,6 @@ which should not be indented.
 > Could you imagine to keep all mail in one block ?
 > 
 
-.. Trailing spaces
-
-    !This title is linked to the second
-    
-    === because of trailing spaces ===
 
 
 .. Horizontal rules
@@ -195,13 +196,20 @@ which should not be indented.
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
  
 >
-  <!-- different interesting tools for the fast test view -->
+  <!-- 
+html-common.xsl
+
+Diffrerent commodities for
+HTML generation (ex: encoding)
+-->
   <xsl:import href="html-common.xsl"/>
-  <xsl:import href="xml2html.xsl"/>
   <!-- the output declaration -->
   <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
-  <!-- the break line, tested on IE, Mozilla, XMLSpy -->
+  <!-- LF, ASCII "Line Feed" the UNIX break line -->
   <xsl:param name="LF" select="'&#10;'"/>
+  <!-- CR, ASCII "Carriage Return", to replace -->
+  <xsl:param name="CR" select="'&#13;'"/>
+  <!-- TAB, ASCII Tabulation -->
   <xsl:param name="TAB" select="'&#9;'"/>
 
   <!-- demo means this applied to  -->
@@ -210,20 +218,21 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
       <xsl:value-of select="true()"/>
     </xsl:if>
   </xsl:param>
-  <!-- seems to be useful -->
-  <xsl:variable name="gt" select="'>'"/>
-  <!-- chars accepted for bullet list -->
-  <xsl:variable name="bullets" select="'*o-'"/>
-  <!-- chars accepted for ordered list -->
-  <xsl:variable name="numbers" select="'0123456789#'"/>
   <!-- a long string of spaces -->
   <xsl:variable name="spaces" select="'                                            '"/>
-  <!-- The root template -->
+  <!-- 
+
+  The root template.
+   * wash it ?
+   * keep a demo mode ?
+   * is matching root a good idea ?
+
+-->
   <xsl:template match="/">
     <html>
       <head>
         <title> TODO </title>
-        <xsl:call-template name="head-common"/>
+        <xsl:call-template name="html-metas"/>
       </head>
       <xsl:choose>
         <xsl:when test="$demo and comment()">
@@ -240,7 +249,13 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
       </xsl:choose>
     </html>
   </xsl:template>
-
+  <!-- 
+The demo template allow to see the head comment  
+of this XSL in 3 views
+ 1) HTML
+ 2) text
+ 3) generated code
+-->
   <xsl:template name="demo">
     <xsl:param name="text" select="."/>
     <!-- onload is an hack for Mozilla to show the generated code -->
@@ -278,11 +293,131 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     </body>
   </xsl:template>
   <!--
+Main entry for texts to process
 
-split a string in blocks on empty lines
+Call the splitter on blocks but before
+ * normalize end of line (CRLF|CR)>LF
+ * start on first non LF char
+ * normlize tabs on empty spaces ?
+ * break at empty texts
+ 
+
+<http://www.websiterepairguy.com/articles/os/crlf.html>
 
   -->
-  <xsl:template match="node()" name="text2html" mode="text2html">
+  <xsl:template match="node()|@*" name="text2html" mode="text2html">
+    <xsl:param name="text" select="."/>
+    <xsl:variable name="html">
+      <xsl:variable name="norm">
+        <xsl:call-template name="norm-start">
+          <xsl:with-param name="text">
+            <xsl:call-template name="trailing-spaces">
+              <xsl:with-param name="text">
+                <xsl:call-template name="norm-lf">
+                  <xsl:with-param name="text" select="$text"/>
+                </xsl:call-template>
+              </xsl:with-param>
+            </xsl:call-template>
+          </xsl:with-param>
+        </xsl:call-template>
+      </xsl:variable>
+      <xsl:choose>
+        <!-- output something on "empty" texts ? -->
+        <xsl:when test="normalize-space($norm) =''"/>
+        <!-- multiblocks -->
+        <xsl:when test="normalize-space(substring-after($norm , concat($LF,$LF))) != ''">
+          <xsl:call-template name="block-split">
+            <xsl:with-param name="text" select="$norm"/>
+          </xsl:call-template>
+        </xsl:when>
+        <!-- block -->
+        <xsl:when test="normalize-space(substring-after($norm, $LF)) != ''">
+          <xsl:call-template name="block">
+            <xsl:with-param name="text" select="$norm"/>
+          </xsl:call-template>
+        </xsl:when>
+        <!-- line -->
+        <xsl:otherwise>
+          <span>
+            <xsl:attribute name="class">
+              <xsl:choose>
+                <xsl:when test="name()!=''">
+                  <xsl:value-of select="name()"/>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:text>comment</xsl:text>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:attribute>
+            <xsl:call-template name="inlines">
+              <xsl:with-param name="text" select="normalize-space($norm)"/>
+            </xsl:call-template>
+          </span>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>    
+    <!-- fast debug in context
+    <textarea rows="3" cols="80">
+      <xsl:copy-of select="$html"/>
+    </textarea>
+    -->
+    <xsl:copy-of select="$html"/>
+  </xsl:template>
+  <!-- normalize start (strip empty LF) -->
+  <xsl:template name="norm-start">
+    <xsl:param name="text"/>
+    <xsl:choose>
+      <xsl:when test="starts-with($text, $LF)">
+        <xsl:call-template name="norm-start">
+          <xsl:with-param name="text" select="substring-after($text, $LF)"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$text"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+  <!-- normalize trailing spaces -->
+  <xsl:template name="trailing-spaces">
+    <xsl:param name="text"/>
+    <xsl:choose>
+      <xsl:when test="normalize-space($text)=''"/>
+      <xsl:when test="contains($text, $LF)">
+        <xsl:call-template name="trailing-spaces">
+          <xsl:with-param name="text" select="substring-before($text, $LF)"/>
+        </xsl:call-template>
+        <xsl:value-of select="$LF"/>
+        <xsl:call-template name="trailing-spaces">
+          <xsl:with-param name="text" select="substring-after($text, $LF)"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$text"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+  <!-- normalize end of line -->
+  <xsl:template name="norm-lf">
+    <xsl:param name="text"/>
+      <xsl:choose>
+        <!-- maybe MS.windows ? contains CRLF (end of line ?), do nothing is perhaps the best -->
+        <xsl:when test="contains($text, concat($CR, $LF))">
+          <xsl:value-of select="$text"/>
+        </xsl:when>
+        <!-- maybe mac ? contains CR, translate all CR > LF -->
+        <xsl:when test="contains($text, $CR)">
+          <xsl:value-of select="translate($text, $CR, $LF)"/>
+        </xsl:when>
+        <!-- no CR, let it -->
+        <xsl:otherwise>
+          <xsl:value-of select="$text"/>
+        </xsl:otherwise>
+      </xsl:choose>
+  </xsl:template>
+<!--
+split a string in blocks on empty lines
+-->  
+  <xsl:template name="block-split" >
     <!-- the text to pass -->
     <xsl:param name="text" select="."/>
     <!-- if it's not the first block -->
@@ -292,6 +427,13 @@ split a string in blocks on empty lines
     <xsl:choose>
       <!-- don't forget to stop -->
       <xsl:when test="normalize-space($text) =''"/>
+      <!-- whash empty lines at the begining -->
+      <xsl:when test="contains($text, $LF) and normalize-space(substring-before($text, $LF))=''">
+        <xsl:call-template name="block-split">
+          <xsl:with-param name="text" select="substring-after($text, $LF)"/>
+          <xsl:with-param name="more" select="$more"/>
+        </xsl:call-template>
+      </xsl:when>
       <!-- if only one line, give hand directly to inlines -->
       <xsl:when test="not(contains($text, $LF)) and not($more)">
         <xsl:call-template name="inlines">
@@ -300,15 +442,8 @@ split a string in blocks on empty lines
       </xsl:when>
       <!-- add a blank line at the end for lighter testing, should be first call -->
       <xsl:when test="substring($text, string-length($text)-1) != concat($LF, $LF)">
-        <xsl:call-template name="text2html">
+        <xsl:call-template name="block-split">
           <xsl:with-param name="text" select="concat($text, $LF, $LF)"/>
-        </xsl:call-template>
-      </xsl:when>
-      <!-- whash empty lines at the begining -->
-      <xsl:when test="contains($text, $LF) and normalize-space(substring-before($text, $LF))=''">
-        <xsl:call-template name="text2html">
-          <xsl:with-param name="text" select="substring-after($text, $LF)"/>
-          <xsl:with-param name="more" select="$more"/>
         </xsl:call-template>
       </xsl:when>
       <!-- repeated pattern, may be an horizontal line -->
@@ -327,7 +462,7 @@ normalize-space(
         
         <hr/>
         <xsl:value-of select="concat($LF, $LF)"/>
-        <xsl:call-template name="text2html">
+        <xsl:call-template name="block-split">
           <xsl:with-param name="text" select="substring-after($text, $LF)"/>
           <xsl:with-param name="more" select="$more"/>
         </xsl:call-template>
@@ -338,7 +473,7 @@ normalize-space(
           <xsl:with-param name="text" select="substring-before($text, concat($LF, $LF))"/>
         </xsl:call-template>
         <xsl:value-of select="concat($LF, $LF)"/>
-        <xsl:call-template name="text2html">
+        <xsl:call-template name="block-split">
           <xsl:with-param name="text" select="substring-after($text, concat($LF, $LF))"/>
           <xsl:with-param name="more" select="true()"/>
         </xsl:call-template>
@@ -402,9 +537,12 @@ normalize-space(
           </xsl:call-template>
         </xsl:element>
       </xsl:when>
-      <!-- only one line, probably a title -->
-      <xsl:when test="not(contains($text, $LF))">
-        <xsl:variable name="level" select="string-length($prefix) - string-length(translate($prefix, '.)', ''))"/>
+      <!-- only one line, a title ? -->
+      <xsl:when test="
+      not(contains($text, $LF))
+      ">
+        <xsl:variable name="level" 
+        select="string-length(translate($prefix, '.)0123456789', '..'))"/>
         <xsl:choose>
           <xsl:when test="$level &lt; 1 or $level &gt; 6">
             <h4>
@@ -425,7 +563,10 @@ normalize-space(
       <!-- lists -->
       <!-- TODO better matching of lists -->
       <xsl:when test="
-    translate($prefix, '0123456789.)*#o-&gt;', '') = ''
+    translate($prefix, '0123456789.)*#o-', '') = ''
+or contains($norm, ' * ')
+or contains($norm, ' # ')
+or contains($text, '1)')
 ">
         <xsl:call-template name="list">
           <xsl:with-param name="text" select="$text"/>
@@ -495,8 +636,11 @@ and not(contains(normalize-space(substring-before($text, ':')), ' '))
         </table>
 
       </xsl:when>
-      <!-- list of terms -->
-      <xsl:when test="contains($text, concat($LF, '  '))">
+      <!-- list of terms, careful on trailing spaces for the marker -->
+      <xsl:when test="
+   (contains($text, concat($LF, '  ')) and normalize-space(substring-after($text, '  '))!='' )
+or (contains($text, concat($LF, $TAB)) and normalize-space(substring-after($text, $TAB))!='' )
+">
         <dl>
           <xsl:call-template name="dl">
             <xsl:with-param name="text" select="$text"/>
@@ -731,9 +875,8 @@ but easier to parse.
 
   <!--
 
-This template normalize a string for lists where markers are replaced by tab
-
-LF TAB TAB Space ..........what you want without TAB or LF
+This template normalize a string for lists where markers are replaced 
+by the number of needed tabs to show hierarchy.
 
 
   -->
@@ -1048,12 +1191,12 @@ default is for XML entities
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
-  <!--
-  A template to decode 
--->
   <xsl:variable name="hex" select="'0123456789ABCDEF'"/>
   <xsl:variable name="ascii"> !"#$%&amp;'()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~</xsl:variable>
   <xsl:variable name="latin1">&#160;&#161;&#162;&#163;&#164;&#165;&#166;&#167;&#168;&#169;&#170;&#171;&#172;&#173;&#174;&#175;&#176;&#177;&#178;&#179;&#180;&#181;&#182;&#183;&#184;&#185;&#186;&#187;&#188;&#189;&#190;&#191;&#192;&#193;&#194;&#195;&#196;&#197;&#198;&#199;&#200;&#201;&#202;&#203;&#204;&#205;&#206;&#207;&#208;&#209;&#210;&#211;&#212;&#213;&#214;&#215;&#216;&#217;&#218;&#219;&#220;&#221;&#222;&#223;&#224;&#225;&#226;&#227;&#228;&#229;&#230;&#231;&#232;&#233;&#234;&#235;&#236;&#237;&#238;&#239;&#240;&#241;&#242;&#243;&#244;&#245;&#246;&#247;&#248;&#249;&#250;&#251;&#252;&#253;&#254;&#255;</xsl:variable>
+  <!--
+  A template to decode 
+-->
   <xsl:template name="decode">
     <xsl:param name="text"/>
     <xsl:param name="marker" select="'='"/>

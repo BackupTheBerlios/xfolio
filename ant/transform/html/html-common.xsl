@@ -12,7 +12,10 @@ This sheet have to been imported to take advantage.
 
 
 -->
-<xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" xmlns="http://www.w3.org/1999/xhtml">
+<xsl:transform 
+xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+xmlns:html="http://www.w3.org/1999/xhtml"
+version="1.0" xmlns="http://www.w3.org/1999/xhtml">
     <!-- avoid indent for xhtml (some layout) -->
     <xsl:output method="xml" indent="no" omit-xml-declaration="yes" encoding="UTF-8"/>
     <!-- load the XSL only one time -->
@@ -23,6 +26,7 @@ This sheet have to been imported to take advantage.
         <xsl:when test="$document/*/xsl:output/@encoding">
           <xsl:value-of select="$document/*/xsl:output/@encoding"/>
         </xsl:when>
+        <!-- TODO xml processing -->
         <xsl:otherwise>UTF-8</xsl:otherwise>
       </xsl:choose>
     </xsl:param>
@@ -54,7 +58,7 @@ same logic as css for a js file, but without default value
   <!--
 Different useful declarations for head in an html doc
 -->
-  <xsl:template name="head-common">
+  <xsl:template name="html-metas">
     <!-- encoding declaration from output of the xsl -->
     <meta http-equiv="Content-type">
       <xsl:attribute name="content">

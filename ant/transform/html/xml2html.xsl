@@ -41,12 +41,15 @@ Licence   : http://www.fsf.org/copyleft/gpl.html
 
  +-->
 <xsl:stylesheet version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://www.w3.org/1999/xhtml" exclude-result-prefixes="xsl">
+  <!-- 
+text2html.xsl
+
+Interesting to format comments.
+*import precedence* text2html.xsl < html-common.xsl
+ -->
+  <xsl:import href="text2html.xsl"/>
   <xsl:output indent="no" method="xml" encoding="UTF-8" cdata-section-elements="cdata"/>
   <xsl:param name="pre" select="false()"/>
-  <!-- load this document, to be sure it will only one time -->
-  <xsl:variable name="document" select="document('')"/>
-  <!-- encoding of the HTML output, default is the one specified in xsl:output -->
-  <xsl:param name="encoding" select="$document/*/xsl:output/@encoding"/>
   <!-- 
 not used, but could be interesting to show content in <![CDATA[ declaration ]]> 
 especially for script where no chars should be expected
@@ -55,7 +58,7 @@ especially for script where no chars should be expected
   <!-- elements with preformated content -->
   <xsl:param name="pres" select="' style script litterallayout pre text '"/>
   <!-- a break line, tested on IE, Mozilla, XMLSpy. For long attribute value -->
-  <xsl:param name="CR" select="'&#10;'"/>
+  <xsl:param name="LF" select="'&#10;'"/>
   <!-- pattern for xml entities -->
   <xsl:variable name="xmlents" select="'&amp;:&amp;amp;,&gt;:&amp;gt;,&lt;:&amp;lt;'"/>
   <!-- 
@@ -93,6 +96,7 @@ namespace documentation URI
   </xsl:template>
   <!--
      |    ROOT ? to verify in cas of imports
+     |    ééèèè
      |-->
   <xsl:template match="/">
     <xsl:call-template name="xml:html"/>
@@ -111,12 +115,7 @@ namespace documentation URI
         <title>
           <xsl:value-of select="$title"/>
         </title>
-        <meta http-equiv="Content-type">
-          <xsl:attribute name="content">
-            <xsl:text>text/html; charset=</xsl:text>
-            <xsl:value-of select="$encoding"/>
-          </xsl:attribute>
-        </meta>
+        <xsl:call-template name="html-metas"/>
         <xsl:call-template name="xml:css"/>
         <xsl:call-template name="xml:swap"/>
       </head>
@@ -208,10 +207,15 @@ namespace documentation URI
   <!-- value of an attribute should be inline, 
 except the case of very long values where a preformatted block is more readable -->
     <xsl:choose>
-      <xsl:when test="string-length(normalize-space(.)) &gt; 30">
+      <xsl:when test="contains(., $LF)">
         <pre class="val">
           <xsl:call-template name="xml:value"/>
         </pre>
+      </xsl:when>
+      <xsl:when test="string-length(normalize-space(.)) &gt; 50">
+        <div class="val">
+          <xsl:call-template name="xml:value"/>
+        </div>
       </xsl:when>
       <xsl:otherwise>
         <span class="val">
@@ -229,7 +233,7 @@ except the case of very long values where a preformatted block is more readable 
     </xsl:variable>
     <xsl:variable name="value">
        <xsl:choose>
-        <xsl:when test="contains(., $CR)">
+        <xsl:when test="contains(., $LF)">
           
         </xsl:when>
         <xsl:otherwise></xsl:otherwise>
@@ -331,17 +335,22 @@ text()[normalize-space(.)!='']
           <xsl:apply-templates select="@*" mode="xml:html"/>
           <xsl:text>&gt;</xsl:text>
         </span>
-        <xsl:apply-templates select="node()" mode="xml:html">
+
+        <xsl:call-template name="xml:content">
           <xsl:with-param name="inline" select="true()"/>
-        </xsl:apply-templates>
+        </xsl:call-template>
+
         <span class="tag">
           <xsl:text>&lt;</xsl:text>
           <xsl:call-template name="xml:element"/>
           <xsl:text>&gt;</xsl:text>
         </span>
       </xsl:when>
-      <!-- preformated element -->
-      <xsl:when test="@xml:space='preserve' or contains($pres, concat(' ', local-name(), ' '))">
+      <!-- preformated element, if listed in $pre and no children (text only) -->
+      <xsl:when test="
+(@xml:space='preserve' or contains($pres, concat(' ', local-name(), ' ')))
+and not(*)
+">
         <pre class="content">
           <span class="tag">
             <a class="click" href="#close{$id}" name="open{$id}" onclick="if (window.swap) return swap('{$id}');">
@@ -350,9 +359,11 @@ text()[normalize-space(.)!='']
             <xsl:apply-templates select="@*" mode="xml:html"/>
             <xsl:text>&gt;</xsl:text>
           </span><span id="{$id}">
-            <xsl:apply-templates select="node()" mode="xml:html">
-              <xsl:with-param name="inline" select="true()"/>
-            </xsl:apply-templates>
+
+        <xsl:call-template name="xml:content">
+          <xsl:with-param name="inline" select="true()"/>
+        </xsl:call-template>
+
           </span><span class="tag"><a class="click">&lt;</a>
             <xsl:text>/</xsl:text>
             <xsl:call-template name="xml:element"/>
@@ -372,9 +383,11 @@ text()[normalize-space(.)!='']
             <xsl:text>&gt;</xsl:text>
           </span>
           <span class="xml_mix" id="{$id}">
-            <xsl:apply-templates select="node()" mode="xml:html">
+
+            <xsl:call-template name="xml:content">
               <xsl:with-param name="inline" select="true()"/>
-            </xsl:apply-templates>
+            </xsl:call-template>
+
           </span>
           <span class="tag">
             <a class="click">&lt;</a>
@@ -386,23 +399,26 @@ text()[normalize-space(.)!='']
       </xsl:when>
       <!-- structured block with indent -->
       <xsl:when test="normalize-space(text()) = '' and *">
-        <div class="tag">
-          <a class="click" href="#close{$id}" name="open{$id}" onclick="if (window.swap) return swap('{$id}');">
-            <xsl:text>&lt;</xsl:text>
-          </a>
-          <xsl:call-template name="xml:element"/>
-          <xsl:apply-templates select="@*" mode="xml:html"/>
-          <xsl:text>&gt;</xsl:text>
-        </div>
-        <blockquote class="xml_margin" id="{$id}">
-          <xsl:apply-templates select="node()" mode="xml:html"/>
-        </blockquote>
-        <div class="tag">
-          <a class="click" href="#open{$id}" name="close{$id}">&lt;</a>
-          <xsl:text>/</xsl:text>
-          <xsl:call-template name="xml:element"/>
-          <xsl:text>&gt;</xsl:text>
-        </div>
+        <dl>
+          <dt class="tag">
+            <a class="click" href="#close{$id}" name="open{$id}" onclick="if (window.swap) return swap('{$id}');">
+              <xsl:text>&lt;</xsl:text>
+            </a><xsl:call-template name="xml:element"/>
+            <xsl:apply-templates select="@*" mode="xml:html"/>
+            <xsl:text>&gt;</xsl:text>
+          </dt>
+          <dd class="xml_margin" id="{$id}">
+  
+          <xsl:call-template name="xml:content"/>
+  
+          </dd>
+          <dt class="tag">
+            <a class="click" href="#open{$id}" name="close{$id}">&lt;</a>
+            <xsl:text>/</xsl:text>
+            <xsl:call-template name="xml:element"/>
+            <xsl:text>&gt;</xsl:text>
+          </dt>
+        </dl>
       </xsl:when>
       <!-- block or with no children -->
       <xsl:otherwise>
@@ -413,7 +429,9 @@ text()[normalize-space(.)!='']
             <xsl:apply-templates select="@*" mode="xml:html"/>
             <xsl:text>&gt;</xsl:text>
           </span>
-          <xsl:apply-templates select="node()" mode="xml:html"/>
+
+          <xsl:call-template name="xml:content"/>
+
           <span class="tag">
             <xsl:text>&lt;/</xsl:text>
             <xsl:call-template name="xml:element"/>
@@ -435,6 +453,16 @@ text()[normalize-space(.)!='']
     </xsl:if>
 
 -->
+  </xsl:template>
+  <!-- 
+Generate what is inside an element.
+This template is isolated if importer wants to override 
+-->
+  <xsl:template name="xml:content">
+    <xsl:param name="inline"/>
+    <xsl:apply-templates select="node()" mode="xml:html">
+      <xsl:with-param name="inline" select="$inline"/>
+    </xsl:apply-templates>
   </xsl:template>
   <!-- write an xml element name -->
   <xsl:template name="xml:element">
@@ -484,10 +512,6 @@ String functions seems more useful.
 
 TOTEST &#xA;:<br/> (may work with a <xsl:param select="//br"/>)
 
-
-    <xsl:when xmlns:java="java" xmlns:xalan="http://xml.apache.org/xalan" test="function-available('xalan:distinct')">
-        <xsl:value-of select="java:org.apache.xalan.xsltc.compiler.util.Util.replace($text, 'a', '__')"/>
-    </xsl:when>
 
   -->
   <xsl:template name="replace">
