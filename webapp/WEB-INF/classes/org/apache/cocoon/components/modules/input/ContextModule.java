@@ -49,7 +49,7 @@
 
 */
 
-package org.xfolio.cocoon.components.modules.input;
+package org.apache.cocoon.components.modules.input;
 
 import java.util.Map;
 
@@ -71,7 +71,7 @@ import org.apache.cocoon.environment.ObjectModelHelper;
  * an exception will be thrown.
  *
  * @author <a href="mailto:kpiroumian@apache.org">Konstantin Piroumian</a>
- * @version CVS $Id: ContextModule.java,v 1.1 2004/10/15 22:13:12 glorieux Exp $
+ * @version CVS $Id: ContextModule.java,v 1.2 2004/10/16 19:17:15 glorieux Exp $
  */
 public class ContextModule extends AbstractJXPathModule
     implements ThreadSafe {

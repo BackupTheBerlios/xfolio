@@ -30,6 +30,7 @@ import java.awt.image.RescaleOp;
 import java.awt.image.WritableRaster;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Map;
 
@@ -89,7 +90,7 @@ import com.sun.image.codec.jpeg.JPEGImageEncoder;
  * @author <a href="mailto:stefano@apache.org">Stefano Mazzocchi</a>
  * @author <a href="mailto:stephan@apache.org">Stephan Michels</a>
  * @author <a href="mailto:tcurdt@apache.org">Torsten Curdt</a>
- * @version CVS $Id: ImageReader.java,v 1.1 2004/08/18 23:05:30 glorieux Exp $
+ * @version CVS $Id: ImageReader.java,v 1.2 2004/10/16 19:17:15 glorieux Exp $
  */
 final public class ImageReader extends ResourceReader {
 
@@ -209,7 +210,7 @@ final public class ImageReader extends ResourceReader {
 		return new AffineTransform(ratio, 0.0d, 0.0d, ratio, 0.0d, 0.0d);
     }
 
-    protected void processStream() throws IOException, ProcessingException {
+    protected void processStream(InputStream inputStream) throws IOException, ProcessingException {
         if (width > 0 || height > 0 || null != colorFilter || null != grayscaleFilter) {
             if (getLogger().isDebugEnabled()) {
                 getLogger().debug("image " + ((width == 0) ? "?" : Integer.toString(width))
@@ -299,7 +300,7 @@ final public class ImageReader extends ResourceReader {
             if (getLogger().isDebugEnabled()) {
                 getLogger().debug("passing original resource");
             }
-            super.processStream();
+            super.processStream(inputStream);
         }
     }
 

@@ -1,7 +1,6 @@
 
-package org.xfolio.cocoon.components.modules.input;
+package org.apache.cocoon.components.modules.input;
 
-import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.avalon.framework.configuration.Configuration;
@@ -20,7 +19,7 @@ import org.apache.cocoon.environment.ObjectModelHelper;
  * such array is returned.
  *
  * @author <a href="mailto:haul@apache.org">Christian Haul</a>
- * @version CVS $Id: ContextAttributeModule.java,v 1.1 2004/10/15 22:13:12 glorieux Exp $
+ * @version CVS $Id: ContextAttributeModule.java,v 1.2 2004/10/16 19:17:15 glorieux Exp $
  */
 public class ContextAttributeModule extends AbstractInputModule implements ThreadSafe {
 
