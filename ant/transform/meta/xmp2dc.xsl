@@ -166,6 +166,11 @@ in RDF / XML and gives practical examples.
   <xsl:param name="path"/>
   <!-- extensions from which an alternative format is waited -->
   <xsl:param name="formats"/>
+  <!-- 
+These variables are used to normalize names of languages
+-->
+  <xsl:variable name="majs" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöùúûüýÿþ .()/\?'"/>
+  <xsl:variable name="mins" select="'abcdefghijklmnopqrstuvwxyzaaaaaaaeeeeiiiidnooooouuuuybbaaaaaaaceeeeiiiionooooouuuuyyb------'"/>
   <xsl:variable name="CR" select="'&#xD;'"/>
   <xsl:variable name="LF" select="'&#10;'"/>
   <!-- root -->
