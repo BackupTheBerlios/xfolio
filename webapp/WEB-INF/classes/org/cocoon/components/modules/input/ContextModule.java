@@ -71,7 +71,7 @@ import org.apache.cocoon.environment.ObjectModelHelper;
  * an exception will be thrown.
  *
  * @author <a href="mailto:kpiroumian@apache.org">Konstantin Piroumian</a>
- * @version CVS $Id: ContextModule.java,v 1.1 2004/08/18 23:05:30 glorieux Exp $
+ * @version CVS $Id: ContextModule.java,v 1.1 2004/10/15 14:38:03 glorieux Exp $
  */
 public class ContextModule extends AbstractJXPathModule
     implements ThreadSafe {

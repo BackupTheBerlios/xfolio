@@ -20,7 +20,7 @@ import org.apache.cocoon.environment.ObjectModelHelper;
  * such array is returned.
  *
  * @author <a href="mailto:haul@apache.org">Christian Haul</a>
- * @version CVS $Id: ContextAttributeModule.java,v 1.1 2004/08/18 23:05:30 glorieux Exp $
+ * @version CVS $Id: ContextAttributeModule.java,v 1.1 2004/10/15 14:38:03 glorieux Exp $
  */
 public class ContextAttributeModule extends AbstractInputModule implements ThreadSafe {
 
