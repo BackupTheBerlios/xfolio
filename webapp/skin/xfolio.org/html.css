@@ -1,7 +1,7 @@
 
 /*
 SDX: Documentary System in XML.
-Copyright : (C) 2000, 2001, 2002, 2003, 2004 Ministere de la culture et de la communication (France), AJLSM
+Copyright : (C) 2000, 2001, 2002, 2003, 2004 AJLSM
 Licence   : http://www.fsf.org/copyleft/gpl.html
 frederic.glorieux@xfolio.org
 
@@ -38,21 +38,6 @@ frederic.glorieux@xfolio.org
 	height:60px;
 }
 */
-#navbar {
-	font-size:10pt;
-	padding:0;
-	padding-left:1em;
-	margin:0;
-	filter: progid:DXImageTransform.Microsoft.Alpha(style=1, opacity=100, finishOpacity=0, startX=0, finishX=0, startY=20, finishY=0);
-	background: #FFCC00 url('back-tonic.png');
-	color:#293974 ;
-	font-weight:bold;
-	border-bottom:outset 2px;
-	border-top:outset 2px;
-}
-#navbar * {
-	filter: progid:DXImageTransform.Microsoft.dropShadow( Color=#999999,offX=1,offY=1,positive=true);
-}
 
 /* COLORS */
 
@@ -166,7 +151,7 @@ a:active * {
 
 html, 
 body { 
-	font-family: Verdana, "Trebuchet MS", Universal, Arial, sans-serif; 
+	font-family: Bitstream Vera Serif, "Trebuchet MS", Universal, Arial, sans-serif; 
 	font-weight:normal; 
 }
 
@@ -182,16 +167,15 @@ caption small,
 caption a:link,
 form,
 legend,
-#navbar,
 table.table,
 dl.item { 
-	font-family: Universal, Arial, sans-serif;  
+	font-family: "Bitstream Vera Sans", Universal, Arial, sans-serif;  
 }
 tt, pre { 
 	font-family: "Lucida Console", Courier, "MS Courier New", monospace; 
 }
 h1 { 
-	font-family: Tahoma, Verdana, sans-serif; 
+	font-family: "Bitstream Vera Sans", Tahoma, Verdana, sans-serif; 
 }
 q, blockquote, h1 em, em, h1 i, em h1, i h1 { 
 	font-family: Garamond, Melior, Georgia, Times,  serif; 

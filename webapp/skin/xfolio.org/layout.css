@@ -25,7 +25,7 @@ body {
 
 
 
-#main {
+#article {
 	padding:1em;
 	padding-left:3em;
 	overflow:auto;
@@ -49,6 +49,27 @@ body {
 	padding-right:0.5ex;
 }
 
+#navbar {
+    font-family:Arial, sans-serif;
+	font-size:10pt;
+	padding:0;
+	padding-left:1em;
+	margin:0;
+	filter: progid:DXImageTransform.Microsoft.Alpha(style=1, opacity=100, finishOpacity=0, startX=0, finishX=0, startY=20, finishY=0);
+	background: #FFCC00 url('back-tonic.png');
+	color:#293974 ;
+	font-weight:bold;
+	border-bottom:outset 2px;
+	border-top:outset 2px;
+}
+#navbar a {
+    text-decoration:none;
+}
+/*
+#navbar * {
+	filter: progid:DXImageTransform.Microsoft.dropShadow( Color=#999999,offX=1,offY=1,positive=true);
+}
+*/
 
 /* old layout
 
