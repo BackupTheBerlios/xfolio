@@ -18,23 +18,38 @@ http://home.earthlink.net/~russelllear/WebSvcs.html
 <project basedir="." default="test" name="xfolio">
   <taskdef resource="net/sf/antcontrib/antlib.xml"/>
   <!-- the webfolder property properties for this build -->
-  <property name="wefolder" location="../docs"/>
-  <property name="website" location="${webfolder}-website"/>
-  <target name="test">
-    <echo>from ${webfolder}</echo>
-    <echo>to ${website}</echo>
-    <!-- copy source to dest -->
-    <copy todir="${website}">
-      <fileset dir="${webfolder}">
-        <exclude name="**/Thumbs.db"/>
-      </fileset>
+  <property name="src" location="../docs"/>
+  <!-- a delelable work folder where to store enough for caching -->
+  <property name="build" location="${src}-work"/>
+  <!-- the target website folder -->
+  <property name="dist" location="${src}-website"/>
+  <!-- 
+
+dev target.
+
+-->
+  <target name="test" depends="build, dist"/>
+  <!-- 
+
+build target.
+
+-->
+  <target name="build">
+    <echo>src=${src}</echo>
+    <echo>build=${build}</echo>
+    <!-- copy sxw files in work -->
+    <copy todir="${build}">
+      <fileset dir="${src}" includes="**/*.sxw"/>
     </copy>
-    <!-- for each OOo files -->
     <foreach target="OOoWriter" param="file">
-      <fileset dir="${website}" includes="**/*.sxw"/>
+      <fileset dir="${build}" includes="**/*.sxw"/>
     </foreach>
   </target>
-  <!-- do job "foreach" oo files  -->
+  <!-- 
+
+sxw files, do job "foreach" in build
+
+-->
   <target name="OOoWriter">
     <unzip src="${file}" dest="${file}!"/>
     <!-- aggregate OO doc -->
@@ -49,48 +64,59 @@ http://home.earthlink.net/~russelllear/WebSvcs.html
     <xslt in="${file}.OOo" out="${file}.rdf" style="transform/OOo/sxw2rdf.xsl"/>
     <!-- a quite nice text version -->
     <xslt in="${file}.OOo" out="${file}.txt" style="transform/OOo/sxw2txt.xsl"/>
-    <!-- restore nice extensions -->
-    <move todir="${file}/..">
-      <fileset dir="${file}/.." >
-        <include name="*.sxw.rdf"/>
+    <!-- an clean xhtml without navigation -->
+    <xslt in="${file}.OOo" out="${file}.xhtml" style="transform/OOo/sxw2html.xsl">
+      <param name="path" expression="${file}"/>
+    </xslt>
+    <!-- flatten pictures -->
+    <copy todir="${file}!">
+      <fileset dir="${file}!/Pictures"/>
+    </copy>
+  </target>
+  <!-- 
+
+copy/rename from build to dist
+
+-->
+  <target name="dist" depends="build">
+        <mkdir dir="${dist}"/>
+    <echo>dist=${dist}</echo>
+
+    <!-- copy src to dist -->
+    <copy todir="${dist}">
+      <fileset dir="${src}">
+        <exclude name="**/Thumbs.db"/>
+      </fileset>
+    </copy>
+    <!-- rdf - copy-rename from build to dist -->
+    <copy todir="${dist}">
+      <fileset dir="${build}" >
+        <include name="**/*.sxw.rdf"/>
       </fileset>
       <mapper type="glob" from="*.sxw.rdf" to="*.rdf"/>
-    </move>
-    <move todir="${file}/..">
-      <fileset dir="${file}/.." >
-        <include name="*.sxw.txt"/>
+    </copy>
+    <!-- txt - copy-rename txt files -->
+    <copy todir="${dist}">
+      <fileset dir="${build}" >
+        <include name="**/*.sxw.txt"/>
       </fileset>
       <mapper type="glob" from="*.sxw.txt" to="*.txt"/>
-    </move>
-    <move todir="${file}/..">
-      <fileset dir="${file}/.." >
-        <include name="*.sxw.OOo"/>
+    </copy>
+    <!-- images - copy and rename -->
+    <copy todir="${dist}">
+      <fileset dir="${build}" >
+        <exclude name="**/*.xml"/>
+        <include name="**/*.sxw!/*.*"/>
       </fileset>
-      <mapper type="glob" from="*.sxw.OOo" to="*.OOo"/>
-    </move>
-    <!--
-    <move todir="${file}/.." file="${file}.OOo">
-      <mapper type="glob" from="*.sxw.OOo" to="*.OOo"/>
-    </move>
-    <move todir="${file}/.." file="${file}.rdf">
-      <mapper type="glob" from="*.sxw.rdf" to="*.rdf"/>
-    </move>
--->
-<!--
-    <move todir="${file}/..">
-      <fileset dir="${file}/.." >
-        <include name="*.sxw.*"/>
+      <mapper type="regexp" from="^(.*).sxw!(.*)$" to="\1\2"/>    
+    </copy>
+    <!-- copy all sources -->
+    <copy todir="${dist}">
+      <fileset dir="${build}" >
+        <include name="**/*.sxw.xhtml"/>
       </fileset>
-      <mapper type="glob" from="*.sxw.rdf" to="*.rdf"/>
-    </move>
--->
-    <!--
-  <move todir="my/src/dir" includeemptydirs="false">
-    <fileset dir="my/src/dir">
-      <exclude name="**/*.bak"/>
-    </fileset>
-    <mapper type="glob" from="*" to="*.bak"/>
-  </move>
--->
+      <mapper type="glob" from="*.sxw.xhtml" to="*.xhtml"/>
+    </copy>
+  
   </target>
 </project>

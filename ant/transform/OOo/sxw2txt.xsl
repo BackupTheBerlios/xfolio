@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-(c) 2003, 2004; AJLSM <http://ajlsm.com>
+(c) 2003, 2004; ADNX <http://adnx.org>
 
 
  = WHAT =
@@ -9,9 +9,13 @@
 provide a  text version of an oo XML, 
 displayable in a mail, and parsable like a wiki.
 
+ = WHO =
+
+[FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com>
+
  = HOW =
 
-All style classes handle in this xsl are standard openOffice. To
+Style classes handle in this xsl are first standard openOffice. To
 define specific styles to handle, best is import this xsl. If possible, 
 modify only for better rendering of standard oo.
 

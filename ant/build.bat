@@ -16,7 +16,7 @@ rem
 rem ----------------------------------------------------------------------------
 rem build.bat - Win32 Build Script for Apache Cocoon
 rem
-rem $Id: build.bat,v 1.1 2004/10/30 21:14:54 glorieux Exp $
+rem $Id: build.bat,v 1.2 2004/11/02 07:42:32 glorieux Exp $
 rem ----------------------------------------------------------------------------
 
 rem ----- Ignore system CLASSPATH variable
@@ -27,7 +27,7 @@ rem ----- Use Ant shipped with Cocoon. Ignore installed in the system Ant
 set OLD_ANT_HOME=%ANT_HOME%
 set ANT_HOME=.
 echo webfolder=%1
-call %ANT_HOME%\bin\ant -Dwebfolder=%1
+call %ANT_HOME%\bin\ant -Dsrc=%1
 
 rem ----- Restore ANT_HOME and ANT_OPTS
 set ANT_HOME=%OLD_ANT_HOME%
