@@ -14,13 +14,26 @@ set ANT_HOME=.
 rem ----- process first argument as webfolder or default
 set WEBFOLDER=../docs
 if ""%1""=="""" goto doneWebfolder
+
+:: first argument exist as a folder, may be used as a source for transfolio
+if exist "%1" goto setWebfolder
+:: bad argument as a path, maybe a target
+goto doneWebfolder
+
+:setWebfolder
 set WEBFOLDER=%1
+:: don't forget to suppress this comand line argument, to not pass it to ant shell
+shift
+
+
 :doneWebfolder
 echo webfolder=%WEBFOLDER%
 
 
-echo %ANT_HOME%
-call %ANT_HOME%\bin\ant.bat -Dwebfolder=%WEBFOLDER%
+set CMD=%ANT_HOME%\bin\ant.bat -Dwebfolder=%WEBFOLDER% %1 %2 %3 %4 %5 %6 %7 %8 %9
+echo %CMD%
+:: execute
+%CMD%
 pause
 
 rem ----- Restore ANT_HOME and ANT_OPTS
@@ -31,4 +44,5 @@ rem ----- Restore CLASSPATH and used avriables
 set CLASSPATH=%OLD_CLASSPATH%
 set OLD_CLASSPATH=
 set WEBFOLDER=
+set CMD=
 
