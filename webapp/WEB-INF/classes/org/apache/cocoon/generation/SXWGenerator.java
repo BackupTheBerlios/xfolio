@@ -1,8 +1,3 @@
-/*
- * Copyright 2004 xfolio.org
- * Licence : CeCILL
- *
- */
 package org.apache.cocoon.generation;
 
 import java.io.IOException;
@@ -143,10 +138,10 @@ public class SXWGenerator extends FileGenerator implements CacheableProcessingCo
                 getLogger().debug("Source " + super.source + " resolved to " + this.inputSource.getURI());
             }
             this.contentHandler.startDocument();
-/* FIXME useful ?
-            this.contentHandler.startPrefixMapping("office", "http://openoffice.org/2000/office");
-*/          
-
+            // prefixMapping is perhaps not useful in this case
+            // this.contentHandler.startPrefixMapping("office", "http://openoffice.org/2000/office");
+            //...
+            
             super.contentHandler.startElement("http://openoffice.org/2000/office", "document", "office" + ':' + "document", new AttributesImpl());
 
             //      from org.apache.cocoon.transformation.XIncludeTransformer
