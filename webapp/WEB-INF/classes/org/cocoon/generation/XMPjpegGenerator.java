@@ -119,7 +119,7 @@ public class XMPjpegGenerator extends ServiceableGenerator
     protected Source         inputSource;
     protected InputStream    in;
     /**
-     * @version $Revision: 1.2 $
+     * @version $Revision: 1.3 $
      * @author Benoît Mahé (bmahe@w3.org)
      */
     /* Start Of Frame N. */
@@ -241,6 +241,8 @@ public class XMPjpegGenerator extends ServiceableGenerator
                                 + this.inputSource.getURI());
             }
             String xmp;
+            in = null;
+            in = inputSource.getInputStream();
             try {
                 scanHeaders();
                 xmp = this.getXMP();
@@ -256,8 +258,6 @@ public class XMPjpegGenerator extends ServiceableGenerator
              * from default file generator SourceUtil.parse(this.manager,
              * this.inputSource, super.xmlConsumer);
              */
-            in = null;
-            in = inputSource.getInputStream();
             //SourceUtil.parse(this.manager, this.inputSource,
             // super.xmlConsumer);
             // from org.apache.cocoon.components.source.SourceUtil;
