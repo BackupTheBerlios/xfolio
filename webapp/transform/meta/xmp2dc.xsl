@@ -56,6 +56,8 @@ description in this lang...
 
 = TODO =
 
+isolate country somewhere ?
+
 <xapBJ:JobRef>
 	<rdf:Bag>
     <rdf:li rdf:parseType="Resource">
