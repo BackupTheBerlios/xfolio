@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../html/xsl2html.xsl"?>
 <!--
 
 
@@ -34,103 +35,9 @@ This transformation have been tested on some hundred of jpeg images.
 
 [PT] Terray, Paul (4Dconcept) http://www.4dconcept.fr/
 
-= INPUT =
-
-{{{
-<?xml version="1.0" encoding="utf-8"?>
-<?xpacket begin='' id='W5M0MpCehiHzreSzNTczkc9d'?>
-<?adobe-xap-filters esc="CR"?>
-<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP toolkit 2.9-9, framework 1.6">
-<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:iX="http://ns.adobe.com/iX/1.0/">
-
- <rdf:Description xmlns:pdf="http://ns.adobe.com/pdf/1.3/" 
-   rdf:about="uuid:677e475e-f67e-11d8-b1aa-d5ccd9677e7a">
-
- </rdf:Description>
-
- <rdf:Description xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/" 
-   rdf:about="uuid:677e475e-f67e-11d8-b1aa-d5ccd9677e7a">
-  <photoshop:AuthorsPosition>Ingénieur civil</photoshop:AuthorsPosition>
-
-  <photoshop:City>FAQRA</photoshop:City>
-  <photoshop:State>KESROUAN</photoshop:State>
-  <photoshop:Country>LIBAN</photoshop:Country>
-  <photoshop:DateCreated>2003-12-15</photoshop:DateCreated>
-  <photoshop:CaptionWriter>S.D., H.K-J. Equipe Strabon</photoshop:CaptionWriter>
- </rdf:Description>
-
- <rdf:Description xmlns:xap="http://ns.adobe.com/xap/1.0/" 
-  rdf:about="uuid:677e475e-f67e-11d8-b1aa-d5ccd9677e7a">
-
- </rdf:Description>
-
- <rdf:Description xmlns:xapMM="http://ns.adobe.com/xap/1.0/mm/" 
-  rdf:about="uuid:677e475e-f67e-11d8-b1aa-d5ccd9677e7a">
-
-  <xapMM:DocumentID>adobe:docid:photoshop:c2120245-f678-11d8-b1aa-d5ccd9677e7a</xapMM:DocumentID>
- </rdf:Description>
-
- <rdf:Description xmlns:xapRights="http://ns.adobe.com/xap/1.0/rights/" 
-  rdf:about="uuid:677e475e-f67e-11d8-b1aa-d5ccd9677e7a">
-  <xapRights:Marked>True</xapRights:Marked>
-
-  <xapRights:WebStatement>http://creativecommons.org/licenses/by-nc-sa/2.0/</xapRights:WebStatement>
- </rdf:Description>
-
- <rdf:Description xmlns:dc="http://purl.org/dc/elements/1.1/" 
-rdf:about="uuid:677e475e-f67e-11d8-b1aa-d5ccd9677e7a">
-  <dc:creator>
-   <rdf:Seq>
-    <rdf:li>Kalayan, Haroutune</rdf:li>
-   </rdf:Seq>
-  </dc:creator>
-  <dc:title>
-   <rdf:Alt>
-
-    <rdf:li xml:lang="x-default">FAQRA - Eglise d'époque byzantine</rdf:li>
-   </rdf:Alt>
-  </dc:title>
-  <dc:description>
-   <rdf:Alt>
-    <rdf:li xml:lang="x-default">
-[fr] Vue de la nef centrale de l'église bordée par ses deux rangées de colonnes.
-
-[en]View of the chief nave of the church, bordered by its two rows of columns.
-</rdf:li>
-   </rdf:Alt>
-
-  </dc:description>
-  <dc:rights>
-   <rdf:Alt>
-    <rdf:li xml:lang="x-default">©1962. Direction Générale des Antiquités. Liban</rdf:li>
-   </rdf:Alt>
-  </dc:rights>
-  <dc:subject>
-   <rdf:Bag>
-
-    <rdf:li>1962</rdf:li>
-    <rdf:li>Archéologie</rdf:li>
-    <rdf:li>Architecture</rdf:li>
-    <rdf:li>Colonne</rdf:li>
-    <rdf:li>Eglise</rdf:li>
-    <rdf:li>Fakra</rdf:li>
-
-    <rdf:li>Faqra</rdf:li>
-    <rdf:li>Kalayan, Haroutune</rdf:li>
-    <rdf:li>Nef</rdf:li>
-    <rdf:li>Période byzantine</rdf:li>
-    <rdf:li>Restauration</rdf:li>
-   </rdf:Bag>
-
-  </dc:subject>
- </rdf:Description>
-
-</rdf:RDF>
-</x:xmpmeta>
-<?xpacket end='w'?>
-}}}
 
 = OUTPUT =
+
 {{{
 <rdf:RDF 
   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
@@ -316,11 +223,12 @@ Default handles
   <xsl:template match="photoshop:City|photoshop:Country|photoshop:State|photoshop:AuthorsPosition
   | rdf:Description[not(*)] | rdf:Description[xap:* | xapMM:*] | xapRights:*"/>
   <!-- 
-2:115 Source Not repeatable, maximum of 32 octets, consisting of graphic
-characters plus spaces.
-Identifies the original owner of the intellectual content of the
-objectdata. This could be an agency, a member of an agency or
-an individual.
+2-115 Source :
+  Not repeatable, maximum of 32 octets, consisting of graphic
+  characters plus spaces.
+  Identifies the original owner of the intellectual content of the
+  objectdata. This could be an agency, a member of an agency or
+  an individual.
 -->
   <xsl:template match="photoshop:Source">
     <dc:source xsi:type="IIM:Source">
@@ -334,14 +242,13 @@ an individual.
     </dc:contributor>
   </xsl:template>
   <!--
-2:30 Release
-Date
-Not repeatable, eight octets, consisting of numeric characters.
-Designates in the form CCYYMMDD the earliest date the
-provider intends the object to be used. Follows ISO 8601 standard.
+2-30 Release Date :
+  Not repeatable, eight octets, consisting of numeric characters.
+  Designates in the form CCYYMMDD the earliest date the
+  provider intends the object to be used. Follows ISO 8601 standard.
 Example:
-"19890317" indicates data for release on 17 March
-1989.
+  "19890317" indicates data for release on 17 March
+  1989.
 -->
   <xsl:template match="photoshop:DateCreated">
     <dc:date xsi:type="IIM:ReleaseDate">
@@ -349,14 +256,16 @@ Example:
     </dc:date>
   </xsl:template>
   <!--
-2:15 Category Not repeatable, maximum three octets, consisting of alphabetic
-characters.
-Identifies the subject of the objectdata in the opinion of the
-provider.
-A list of categories will be maintained by a regional registry,
-where available, otherwise by the provider.
-Note: Use of this DataSet is Deprecated. It is likely that this
-DataSet will not be included in further versions of the IIM.
+2-15 Category :
+  Not repeatable, maximum three octets, consisting of alphabetic
+  characters.
+  Identifies the subject of the objectdata in the opinion of the
+  provider.
+  A list of categories will be maintained by a regional registry,
+  where available, otherwise by the provider.
+Note: 
+  Use of this DataSet is Deprecated. It is likely that this
+  DataSet will not be included in further versions of the IIM.
 -->
   <xsl:template match="photoshop:Category">
     <!--
@@ -366,21 +275,21 @@ DataSet will not be included in further versions of the IIM.
 -->
   </xsl:template>
   <!--
-2:20 Supplemental
-Category
-Repeatable, maximum 32 octets, consisting of graphic characters
-plus spaces.
-Supplemental categories further refine the subject of an
-objectdata. Only a single supplemental category may be
-contained in each DataSet. A supplemental category may include
-any of the recognised categories as used in 2:15. Otherwise,
-selection of supplemental categories are left to the
-provider.
+2-20 Supplemental Category :
+  Repeatable, maximum 32 octets, consisting of graphic characters
+  plus spaces.
+  Supplemental categories further refine the subject of an
+  objectdata. Only a single supplemental category may be
+  contained in each DataSet. A supplemental category may include
+  any of the recognised categories as used in 2-15. Otherwise,
+  selection of supplemental categories are left to the
+  provider.
 Examples:
-"NHL" (National Hockey League)
-"Fußball"
-Note: Use of this DataSet is Deprecated. It is likely that this
-DataSet will not be included in further versions of the IIM.
+  "NHL" (National Hockey League)
+  "Fußball"
+Note: 
+  Use of this DataSet is Deprecated. It is likely that this
+  DataSet will not be included in further versions of the IIM.
 -->
   <xsl:template match="photoshop:SupplementalCategories">
     <xsl:for-each select=".//rdf:li">
@@ -391,28 +300,28 @@ DataSet will not be included in further versions of the IIM.
   </xsl:template>
   <!-- 
 
-2:100 Country/ Primary Location Code
-Not repeatable, three octets consisting of alphabetic characters.
-Indicates the code of the country/primary location where the
-intellectual property of the objectdata was created, e.g. a photo
-was taken, an event occurred.
-Where ISO has established an appropriate country code under
-ISO 3166, that code will be used. When ISO3166 does not
-adequately provide for identification of a location or a new
-country, e.g. ships at sea, space, IPTC will assign an
-appropriate three-character code under the provisions of
-ISO3166 to avoid conflicts. (see Appendix D)
+2-100 Country/ Primary Location Code :
+  Not repeatable, three octets consisting of alphabetic characters.
+  Indicates the code of the country/primary location where the
+  intellectual property of the objectdata was created, e.g. a photo
+  was taken, an event occurred.
+  Where ISO has established an appropriate country code under
+  ISO 3166, that code will be used. When ISO3166 does not
+  adequately provide for identification of a location or a new
+  country, e.g. ships at sea, space, IPTC will assign an
+  appropriate three-character code under the provisions of
+  ISO3166 to avoid conflicts. (see Appendix D)
 Examples:
-"USA" (United States)
-"FRA" (France)
-“XUN” (United Nations)
+  "USA" (United States)
+  "FRA" (France)
+  “XUN” (United Nations)
 
-2:101 Country/Primary Location Name
-Not repeatable, maximum 64 octets, consisting of graphic
-characters plus spaces.
-Provides full, publishable, name of the country/primary location
-where the intellectual property of the objectdata was created,
-according to guidelines of the provider.
+2-101 Country/Primary Location Name :
+  Not repeatable, maximum 64 octets, consisting of graphic
+  characters plus spaces.
+  Provides full, publishable, name of the country/primary location
+  where the intellectual property of the objectdata was created,
+  according to guidelines of the provider.
 
   -->
   <xsl:template match="rdf:Description[photoshop:*]">
@@ -465,16 +374,15 @@ according to guidelines of the provider.
     </xsl:for-each>
   </xsl:template>
   <!--
-2:40 Special
-Instructions
-Not repeatable, maximum 256 octets, consisting of graphic characters
-plus spaces.
-Other editorial instructions concerning the use of the objectdata,
-such as embargoes and warnings.
+2-40 Special Instructions
+  Not repeatable, maximum 256 octets, consisting of graphic characters
+  plus spaces.
+  Other editorial instructions concerning the use of the objectdata,
+  such as embargoes and warnings.
 Examples:
-"SECOND OF FOUR STORIES"
-"3 Pictures follow"
-"Argentina OUT"
+  * "SECOND OF FOUR STORIES"
+  * "3 Pictures follow"
+  * "Argentina OUT"
 -->
   <xsl:template match="photoshop:Instructions">
     <dc:description xsi:type="IIM:Instructions">
@@ -482,16 +390,14 @@ Examples:
     </dc:description>
   </xsl:template>
   <!--
-2:103 Original
-Transmission
-Reference
-Not repeatable. Maximum 32 octets, consisting of graphic characters
-plus spaces.
-A code representing the location of original transmission according
-to practices of the provider.
+2-103 Original Transmission Reference
+  Not repeatable. Maximum 32 octets, consisting of graphic characters
+  plus spaces.
+  A code representing the location of original transmission according
+  to practices of the provider.
 Examples:
-BER-5
-PAR-12-11-01
+  * BER-5
+  * PAR-12-11-01
 -->
   <xsl:template match="photoshop:TransmissionReference">
     <dc:identifier xsi:type="IIM:TransmissionReference">
@@ -499,12 +405,13 @@ PAR-12-11-01
     </dc:identifier>
   </xsl:template>
   <!--
-2:105 Headline Not repeatable, maximum of 256 octets, consisting of graphic
-characters plus spaces.
-A publishable entry providing a synopsis of the contents of the
-objectdata.
+2-105 Headline 
+  Not repeatable, maximum of 256 octets, consisting of graphic
+  characters plus spaces.
+  A publishable entry providing a synopsis of the contents of the
+  objectdata.
 Example:
-"Lindbergh Lands In Paris"
+  "Lindbergh Lands In Paris"
 -->
   <xsl:template match="photoshop:Headline">
     <dc:description xsi:type="IIM:Headline">
@@ -512,10 +419,11 @@ Example:
     </dc:description>
   </xsl:template>
   <!--
-2:110 Credit Not repeatable, maximum of 32 octets, consisting of graphic
-characters plus spaces.
-Identifies the provider of the objectdata, not necessarily the
-owner/creator.
+2-110 Credit :
+  Not repeatable, maximum of 32 octets, consisting of graphic
+  characters plus spaces.
+  Identifies the provider of the objectdata, not necessarily the
+  owner/creator.
 -->
   <xsl:template match="photoshop:Credit">
     <dc:publisher xsi:type="IIM:Credit">
@@ -523,11 +431,10 @@ owner/creator.
     </dc:publisher>
   </xsl:template>
   <!--
-2:116 Copyright
-Notice
-Not repeatable, maximum of 128 octets, consisting of graphic
-characters plus spaces.
-Contains any necessary copyright notice.
+2-116 Copyright Notice :
+  Not repeatable, maximum of 128 octets, consisting of graphic
+  characters plus spaces.
+  Contains any necessary copyright notice.
 -->
   <xsl:template match="dc:rights">
     <xsl:for-each select=".//rdf:li">
@@ -542,18 +449,19 @@ Contains any necessary copyright notice.
     </xsl:for-each>
   </xsl:template>
   <!--
-2:25 Keywords Repeatable, maximum 64 octets, consisting of graphic characters
-plus spaces.
-Used to indicate specific information retrieval words.
-Each keyword uses a single Keywords DataSet. Multiple keywords
-use multiple Keywords DataSets.
-It is expected that a provider of various types of data that are related
-in subject matter uses the same keyword, enabling the receiving
-system or subsystems to search across all types of data
-for related material.
-Examples:
-"GRAND PRIX"
-"AUTO"
+2-25 Keywords : 
+  Repeatable, maximum 64 octets, consisting of graphic characters
+  plus spaces.
+  Used to indicate specific information retrieval words.
+  Each keyword uses a single Keywords DataSet. Multiple keywords
+  use multiple Keywords DataSets.
+  It is expected that a provider of various types of data that are related
+  in subject matter uses the same keyword, enabling the receiving
+  system or subsystems to search across all types of data
+  for related material.
+Examples: 
+  "GRAND PRIX"
+  "AUTO"
 -->
   <xsl:template match="dc:subject">
     <xsl:for-each select=".//rdf:li">
@@ -571,7 +479,8 @@ Examples:
   <!-- 
 This template parse a text in a description field in case of multilingual 
 formating, like
-- -
+
+{{{
 default 
 description
 
@@ -581,11 +490,7 @@ multiline
 
 [other lang] title in another lang
 description in this lang...
-- -
-
-parsing description text in case of multilingual description 
-
-* 2004-10-08 [FG] debugging on real life records
+}}}
 
 -->
   <xsl:template name="titledesc" match="dc:description//text()">
@@ -636,6 +541,100 @@ cut after next lang to have a mololang block, but keep '[' -->
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
+  <!-- sample of input -->
+  <xsl:template name="xsl:input">
+<?xpacket begin='' id='W5M0MpCehiHzreSzNTczkc9d'?>
+<?adobe-xap-filters esc="CR"?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP toolkit 2.9-9, framework 1.6">
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:iX="http://ns.adobe.com/iX/1.0/">
+
+ <rdf:Description xmlns:pdf="http://ns.adobe.com/pdf/1.3/" 
+   rdf:about="uuid:677e475e-f67e-11d8-b1aa-d5ccd9677e7a">
+
+ </rdf:Description>
+
+ <rdf:Description xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/" 
+   rdf:about="uuid:677e475e-f67e-11d8-b1aa-d5ccd9677e7a">
+  <photoshop:AuthorsPosition>Ingénieur civil</photoshop:AuthorsPosition>
+
+  <photoshop:City>FAQRA</photoshop:City>
+  <photoshop:State>KESROUAN</photoshop:State>
+  <photoshop:Country>LIBAN</photoshop:Country>
+  <photoshop:DateCreated>2003-12-15</photoshop:DateCreated>
+  <photoshop:CaptionWriter>S.D., H.K-J. Equipe Strabon</photoshop:CaptionWriter>
+ </rdf:Description>
+
+ <rdf:Description xmlns:xap="http://ns.adobe.com/xap/1.0/" 
+  rdf:about="uuid:677e475e-f67e-11d8-b1aa-d5ccd9677e7a">
+
+ </rdf:Description>
+
+ <rdf:Description xmlns:xapMM="http://ns.adobe.com/xap/1.0/mm/" 
+  rdf:about="uuid:677e475e-f67e-11d8-b1aa-d5ccd9677e7a">
+
+  <xapMM:DocumentID>adobe:docid:photoshop:c2120245-f678-11d8-b1aa-d5ccd9677e7a</xapMM:DocumentID>
+ </rdf:Description>
+
+ <rdf:Description xmlns:xapRights="http://ns.adobe.com/xap/1.0/rights/" 
+  rdf:about="uuid:677e475e-f67e-11d8-b1aa-d5ccd9677e7a">
+  <xapRights:Marked>True</xapRights:Marked>
+
+  <xapRights:WebStatement>http://creativecommons.org/licenses/by-nc-sa/2.0/</xapRights:WebStatement>
+ </rdf:Description>
+
+ <rdf:Description xmlns:dc="http://purl.org/dc/elements/1.1/" 
+rdf:about="uuid:677e475e-f67e-11d8-b1aa-d5ccd9677e7a">
+  <dc:creator>
+   <rdf:Seq>
+    <rdf:li>Kalayan, Haroutune</rdf:li>
+   </rdf:Seq>
+  </dc:creator>
+  <dc:title>
+   <rdf:Alt>
+
+    <rdf:li xml:lang="x-default">FAQRA - Eglise d'époque byzantine</rdf:li>
+   </rdf:Alt>
+  </dc:title>
+  <dc:description>
+   <rdf:Alt>
+    <rdf:li xml:lang="x-default">
+[fr] Vue de la nef centrale de l'église bordée par ses deux rangées de colonnes.
+
+[en]View of the chief nave of the church, bordered by its two rows of columns.
+</rdf:li>
+   </rdf:Alt>
+
+  </dc:description>
+  <dc:rights>
+   <rdf:Alt>
+    <rdf:li xml:lang="x-default">©1962. Direction Générale des Antiquités. Liban</rdf:li>
+   </rdf:Alt>
+  </dc:rights>
+  <dc:subject>
+   <rdf:Bag>
+
+    <rdf:li>1962</rdf:li>
+    <rdf:li>Archéologie</rdf:li>
+    <rdf:li>Architecture</rdf:li>
+    <rdf:li>Colonne</rdf:li>
+    <rdf:li>Eglise</rdf:li>
+    <rdf:li>Fakra</rdf:li>
+
+    <rdf:li>Faqra</rdf:li>
+    <rdf:li>Kalayan, Haroutune</rdf:li>
+    <rdf:li>Nef</rdf:li>
+    <rdf:li>Période byzantine</rdf:li>
+    <rdf:li>Restauration</rdf:li>
+   </rdf:Bag>
+
+  </dc:subject>
+ </rdf:Description>
+
+</rdf:RDF>
+</x:xmpmeta>
+<?xpacket end='w'?>
+  </xsl:template>
+  
 
 <!--
 old buggy version of the template, with less experience of text processing in XSL

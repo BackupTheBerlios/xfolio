@@ -4,8 +4,6 @@
 <?demo?>
 <!--
 
-                 text2html
-
 
 rights:Copyright 2003-2004 ADNX <http://adnx.org>
 creator:[FG] "Frédéric Glorieux" <frederic.glorieux@ajlsm.com>
@@ -211,7 +209,8 @@ HTML generation (ex: encoding)
   <xsl:param name="CR" select="'&#13;'"/>
   <!-- TAB, ASCII Tabulation -->
   <xsl:param name="TAB" select="'&#9;'"/>
-
+  <!-- a test long variable -->
+  <xsl:variable name="test" select="'1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890'"/>
   <!-- demo means this applied to  -->
   <xsl:param name="demo">
     <xsl:if test="processing-instruction('demo')">
@@ -344,9 +343,6 @@ Call the splitter on blocks but before
                 <xsl:when test="name()!=''">
                   <xsl:value-of select="name()"/>
                 </xsl:when>
-                <xsl:otherwise>
-                  <xsl:text>comment</xsl:text>
-                </xsl:otherwise>
               </xsl:choose>
             </xsl:attribute>
             <xsl:call-template name="inlines">
@@ -432,6 +428,18 @@ split a string in blocks on empty lines
         <xsl:call-template name="block-split">
           <xsl:with-param name="text" select="substring-after($text, $LF)"/>
           <xsl:with-param name="more" select="$more"/>
+        </xsl:call-template>
+      </xsl:when>
+      <!-- {{{ pre block }}} -->
+      <xsl:when test="contains($text, '{{{') and contains ($text, '}}}') 
+and normalize-space(substring-before($text, '{{{') )=''">
+        <!-- put that in another place ? -->
+        <pre class="code">
+          <xsl:value-of select="substring-before (substring-after($text, '{{{'), '}}}')"/>
+        </pre>
+        
+        <xsl:call-template name="block-split">
+          <xsl:with-param name="text" select="substring-after($text, '}}}')"/>
         </xsl:call-template>
       </xsl:when>
       <!-- if only one line, give hand directly to inlines -->
@@ -560,10 +568,19 @@ normalize-space(
           </xsl:otherwise>
         </xsl:choose>
       </xsl:when>
-      <!-- lists -->
+      <!-- 
+lists 
+
+The list markers are
+ 1) numbers prefix "1.", "1)", "1.2)" (level calculate on dot)
+ 2) bullets prefix "*o-#"
+ 3) bullets inside block
+
+-->
       <!-- TODO better matching of lists -->
       <xsl:when test="
-    translate($prefix, '0123456789.)*#o-', '') = ''
+   translate($prefix, '0123456789.)', '') = ''
+or translate($prefix, '*#o-', '') = ''
 or contains($norm, ' * ')
 or contains($norm, ' # ')
 or contains($text, '1)')
@@ -641,7 +658,7 @@ and not(contains(normalize-space(substring-before($text, ':')), ' '))
    (contains($text, concat($LF, '  ')) and normalize-space(substring-after($text, '  '))!='' )
 or (contains($text, concat($LF, $TAB)) and normalize-space(substring-after($text, $TAB))!='' )
 ">
-        <dl>
+        <dl class="glossary">
           <xsl:call-template name="dl">
             <xsl:with-param name="text" select="$text"/>
           </xsl:call-template>
@@ -1145,7 +1162,7 @@ a pattern in form
 "find:replace,?:!,should disapear:, significant spaces  :SignificantSpaces" 
 default is for XML entities
 -->
-    <xsl:param name="pattern" select="$xmlents"/>
+    <xsl:param name="pattern"/>
     <!-- current simple string to find, no tests about valid pattern -->
     <xsl:param name="find" select="substring-before($pattern, ':')"/>
     <!-- current simple string to replace, no tests about valid pattern -->
@@ -1249,6 +1266,89 @@ default is for XML entities
     </xsl:choose>
   </xsl:template>
 
+  <!--
+
+a text word wrap
+
+
+-->
+  <xsl:template name="wrap">
+    <!-- reduce it at each line -->
+    <xsl:param name="text" select="."/>
+    <!-- keep it it on loop -->
+    <xsl:param name="indent" select="0"/>
+    <!-- forget it after first line -->
+    <xsl:param name="first-line" select="0"/>
+    <!-- global width of para, don't forget to keep it on loops ! -->
+    <xsl:param name="width" select="72"/>
+    <!-- index to run on -->
+    <xsl:param name="i" select="$width - $first-line - $indent"/>
+    <xsl:choose>
+      <!-- stop -->
+      <xsl:when test="normalize-space($text) =''"/>
+      <!-- write a line on a break space, or last line -->
+      <xsl:when test="
+(string-length($text) &lt;= $i) or (substring($text, $i, 1) = ' ') or (not(contains($text, ' ')))">
+        <!--
+        <xsl:choose>
+          <xsl:when test="number($first-line)">
+            <xsl:value-of select="substring($spaces, 1, $first-line)"/>
+          </xsl:when>
+          <xsl:when test="number($indent)">
+            <xsl:value-of select="substring($spaces, 1, $indent)"/>
+          </xsl:when>
+        </xsl:choose>
+-->
+        <xsl:value-of select="substring($spaces, 1, $first-line + $indent)"/>
+        <!-- right or center align ? -->
+        <xsl:value-of select="substring($text, 1, $i)"/>
+        <xsl:value-of select="$LF"/>
+        <xsl:call-template name="wrap">
+          <xsl:with-param name="text" select="substring($text, $i+1)"/>
+          <xsl:with-param name="indent" select="$indent"/>
+          <xsl:with-param name="width" select="$width"/>
+        </xsl:call-template>
+      </xsl:when>
+      <!-- keep break lines ? -->
+      <!--
+      <xsl:when test="contains($text, $break)">
+        <xsl:value-of select="substring-before($text, $break)"/>
+        <xsl:value-of select="$break"/>
+        <xsl:call-template name="wrap">
+          <xsl:with-param name="text" select="substring-after($text, $break)"/>
+        </xsl:call-template>
+      </xsl:when>
+-->
+      <!-- a long non breaking line, cut after, !! careful of infinite loop -->
+      <xsl:when test="not(contains(substring($text, 1, $width), ' '))">
+        <xsl:value-of select="substring($spaces, 1, $first-line + $indent)"/>
+        <xsl:value-of select="substring($text, 1, $width - 1)"/>
+        <xsl:text>¬?</xsl:text>
+        <xsl:value-of select="$LF"/>
+        <xsl:call-template name="wrap">
+          <xsl:with-param name="i" select="$i+1"/>
+          <xsl:with-param name="text" select="substring($text, $width)"/>
+          <xsl:with-param name="indent" select="$indent"/>
+          <xsl:with-param name="first-line" select="$first-line"/>
+          <xsl:with-param name="width" select="$width"/>
+        </xsl:call-template>
+      </xsl:when>
+      <!-- not on the break space, cut before -->
+      <xsl:when test="substring($text, $i, 1) != ' '">
+        <xsl:call-template name="wrap">
+          <xsl:with-param name="i" select="$i - 1"/>
+          <xsl:with-param name="text" select="$text"/>
+          <xsl:with-param name="indent" select="$indent"/>
+          <xsl:with-param name="first-line" select="$first-line"/>
+          <xsl:with-param name="width" select="$width"/>
+        </xsl:call-template>
+      </xsl:when>
+      <!-- should never arrive -->
+      <xsl:otherwise>
+        <xsl:text> textwrap, unhandled case </xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
 
   
 </xsl:stylesheet>

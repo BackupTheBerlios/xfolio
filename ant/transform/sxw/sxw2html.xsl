@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../html/xml2html.xsl"?>
 <!--
 (c) 2003, 2004; ADNX <http://adnx.org>
 
@@ -6,6 +7,17 @@
 
 provide an easy and clean xhtml, handling most of the structuration that
 a word processor is able to provide.
+
+ = HOW =
+
+Could be used as 
+ * an OOo Writer export filter
+ * to view flat sxw XML as HTML in browsers (IE, Mozilla)
+ * 
+
+ = Features =
+
+ * compatible with most of the XSL engines
 
  = WHO =
 
@@ -24,12 +36,15 @@ This work is continued, in the xhtml
 syntax. Most of the comments are from the author
 to help xsl developpers to understand some tricks.
 
- = MAYDO =
+ = TODO =
 
-Mozilla compatible
-media links
-split on section ?
-index terms ?
+ * index terms ?
+
+ = ISSUES =
+
+Work with multi xml files of an unzip sxw (content.xml, meta.xml, style.xml) 
+is less easier than a first step to merge them because of teh DTD declaration.
+
 
  = REFERENCES =
 
@@ -37,7 +52,27 @@ index terms ?
 
 
   -->
-<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:style="http://openoffice.org/2000/style" xmlns:text="http://openoffice.org/2000/text" xmlns:office="http://openoffice.org/2000/office" xmlns:table="http://openoffice.org/2000/table" xmlns:draw="http://openoffice.org/2000/drawing" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="http://openoffice.org/2000/meta" xmlns:number="http://openoffice.org/2000/datastyle" xmlns:svg="http://www.w3.org/2000/svg" xmlns:chart="http://openoffice.org/2000/chart" xmlns:dr3d="http://openoffice.org/2000/dr3d" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="http://openoffice.org/2000/form" xmlns:script="http://openoffice.org/2000/script" xmlns:config="http://openoffice.org/2001/config" office:class="text" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:i18n="http://apache.org/cocoon/i18n/2.1" exclude-result-prefixes="office meta  table number dc fo xlink chart math script xsl draw svg dr3d form config text style i18n">
+<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" 
+xmlns:style="http://openoffice.org/2000/style" 
+xmlns:text="http://openoffice.org/2000/text" 
+xmlns:office="http://openoffice.org/2000/office" 
+xmlns:table="http://openoffice.org/2000/table" 
+xmlns:draw="http://openoffice.org/2000/drawing" 
+xmlns:fo="http://www.w3.org/1999/XSL/Format" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:dc="http://purl.org/dc/elements/1.1/" 
+xmlns:meta="http://openoffice.org/2000/meta" 
+xmlns:number="http://openoffice.org/2000/datastyle" 
+xmlns:svg="http://www.w3.org/2000/svg" 
+xmlns:chart="http://openoffice.org/2000/chart" xmlns:dr3d="http://openoffice.org/2000/dr3d" xmlns:math="http://www.w3.org/1998/Math/MathML" 
+xmlns:form="http://openoffice.org/2000/form" 
+xmlns:script="http://openoffice.org/2000/script" 
+xmlns:config="http://openoffice.org/2001/config" 
+office:class="text" 
+xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+xmlns:i18n="http://apache.org/cocoon/i18n/2.1" 
+exclude-result-prefixes="
+office meta  table number dc fo xlink chart math script xsl draw svg dr3d form config text style i18n">
   <xsl:import href="sxw-common.xsl"/>
   <!-- may be indent for xhtml but not html (some layout) -->
   <xsl:output method="xml" indent="yes" omit-xml-declaration="yes" encoding="UTF-8"/>
@@ -46,12 +81,12 @@ index terms ?
   <!-- ?? parameter provided by the xhtml xsl pack of sun -->
   <xsl:param name="dpi" select="120"/>
   <!-- link to a css file -->
-  <xsl:param name="css"/>
-  <xsl:param name="css-">
-    <xsl:call-template name="getRelative">
-      <xsl:with-param name="from" select="$path"/>
-      <xsl:with-param name="to" select="$css"/>
-    </xsl:call-template>
+  <xsl:param name="css">
+    <xsl:choose>
+      <xsl:when test="processing-instruction('css')">
+        <xsl:value-of select="processing-instruction('css')"/>
+      </xsl:when>
+    </xsl:choose>
   </xsl:param>
   <!-- link to a js file -->
   <xsl:param name="js"/>
@@ -65,55 +100,77 @@ index terms ?
   <xsl:variable name="office:meta" select=".//office:meta"/>
   <xsl:variable name="office:automatic-styles" select=".//office:automatic-styles"/>
   <xsl:variable name="office:body" select=".//office:body"/>
+  <xsl:variable name="office:styles" select=".//office:styles"/>
   <!--
   root template for an oo the document
 -->
   <xsl:template match="/">
+    <xsl:call-template name="html"/>
+  </xsl:template>
+  <!-- generate root html -->
+  <xsl:template name="html">
     <html>
       <head>
-        <meta http-equiv="Content-type">
-          <xsl:attribute name="content">
-            <xsl:text>text/html; charset=</xsl:text>
-            <xsl:value-of select="$encoding"/>
-          </xsl:attribute>
-        </meta>
-        <xsl:if test="$css-">
-          <link rel="stylesheet" href="{$css-}"/>
-        </xsl:if>
-        <style type="text/css">
+        <!-- TODO change that ! -->
+        <title>generated by sxw2html.xsl</title>
+        <xsl:call-template name="head-common"/>
+      </head>
+      <xsl:call-template name="body"/>
+    </html>
+  </xsl:template>
+  <!-- generate html head -->
+  <xsl:template name="head-common">
+    <meta http-equiv="Content-type">
+      <xsl:attribute name="content">
+        <xsl:text>text/html; charset=</xsl:text>
+        <xsl:value-of select="$encoding"/>
+      </xsl:attribute>
+    </meta>
+    <xsl:text>
+</xsl:text>
+    <xsl:comment> Some default styles, easy to override from imported css</xsl:comment>
+    <style type="text/css">
 	table.img { border:1px solid; }
 	img.oo {clear:both;}
-	.bibliorecord {text-indent:-4em; margin-left:4em;}
-	.bibliorecord * {text-indent:0;}
+	p.bibliorecord {text-indent:-4em; margin-left:4em;}
+	.bibnote {margin-left:0; text-indent:0; text-align:justify; font-size:smaller; font-family:sans-serif; }
 
 				</style>
-      </head>
-      <!-- default js functions on body if available onload property -->
-      <!-- all layout is provide on CSS to keep a completely clean HTML -->
-      <body>
-        <div>
-          <xsl:if test="contains($lang, 'ar')">
-            <xsl:attribute name="dir">rtl</xsl:attribute>
-          </xsl:if>
-          <a name="0">
-            <xsl:comment> &#160; </xsl:comment>
-          </a>
-          <xsl:apply-templates select="$office:body" mode="html"/>
-          <xsl:if test="$office:body//text:footnote or $office:body//text:bibliography-mark">
-            <hr width="30%" align="left"/>
-            <div id="footnotes">
-              <xsl:apply-templates select="$office:body//text:footnote" mode="html-foot"/>
-            </div>
-            <div id="bibliography">
-              <!-- TOD, get a title from document -->
-              <xsl:apply-templates select="$office:body//text:bibliography-mark[not(@text:identifier = following::text:bibliography-mark/@text:identifier)]" mode="html-foot">
-                <xsl:sort select="@text:identifier"/>
-              </xsl:apply-templates>
-            </div>
-          </xsl:if>
-        </div>
-      </body>
-    </html>
+    <xsl:if test="$css">
+      <link rel="stylesheet">
+        <xsl:attribute name="href">
+          <xsl:call-template name="getRelative">
+            <xsl:with-param name="from" select="$path"/>
+            <xsl:with-param name="to" select="$css"/>
+          </xsl:call-template>
+        </xsl:attribute>
+      </link>
+    </xsl:if>
+  </xsl:template>
+  <!-- create body -->
+  <xsl:template name="body">
+    <body>
+      <div>
+        <xsl:if test="contains($lang, 'ar')">
+          <xsl:attribute name="dir">rtl</xsl:attribute>
+        </xsl:if>
+        <a name="0">
+          <xsl:comment> &#160; </xsl:comment>
+        </a>
+        <xsl:apply-templates select="$office:body" mode="html"/>
+        <xsl:if test="$office:body//text:footnote or $office:body//text:bibliography-mark">
+          <hr width="30%" align="left"/>
+          <div id="footnotes">
+            <xsl:apply-templates select="$office:body//text:footnote" mode="html-foot"/>
+          </div>
+          <div id="bibliography">
+            <xsl:apply-templates select="$office:body//text:bibliography-mark[not(@text:identifier = following::text:bibliography-mark/@text:identifier)]" mode="html-foot">
+              <xsl:sort select="@text:identifier"/>
+            </xsl:apply-templates>
+          </div>
+        </xsl:if>
+      </div>
+    </body>
   </xsl:template>
   <!-- default css -->
   <xsl:template name="css"/>
@@ -938,7 +995,7 @@ bibliography
     <xsl:text>&gt; </xsl:text>
   </xsl:template>
   <xsl:template match="@text:note" mode="html">
-    <div class="description">
+    <div class="bibnote">
       <xsl:value-of select="."/>
     </div>
   </xsl:template>

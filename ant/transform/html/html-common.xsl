@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="xsl2html.xsl"?>
 <?js html.js?>
 <!--
 Copyright 2004 ADNX <http://adnx.org>
@@ -41,7 +42,7 @@ or a processing-instruction in the source like this
       <xsl:when test="processing-instruction('css')">
         <xsl:value-of select="processing-instruction('css')"/>
       </xsl:when>
-      <xsl:otherwise>html.css</xsl:otherwise>
+      <xsl:otherwise>../html/html.css</xsl:otherwise>
     </xsl:choose>
   </xsl:param>
   <!-- 
@@ -52,7 +53,7 @@ same logic as css for a js file, but without default value
       <xsl:when test="processing-instruction('js')">
         <xsl:value-of select="processing-instruction('js')"/>
       </xsl:when>
-      <xsl:otherwise>html.js</xsl:otherwise>
+      <!-- no default value ! -->
     </xsl:choose>
   </xsl:param>
   <!--

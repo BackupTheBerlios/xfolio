@@ -15,14 +15,44 @@ Needs a naming.xsl import
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:style="http://openoffice.org/2000/style" xmlns:text="http://openoffice.org/2000/text" xmlns:office="http://openoffice.org/2000/office" xmlns:table="http://openoffice.org/2000/table" xmlns:draw="http://openoffice.org/2000/drawing" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="http://openoffice.org/2000/meta" xmlns:number="http://openoffice.org/2000/datastyle" xmlns:svg="http://www.w3.org/2000/svg" xmlns:chart="http://openoffice.org/2000/chart" xmlns:dr3d="http://openoffice.org/2000/dr3d" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="http://openoffice.org/2000/form" xmlns:script="http://openoffice.org/2000/script" xmlns:config="http://openoffice.org/2001/config" office:class="text" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:i18n="http://apache.org/cocoon/i18n/2.1" exclude-result-prefixes="office meta  table number dc fo xlink chart math script xsl draw svg dr3d form config text style i18n">
   <xsl:import href="naming.xsl"/>
   <!-- a path that could give the caller (? extracted from the doc ?) -->
-  <xsl:param name="path"/>
-  <!-- folder where to find pictures (could try a radical?) -->
-  <xsl:param name="pictures">
-    <xsl:call-template name="getBasename">
-      <xsl:with-param name="path" select="$path"/>
-    </xsl:call-template>
-    <xsl:text>/</xsl:text>
+  <xsl:param name="path">
+    <xsl:choose>
+      <xsl:when test="processing-instruction('path')">
+        <xsl:value-of select="processing-instruction('path')"/>
+      </xsl:when>
+    </xsl:choose>
   </xsl:param>
+  <!-- folder where to find pictures -->
+  <xsl:param name="pictures">
+    <xsl:choose>
+      <xsl:when test="processing-instruction('pictures')">
+        <xsl:value-of select="processing-instruction('pictures')"/>
+      </xsl:when>
+      <xsl:when test="$path">
+        <xsl:call-template name="getBasename">
+          <xsl:with-param name="path" select="$path"/>
+        </xsl:call-template>
+        <xsl:text>/</xsl:text>
+      </xsl:when>
+    </xsl:choose>
+  </xsl:param>
+    <!-- extension on which continue relative links
+take care that this transform could be used to generate html
+but also see directly xml
+ -->
+  <xsl:param name="extension">
+    <xsl:choose>
+      <xsl:when test="processing-instruction('extension')">
+        <xsl:value-of select="processing-instruction('extension')"/>
+      </xsl:when>
+      <xsl:when test="$path">
+        <xsl:call-template name="getExtension">
+          <xsl:with-param name="path" select="$path"/>
+        </xsl:call-template>
+      </xsl:when>
+    </xsl:choose>
+  </xsl:param>
+
   <!-- no indent to preserve design -->
   <xsl:output method="xml" encoding="UTF-8"/>
   <!-- 
@@ -33,15 +63,32 @@ These variables are used to normalize names of styles
   <!-- image links could be in the draw:a -->
   <!-- global redirection of links -->
   <xsl:template match="@xlink:href | @href">
+    <xsl:message>
+      <xsl:value-of select="."/>
+    </xsl:message>
+    <xsl:variable name="destExtension">
+      <xsl:call-template name="getExtension">
+        <xsl:with-param name="path" select="."/>
+      </xsl:call-template>
+    </xsl:variable>
+    <!-- the path without extension -->
+    <xsl:variable name="basepath">
+      <xsl:call-template name="getBasepath">
+        <xsl:with-param name="path" select="."/>
+      </xsl:call-template>
+    </xsl:variable>
     <xsl:choose>
       <xsl:when test="false()"/>
-      <xsl:when test="not(contains(.,'//')) and contains(., '.sxw')">
-        <xsl:value-of select="concat(substring-before(., '.sxw'), '.html')"/>
-        <xsl:value-of select="substring-after(., '.sxw')"/>
+      <!-- probably an absolute URI -->
+      <xsl:when test="contains(.,'//')">
+        <xsl:value-of select="."/>
       </xsl:when>
-      <xsl:when test="not(contains(.,'//')) and contains(., '.doc')">
-        <xsl:value-of select="concat(substring-before(., '.doc'), '.html')"/>
-        <xsl:value-of select="substring-after(., '.sxw')"/>
+      <!-- relative link to another sxw file, or from a word document
+ should also be transformed -->
+      <xsl:when test="$destExtension = 'sxw' or $destExtension = 'doc'">
+        <xsl:value-of select="$basepath"/>
+        <xsl:if test="normalize-space($extension) != ''">.</xsl:if>
+        <xsl:value-of select="$extension"/>
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="."/>

@@ -397,4 +397,42 @@ A basename is a filename without extension
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
+<!--
+A basepath is a path without extension
+-->
+  <xsl:template name="getBasepath">
+    <xsl:param name="path"/>
+    <xsl:choose>
+      <!-- windows filepath -->
+      <xsl:when test="contains($path, '\')">
+        <xsl:call-template name="getBasepath">
+          <xsl:with-param name="path" select="translate($path, '\', '/')"/>
+        </xsl:call-template>
+      </xsl:when>
+      <!-- not the end of the path, output first branch and continue -->
+      <xsl:when test="contains($path, '/')">
+        <xsl:value-of select="substring-before($path, '/')"/>
+        <xsl:text>/</xsl:text>
+        <xsl:call-template name="getBasepath">
+          <xsl:with-param name="path" select="substring-after($path, '/')"/>
+        </xsl:call-template>
+      </xsl:when>
+      <!-- no dot, break here -->
+      <xsl:when test="not(contains($path, '.'))">
+        <xsl:value-of select="$path"/>
+      </xsl:when>
+      <!-- hidden file, break here -->
+      <xsl:when test="starts-with($path, '.')">
+        <xsl:value-of select="$path"/>
+      </xsl:when>
+      <!-- more than one dot, maybe things like .sxw.xml, but cant do something for coucou.beuh.txt -->
+      <xsl:when test="contains(substring-after($path, '.'), '.')">
+        <xsl:value-of select="substring-before($path, '.')"/>
+      </xsl:when>
+      <!-- should be a basename -->
+      <xsl:otherwise>
+        <xsl:value-of select="substring-before($path, '.')"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
 </xsl:transform>

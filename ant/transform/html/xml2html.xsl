@@ -67,36 +67,72 @@ namespace documentation URI
 
 
 -->
-  <xsl:template match="node() | @*" mode="xml:uri"/>
-  <xsl:template match="node()" mode="xml:uri">
-    <xsl:variable name="namespace-uri" select="namespace-uri()"/>
-    <xsl:value-of select="$namespace-uri"/>
-    <xsl:if test="substring($namespace-uri, string-length($namespace-uri)) != '#'">#</xsl:if>
-    <xsl:value-of select="local-name()"/>
+  <!-- write an xml element name, use that to provide linking -->
+  <xsl:template match="* | @*" name="xml:name" mode="xml:name">
+    <xsl:variable name="uri">
+      <xsl:value-of select="namespace-uri()"/>
+      <xsl:if test="substring(namespace-uri(), string-length(namespace-uri())) != '#'">#</xsl:if>
+      <xsl:value-of select="local-name()"/>
+    </xsl:variable>
+    <xsl:variable name="prefix">
+      <xsl:choose>
+        <xsl:when test="contains(name(), ':')">
+          <xsl:value-of select="substring-before(name(), ':')"/>
+        </xsl:when>
+        <xsl:otherwise>el</xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <b class="{$prefix}">
+      <xsl:value-of select="name()"/>
+    </b>
   </xsl:template>
-  <xsl:template match="*[namespace-uri()='http://www.w3.org/1999/XSL/Transform']" mode="xml:uri">
-    <xsl:text>http://www.w3.org/TR/xslt#element-</xsl:text>
-    <xsl:value-of select="local-name()"/>
+  <!-- link Dublin Core to its doc -->
+  <xsl:template match="*[namespace-uri()='http://purl.org/dc/elements/1.1/']
+|@*[namespace-uri()='http://purl.org/dc/elements/1.1/']  
+  " mode="xml:name">
+    <a class="dc" title="Dublin Core Metadata Element {local-name()}" href="http://dublincore.org/documents/dces/#{local-name()}">
+      <xsl:value-of select="name()"/>
+    </a>
+  </xsl:template>
+  
+  <!-- link XSL elements to their doc -->
+  <xsl:template match="*[namespace-uri()='http://www.w3.org/1999/XSL/Transform']" mode="xml:name">
+    <a class="xsl" title="XSL W3C Doc for {name()}" href="http://www.w3.org/TR/xslt#element-{local-name()}">
+      <xsl:value-of select="name()"/>
+    </a>
   </xsl:template>
   <!-- link HTML elements to the elements index of W3C site -->
-  <xsl:template match="*[namespace-uri()='http://www.w3.org/1999/xhtml']" mode="xml:uri">
-    <xsl:text>http://www.w3.org/TR/REC-html40/index/elements.html</xsl:text>
+  <xsl:template match="*[namespace-uri()='http://www.w3.org/1999/xhtml']" mode="xml:name">
+    <a class="html" title="HTML4 W3C, index of elements" href="http://www.w3.org/TR/REC-html40/index/elements.html">
+      <xsl:value-of select="name()"/>
+    </a>
   </xsl:template>
   <!-- link HTML attributes to the elements index of W3C site -->
-  <xsl:template match="*[namespace-uri()='http://www.w3.org/1999/xhtml']/@*" mode="xml:uri">
-    <xsl:text>http://www.w3.org/TR/REC-html40/index/attributes.html</xsl:text>
+  <xsl:template match="*[namespace-uri()='http://www.w3.org/1999/xhtml']/@*" mode="xml:name">
+    <a class="html" title="HTML4 W3C, index of attributes" href="http://www.w3.org/TR/REC-html40/index/attributes.html">
+      <xsl:value-of select="name()"/>
+    </a>
   </xsl:template>
   <!-- HTML style attribute, link to CSS -->
-  <xsl:template match="@style | style" mode="xml:uri">
-    <xsl:text>http://www.w3.org/TR/REC-CSS2/propidx.html</xsl:text>
+  <xsl:template match="@style | style" mode="xml:name">
+    <a class="html" title="CSS content, see W3C index of properties" href="http://www.w3.org/TR/REC-CSS2/propidx.html">
+      <xsl:value-of select="name()"/>
+    </a>
   </xsl:template>
-  <!-- XSL @match attribute, linked to xpath -->
-  <xsl:template match="@match" mode="xml:uri">
-    <xsl:text>http://www.w3.org/TR/xpath#path-abbrev</xsl:text>
+  <!-- XSL @match | @select attribute, linked to xpath -->
+  <xsl:template match="@match | @select" mode="xml:name">
+    <a class="xsl" title="XPath content, see W3C documentation" href="http://www.w3.org/TR/xpath#path-abbrev">
+      <xsl:value-of select="name()"/>
+    </a>
+  </xsl:template>
+  <!-- @href as link -->
+  <xsl:template match="@href" mode="xml:value">
+    <a href="{.}" class="val">
+      <xsl:value-of select="."/>
+    </a>
   </xsl:template>
   <!--
      |    ROOT ? to verify in cas of imports
-     |    ééèèè
      |-->
   <xsl:template match="/">
     <xsl:call-template name="xml:html"/>
@@ -121,7 +157,7 @@ namespace documentation URI
       </head>
       <body ondblclick="if(window.swap_all)swap_all(this)">
         <div class="xml">
-          <div class="xml_pi">
+          <div class="pi">
             <xsl:text>&lt;?xml version="1.0" encoding="</xsl:text>
             <xsl:value-of select="$encoding"/>
             <xsl:text>"?&gt;</xsl:text>
@@ -146,7 +182,7 @@ namespace documentation URI
   </xsl:template>
   <!-- PI -->
   <xsl:template match="processing-instruction()" mode="xml:html">
-    <span class="xml_pi">
+    <span class="pi">
       <xsl:apply-templates select="." mode="xml:text"/>
     </span>
   </xsl:template>
@@ -182,22 +218,8 @@ namespace documentation URI
   <!-- matching attribute -->
   <xsl:template match="@*" mode="xml:html">
     <!-- try to get an uri for this attribute name -->
-    <xsl:variable name="uri">
-      <xsl:apply-templates select="." mode="xml:uri"/>
-    </xsl:variable>
     <xsl:value-of select="' '"/>
-    <xsl:choose>
-      <xsl:when test="normalize-space($uri) != ''">
-        <a href="{$uri}" class="att">
-          <xsl:value-of select="name()"/>
-        </a>
-      </xsl:when>
-      <xsl:otherwise>
-        <span>
-          <xsl:value-of select="name()"/>
-        </span>
-      </xsl:otherwise>
-    </xsl:choose>
+    <xsl:apply-templates select="." mode="xml:name"/>
     <xsl:text>=&quot;</xsl:text>
     <xsl:apply-templates select="." mode="xml:value"/>
     <xsl:text>"</xsl:text>
@@ -287,23 +309,46 @@ except the case of very long values where a preformatted block is more readable 
   </xsl:template>
   <!-- comment -->
   <xsl:template match="comment()" mode="xml:html">
-    <pre class="comment">
-      <a href="#i" class="click" id="src{generate-id()}" onclick="if (window.swap) return swap('{generate-id()}'); ">&lt;</a>
+    <xsl:variable name="element">
+      <xsl:choose>
+        <xsl:when test="contains(., $LF)">pre</xsl:when>
+        <xsl:otherwise>span</xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:element name="{$element}">
+      <xsl:attribute name="class">comment</xsl:attribute>
+      <a href="#i" tabindex="1" class="click" id="src{generate-id()}" onclick="if (window.swap) return swap('{generate-id()}'); ">&lt;</a>
       <xsl:text>!--</xsl:text>
       <i id="{generate-id()}">
         <xsl:value-of select="."/>
       </i>
       <xsl:text>--</xsl:text>
       <a class="click">&gt;</a>
-    </pre>
+    </xsl:element>
+  </xsl:template>
+  <!-- mode id
+
+Default naming of nodes for linking to source.
+The default generate-id() of the XSL engine  
+We can imagine an xpath id generator, or some 
+nicer rule depending on the namespace.
+
+-->
+  <xsl:template match="node()|@*" mode="xml:id">
+    <xsl:value-of select="generate-id()"/>
   </xsl:template>
   <!-- 
 
 handling elements
 
   -->
-  <xsl:template match="*" name="xml:tag" mode="xml:html">
-    <xsl:param name="id" select="generate-id()"/>
+  <xsl:template match="*" name="xml:element" mode="xml:html">
+    <!-- this param is not used here but passed to xml:content template 
+that an importer could override -->
+    <xsl:param name="mode"/>
+    <xsl:param name="id">
+      <xsl:apply-templates select="." mode="xml:id"/>
+    </xsl:param>
     <xsl:param name="inline" select="normalize-space(../text())!=''"/>
     <xsl:param name="content" select="
 text()[normalize-space(.)!=''] 
@@ -311,38 +356,39 @@ text()[normalize-space(.)!='']
     <xsl:choose>
       <!-- empty inline -->
       <xsl:when test="$inline and not($content)">
-        <span class="tag">
+        <span class="tag" id="{$id}">
           <xsl:text>&lt;</xsl:text>
-          <xsl:call-template name="xml:element"/>
+          <xsl:apply-templates select="." mode="xml:name"/>
           <xsl:apply-templates select="@*" mode="xml:html"/>
           <xsl:text> /&gt;</xsl:text>
         </span>
       </xsl:when>
       <!-- empty block -->
       <xsl:when test="not($content)">
-        <div class="tag">
+        <div class="tag" id="{$id}">
           <xsl:text>&lt;</xsl:text>
-          <xsl:call-template name="xml:element"/>
+          <xsl:apply-templates select="." mode="xml:name"/>
           <xsl:apply-templates select="@*" mode="xml:html"/>
           <xsl:text> /&gt;</xsl:text>
         </div>
       </xsl:when>
       <!-- inline -->
       <xsl:when test="$inline">
-        <span class="tag">
+        <span class="tag" id="{$id}">
           <xsl:text>&lt;</xsl:text>
-          <xsl:call-template name="xml:element"/>
+          <xsl:apply-templates select="." mode="xml:name"/>
           <xsl:apply-templates select="@*" mode="xml:html"/>
           <xsl:text>&gt;</xsl:text>
         </span>
 
         <xsl:call-template name="xml:content">
           <xsl:with-param name="inline" select="true()"/>
+          <xsl:with-param name="mode" select="$mode"/>
         </xsl:call-template>
 
-        <span class="tag">
+        <span class="tag" id="{$id}_">
           <xsl:text>&lt;</xsl:text>
-          <xsl:call-template name="xml:element"/>
+          <xsl:apply-templates select="." mode="xml:name"/>
           <xsl:text>&gt;</xsl:text>
         </span>
       </xsl:when>
@@ -351,90 +397,104 @@ text()[normalize-space(.)!='']
 (@xml:space='preserve' or contains($pres, concat(' ', local-name(), ' ')))
 and not(*)
 ">
-        <pre class="content">
+        <xsl:variable name="element">
+          <xsl:choose>
+            <xsl:when test="contains(., $LF)">pre</xsl:when>
+            <xsl:otherwise>div</xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
+        <xsl:element name="{$element}" id="{$id}">
+          <xsl:attribute name="class">pre</xsl:attribute>
           <span class="tag">
-            <a class="click" href="#close{$id}" name="open{$id}" onclick="if (window.swap) return swap('{$id}');">
+            <a class="click" tabindex="1" href="#{$id}_" onclick="if (window.swap) return swap('{$id}-');">
               <xsl:text>&lt;</xsl:text>
-            </a><xsl:call-template name="xml:element"/>
+            </a><xsl:apply-templates select="." mode="xml:name"/>
             <xsl:apply-templates select="@*" mode="xml:html"/>
             <xsl:text>&gt;</xsl:text>
-          </span><span id="{$id}">
+          </span><code id="{$id}-">
 
         <xsl:call-template name="xml:content">
           <xsl:with-param name="inline" select="true()"/>
+          <xsl:with-param name="mode" select="$mode"/>
         </xsl:call-template>
 
-          </span><span class="tag"><a class="click">&lt;</a>
+          </code><span class="tag" id="{$id}_"><a class="click">&lt;</a>
             <xsl:text>/</xsl:text>
-            <xsl:call-template name="xml:element"/>
+            <xsl:apply-templates select="." mode="xml:name"/>
             <xsl:text>&gt;</xsl:text>
           </span>
-        </pre>
+        </xsl:element>
+
       </xsl:when>
       <!-- mixed block -->
       <xsl:when test="normalize-space(text())!='' and *">
         <div class="xml_block">
           <span class="tag">
-            <a class="click" href="#close{$id}" name="open{$id}" onclick="if (window.swap) return swap('{$id}');">
+            <a class="click" tabindex="1" href="#{$id}_" onclick="if (window.swap) return swap('{$id}-');">
               <xsl:text>&lt;</xsl:text>
             </a>
-            <xsl:call-template name="xml:element"/>
+            <xsl:apply-templates select="." mode="xml:name"/>
             <xsl:apply-templates select="@*" mode="xml:html"/>
             <xsl:text>&gt;</xsl:text>
           </span>
-          <span class="xml_mix" id="{$id}">
+          <span class="xml_mix" id="{$id}-">
 
             <xsl:call-template name="xml:content">
               <xsl:with-param name="inline" select="true()"/>
+              <xsl:with-param name="mode" select="$mode"/>
             </xsl:call-template>
 
           </span>
-          <span class="tag">
+          <span class="tag" id="{$id}_">
             <a class="click">&lt;</a>
             <xsl:text>/</xsl:text>
-            <xsl:call-template name="xml:element"/>
+            <xsl:apply-templates select="." mode="xml:name"/>
             <xsl:text>&gt;</xsl:text>
           </span>
         </div>
       </xsl:when>
       <!-- structured block with indent -->
       <xsl:when test="normalize-space(text()) = '' and *">
-        <dl>
+        <dl class="xml" id="{$id}">
           <dt class="tag">
-            <a class="click" href="#close{$id}" name="open{$id}" onclick="if (window.swap) return swap('{$id}');">
+            <a class="click" tabindex="1" href="#{$id}_" onclick="if (window.swap) return swap('{$id}');">
               <xsl:text>&lt;</xsl:text>
-            </a><xsl:call-template name="xml:element"/>
+            </a><xsl:apply-templates select="." mode="xml:name"/>
             <xsl:apply-templates select="@*" mode="xml:html"/>
             <xsl:text>&gt;</xsl:text>
           </dt>
-          <dd class="xml_margin" id="{$id}">
+          <dd class="code" id="{$id}">
   
-          <xsl:call-template name="xml:content"/>
+          <xsl:call-template name="xml:content">
+            <xsl:with-param name="mode" select="$mode"/>
+          </xsl:call-template>
   
           </dd>
           <dt class="tag">
-            <a class="click" href="#open{$id}" name="close{$id}">&lt;</a>
+            <a class="click" href="#{$id}" name="{$id}_">&lt;</a>
             <xsl:text>/</xsl:text>
-            <xsl:call-template name="xml:element"/>
+            <xsl:apply-templates select="." mode="xml:name"/>
             <xsl:text>&gt;</xsl:text>
           </dt>
         </dl>
       </xsl:when>
       <!-- block or with no children -->
       <xsl:otherwise>
-        <div>
+        <div id="{$id}">
           <span class="tag">
             <xsl:text>&lt;</xsl:text>
-            <xsl:call-template name="xml:element"/>
+            <xsl:apply-templates select="." mode="xml:name"/>
             <xsl:apply-templates select="@*" mode="xml:html"/>
             <xsl:text>&gt;</xsl:text>
           </span>
 
-          <xsl:call-template name="xml:content"/>
+          <xsl:call-template name="xml:content">
+            <xsl:with-param name="mode" select="$mode"/>
+          </xsl:call-template>
 
           <span class="tag">
             <xsl:text>&lt;/</xsl:text>
-            <xsl:call-template name="xml:element"/>
+            <xsl:apply-templates select="." mode="xml:name"/>
             <xsl:text>&gt;</xsl:text>
           </span>
         </div>
@@ -464,36 +524,10 @@ This template is isolated if importer wants to override
       <xsl:with-param name="inline" select="$inline"/>
     </xsl:apply-templates>
   </xsl:template>
-  <!-- write an xml element name -->
-  <xsl:template name="xml:element">
-    <xsl:variable name="uri">
-      <xsl:apply-templates select="." mode="xml:uri"/>
-    </xsl:variable>
-    <xsl:variable name="prefix">
-      <xsl:choose>
-        <xsl:when test="contains(name(), ':')">
-          <xsl:value-of select="substring-before(name(), ':')"/>
-        </xsl:when>
-        <xsl:otherwise>el</xsl:otherwise>
-      </xsl:choose>
-    </xsl:variable>
-    <xsl:choose>
-      <xsl:when test="normalize-space($uri) != ''">
-        <a href="{$uri}" class="{$prefix}">
-          <xsl:value-of select="name()"/>
-        </a>
-      </xsl:when>
-      <xsl:otherwise>
-        <b class="{$prefix}">
-          <xsl:value-of select="name()"/>
-        </b>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
   <!-- unplugged because of possible infinite loop -->
   <!--
     <xsl:template match="*[local-name()='include' or local-name()='import']" mode="xml:html">
-        <xsl:call-template name="xml:element">
+        <xsl:call-template name="xml:name">
             <xsl:with-param name="element" select="."/>
             <xsl:with-param name="content" select="document(@href, .)"/>
             <xsl:with-param name="hide" select="true()"/>
@@ -586,18 +620,43 @@ default is for XML entities
     background:#8080FF;
     color:#FFFFFF;
   }
+  
+  /* element names */
+  .tag a:link, .tag a:visited {
+    text-decoration:none;
+    border:none;
+  }
 
   /* classes are provided for namespace prefix */
-  .xsl {
+  .xsl, a.xsl, a:link.xsl, a:visited.xsl, 
+  .xsl, a.xsl, a:link.xsl, a:visited.xsl {
+    font-family: Verdana, arial, sans-serif; 
     color:#0000FF;
     font-weight:bold;
   }
+  a:hover.xsl,
+  a:hover.rdf {
+    background:#0000FF;
+    color:white;
+  }
 
+  .html, a.html, a:link.html, a:visited.html,
+  .html, a.dc, a:link.dc, a:visited.dc {
+    color:#FF0000;
+    font-weight:bold;
+  }
+  a:hover.html,
+  a:hover.dc {
+    background:red;
+    color:white;
+  }
   
   /* element names */
-  .el { 
-    color:#CC3333; 
+  .el, 
+  a.el { 
+    color:#FF0000; 
     font-weight:900; 
+    font-family: Verdana, arial, sans-serif; 
   }
   
   /* attribute names */
@@ -608,12 +667,12 @@ default is for XML entities
 	
   /* tag is what is between brackets */
   .tag { 
-    white-space:nowrap;
+    margin:0;
   }
-  
+   
   /* processing instructions */  
-  .xml_pi {
-    color:#000080; 
+  .pi {
+    color:#008000; 
     font-weight: bold;
   }
   
@@ -632,15 +691,18 @@ default is for XML entities
 
   /* xml comment */
 
-  pre.comment {  
-    margin:0; 
-    padding:0; 
-    white-space:pre;
-    font-size:90%;
+  .comment {
     font-family: monospace, sans-serif;
     color:#666666; 
     background:#FFFFCC; 
     font-weight: 100; 
+    font-size:90%;
+    white-space:pre;
+  }
+
+  pre.comment {  
+    margin:0; 
+    padding:0; 
   }
 
   /* button for +/- and margins */
@@ -655,7 +717,7 @@ default is for XML entities
 
   }
 
-  .xml_margin, 
+  dd.code, 
   .xml_mix { 
     display:block; 
     margin-left:5px; 
@@ -668,14 +730,14 @@ default is for XML entities
 
 
   /* preformated content elements */
-  pre.content {
+  pre.pre {
     font-family:inherit;
     display:inline;
     margin:0; 
     padding:0; 
   }
 
-  pre.content .text {
+  .pre .text {
     background:#DDDDFF;
     font-family: monospace, sans-serif;
   }
@@ -692,7 +754,7 @@ default is for XML entities
   /* properties  */
       
   
-  dl.xml_block { 
+  dl.xml { 
     margin:0; 
     padding:0;
   }

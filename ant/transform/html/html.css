@@ -96,7 +96,7 @@ frederic.glorieux@xfolio.org
         padding-bottom:1.5em;
         width: 99%;
         overflow: auto;
-        overflow-y: hidden;
+        overflow-y: hidden !important;
     }
     /* End IE5 Mac hack */
 
@@ -113,7 +113,7 @@ frederic.glorieux@xfolio.org
     pre.code * {
         background:white;
     }
-    
+
     
     /*
         LINKS
@@ -132,8 +132,6 @@ frederic.glorieux@xfolio.org
     
     a:visited { 
         color:#000080;
-        text-decoration:none;
-        border-bottom: 1px dotted;
     }
     a:hover, 
     a:hover * { 
@@ -237,23 +235,20 @@ frederic.glorieux@xfolio.org
     li p { 
         text-indent:0px; 
     }
-    dl dl { margin-left: 2em; }
-    dt { 
+    dl.glossary dt { 
         font-weight: bold; 
         margin-top:1ex; 
         margin-bottom:0.2ex;  
+        color: #663300;
     }
-    dd { 
+    dl.glossary dd { 
         text-align:justify; 
         margin-top:0ex; 
         margin-bottom:1em; 
     }
-    dd p {
+    dl.glossary dd p {
         margin-top:0.5ex;
         margin-bottom:0.5ex;
-    }
-    dt {
-        color: #663300;
     }
     dl.item {
         background-color:#FFFFFF;
@@ -263,9 +258,6 @@ frederic.glorieux@xfolio.org
     dl.item dt {
         background-color:#F0EDE0;
     }
-
-    /* other blocks handling */
-    
     dl.item {
         -moz-border-radius: 10px;
         border: 2px solid;
@@ -309,6 +301,26 @@ frederic.glorieux@xfolio.org
 
     .mail blockquote blockquote blockquote {
         background:#FFFFCC; 
+    }
+
+    div.code-comment {
+        font-family: Bitstream Vera Serif, "Trebuchet MS", Universal, Arial, sans-serif; 
+        background:#FFFFCC;
+        font-weight:bold;
+    }
+    
+    div.code {
+        font-family: Arial, sans-serif; 
+    }
+
+    div.code div.code,
+    div.code div.code-comment {
+        margin-left:5px; 
+        padding-left:20px; 
+        border-left: 1px dotted;
+        margin-top:0px; 
+        margin-bottom:0px; 
+        margin-right:0px; 
     }
 
 
@@ -379,16 +391,12 @@ frederic.glorieux@xfolio.org
     }
     caption { 
         text-align:left; 
-        padding-left:1em; 
-        padding-right:1em; 
+        padding:0; 
     }
     /* highlight  light on dark #4682B4 */
     
     caption td, 
     caption small,
-    caption h1,
-    caption h2,
-    caption h3,
     caption a,
     caption { 
         background-color:#6082A0; 
@@ -411,6 +419,10 @@ frederic.glorieux@xfolio.org
         /* ButtonFace #DCDAD0  #F0EDE0*/
     th {
         background:#DCDAD0;
+        text-align:left;
+        vertical-align:top;
+        padding-left:1em;
+        padding-right:1ex;
     }
     
 
@@ -428,13 +440,16 @@ frederic.glorieux@xfolio.org
     
     /* title of document */
     /* decide as marker of document title */
-    center h1 {
+    center h1,
+    h1.title    {
         letter-spacing: 0.5em;
         font-size:200%;
         font-weight: 900; 
-        text-align:center;
+        text-align:right;
         border:none;
         background:inherit;
+        color:#000000;
+        margin-bottom:2em;
     }
     /* subtitle of document */
     h1 em, em, h1 i, em h1, i h1 { 
@@ -452,12 +467,12 @@ frederic.glorieux@xfolio.org
     h1 { 
         font-family:Verdana, sans-serif;
         padding-top:0px;
-        margin-top:1em;
+        margin-top:2em;
+        margin-bottom:1em;
         font-weight: 900; 
         font-size:117%;
         margin-left:-2em;
         padding-left:2em;        
-        margin-bottom:0.5ex;
         background-color:#C0B899; 
         color:White;
      }
@@ -469,7 +484,7 @@ frederic.glorieux@xfolio.org
     h1 em { 
         font-weight:normal; display:block; color : #332000;
     }
-    
+        
     h2 {
         color: #000000;
         border-bottom: 1px solid #CC8000; 
@@ -512,14 +527,20 @@ frederic.glorieux@xfolio.org
     td h3, 
     td h4, 
     td h5, 
-    td h6, 
+    td h6,
+    th h1,
+    th h2,
+    th h3,
+    th h4,
+    th h5,
+    th h6,
     caption h1, 
     caption h2, 
     caption h3, 
     caption h4, 
     caption h5, 
     caption h6 { 
-        margin-top:0; margin-bottom:0;
+        margin:0;
     }
     
     
